@@ -133,6 +133,14 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 
 [hidden] { display: none !important; }
 
+/* carte Bouche : réponse. Règle de toute l'appli : le français petit et gris, l'espagnol en marine fort. */
+.prompt.petit { font-size: 17px; font-weight: 400; color: var(--muted); padding-top: 4px; }
+.vedette { font-size: 36px; font-weight: 600; line-height: 1.15; letter-spacing: -.015em; text-align: center; color: var(--marine); text-wrap: balance; margin-top: 4px; }
+.en-phrase { text-align: center; font-size: 16px; color: var(--marine); line-height: 1.45; }
+.en-phrase .etiq { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.comparer { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.moi.vide { opacity: .4; }
+
 /* carte Bouche */
 .ring-fond { stroke: var(--sun-halo); }
 .ring-arc { stroke: var(--sun); transition: stroke .4s var(--ease); }

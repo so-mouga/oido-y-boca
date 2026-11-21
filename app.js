@@ -2,14 +2,14 @@
 // Bloc 3 : l'accueil, la série mixte de cartes Oreille et Bouche, et l'écran des mots de la semaine.
 // En Bouche, c'est toi qui déclenches chaque étape : tenir le micro, parler, lâcher (ou « Voir la réponse »).
 
-import { chargerTableau, etatDuJour } from "./donnees.js?v=5";
-import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=5";
-import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=5";
-import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=5";
+import { chargerTableau, etatDuJour } from "./donnees.js?v=6";
+import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=6";
+import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=6";
+import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=6";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   reecouterEnregistrement, effacerEnregistrement, aUnEnregistrement,
-} from "./enregistrement.js?v=5";
+} from "./enregistrement.js?v=6";
 
 const app = document.getElementById("app");
 const JOURS = { Lun: "Lundi", Mar: "Mardi", Mer: "Mercredi", Jeu: "Jeudi", Ven: "Vendredi", Sam: "Samedi", Dim: "Dimanche" };
@@ -19,6 +19,7 @@ const ICONES = {
   fleche: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   rejouer: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
   lent: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h12a4 4 0 0 0 4-4V9"/><path d="M6 18a6 6 0 1 1 10.5-4"/><path d="M20 9l-2-2"/></svg>',
+  ecouter: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10-6.5z"/></svg>',
   micro: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
   anneaux: '<svg class="rings" viewBox="0 0 30 20" aria-hidden="true"><circle cx="11" cy="10" r="7" fill="none" stroke="#13294B" stroke-width="2"/><circle cx="19" cy="10" r="7" fill="none" stroke="#F2B630" stroke-width="2.4"/></svg>',
 };
@@ -68,6 +69,15 @@ function phraseTouchable(phrase, mot) {
     if (!parle) return esc(morceau);
     return `<button class="tok${dedans ? " hl" : ""}" data-tok="${esc(parle)}">${esc(morceau)}</button>`;
   }).join("");
+}
+
+// La même phrase, sans boutons : juste le mot étudié surligné (carte Bouche).
+function phraseSurlignee(phrase, mot) {
+  const coeur = prononcable(mot).split(",")[0]
+    .replace(/^(el|la|los|las)\s+/i, "").replace(/[¿?¡!]/g, "").trim();
+  const i = coeur ? phrase.toLowerCase().indexOf(coeur.toLowerCase()) : -1;
+  if (i < 0) return esc(phrase);
+  return esc(phrase.slice(0, i)) + `<span class="hl">${esc(phrase.slice(i, i + coeur.length))}</span>` + esc(phrase.slice(i + coeur.length));
 }
 
 function barre(droite = "") {
@@ -145,10 +155,6 @@ function boutonMicro(texte) {
     <p class="note center" id="micro-info" hidden></p>`;
 }
 
-function boutonMoi() {
-  return `<button class="secondary moi" id="moi" data-action="moi" ${aUnEnregistrement() ? "" : "hidden"}>${ICONES.micro}Me réécouter</button>`;
-}
-
 // ---------- carte Oreille ----------
 function carteOreille() {
   const { mot } = carteEnCours();
@@ -191,25 +197,24 @@ function carteBouche() {
       ${boutonMicro("Tiens pour parler")}
       <button class="${enregistrementPossible() ? "secondary" : "primary"}" data-action="reveler">Voir la réponse</button>`;
   }
+  // Page de réponse : le français reste à sa place, petit et gris ; l'espagnol apparaît dessous, en vedette.
+  const moi = aUnEnregistrement();
   const reponse = `
-    <div class="prompt">${esc(mot.fr)}</div>
-    <div class="answer center">
-      <div class="es">${phraseTouchable(mot.es, mot.es)}</div>
-      ${mot.ex ? `<div class="fr">${phraseTouchable(mot.ex, mot.es)}</div>` : ""}
+    <div class="prompt petit">${esc(mot.fr)}</div>
+    <div class="vedette">${phraseSurlignee(mot.es, mot.es)}</div>
+    ${mot.ex ? `<div class="en-phrase"><span class="etiq">En phrase</span>${phraseSurlignee(mot.ex, mot.es)}</div>` : ""}
+    <div class="spacer"></div>
+    <div class="comparer">
+      <button class="secondary" data-action="modele">${ICONES.rejouer}<span id="modele-txt">${etat.modeleLent ? "Modèle · lent" : "Modèle"}</span></button>
+      <button class="secondary moi ${moi ? "" : "vide"}" id="moi" data-action="moi" aria-disabled="${!moi}">${ICONES.ecouter}Moi</button>
     </div>
-    ${boutonsEcoute()}
-    ${boutonMoi()}`;
+    ${boutonMicro(moi ? "Tiens pour le redire" : "Tiens pour t'enregistrer")}`;
   if (etat.repete) {
     return enTeteCarte("Bouche", "à toi") + reponse + `
-      <div class="spacer"></div>
-      <p class="say-aloud"><b>À toi : répète-le</b> à voix haute,<br>juste après le modèle.</p>
-      ${boutonMicro("Tiens pour t'enregistrer")}
+      <p class="say-aloud"><b>À toi : répète-le</b> à voix haute, juste après le modèle.</p>
       <button class="primary" data-action="suivante">Suivant ${ICONES.fleche}</button>`;
   }
-  return enTeteCarte("Bouche", "dis-le à voix haute") + reponse + `
-    <div class="note center">Touche un mot pour l'entendre seul.</div>
-    <div class="spacer"></div>
-    ${notes("b", "Tu l'avais dit ?")}`;
+  return enTeteCarte("Bouche", "dis-le à voix haute") + reponse + notes("b", "Tu l'avais dit ?");
 }
 
 function finDeSerie() {
@@ -334,8 +339,14 @@ async function relacheMicro() {
   }
   const garde = pret ? await arreterEnregistrement(true) : false;
   if (etat.ecran !== "carte") return;
-  if (!etat.revele) reveler(garde);
-  else if (garde) document.getElementById("moi")?.removeAttribute("hidden");
+  if (!etat.revele) { reveler(garde); return; }
+  if (garde) {
+    const moi = document.getElementById("moi");
+    moi?.classList.remove("vide");
+    moi?.setAttribute("aria-disabled", "false");
+    const txt = bouton.querySelector(".mic-txt");
+    if (txt) txt.textContent = "Tiens pour le redire";
+  }
 }
 
 // ---------- déroulé de la série ----------
@@ -343,6 +354,7 @@ async function relacheMicro() {
 function reveler(apresMicro = false) {
   arreterCompte();
   etat.revele = true;
+  etat.modeleLent = true; // le modèle va être dit une fois : le prochain appui sur « Modèle » sera lent
   afficher();
   if (carteEnCours().sens !== "b") return;
   const rang = etat.rang;
@@ -396,7 +408,17 @@ app.addEventListener("click", e => {
   if (action === "reveler") { reveler(); return; }
   if (action === "suivante") { carteSuivante(); return; }
   if (action === "quitter") { effacerEnregistrement(); etat.ecran = "accueil"; afficher(); return; }
+  if (action === "modele") {
+    // Le bouton alterne : normal, puis lent, puis normal… et l'annonce sur son libellé.
+    const lent = etat.modeleLent;
+    ecouter(lent);
+    etat.modeleLent = !lent;
+    const txt = document.getElementById("modele-txt");
+    if (txt) txt.textContent = etat.modeleLent ? "Modèle · lent" : "Modèle";
+    return;
+  }
   if (action === "moi") {
+    if (b.classList.contains("vide")) { infoMicro("Tiens le micro pour t'enregistrer d'abord."); return; }
     taire();
     lecture++;
     b.classList.add("on");
@@ -421,6 +443,7 @@ app.addEventListener("click", e => {
       // Mot raté : la même carte devient « À toi : répète-le ». Pas de deuxième note.
       effacerEnregistrement();
       etat.repete = true;
+      etat.modeleLent = true;
       afficher();
       ecouter();
     } else carteSuivante();
