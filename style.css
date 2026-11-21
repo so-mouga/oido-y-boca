@@ -131,6 +131,13 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 @keyframes onde { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
 @keyframes respire { 0%, 100% { box-shadow: 0 0 0 12px var(--sun-halo); } 50% { box-shadow: 0 0 0 24px var(--sun-halo); } }
 
+/* carte Bouche */
+.prompt { font-size: 30px; font-weight: 600; text-align: center; line-height: 1.15; letter-spacing: -.01em; padding-top: 12px; text-wrap: balance; }
+.ring { width: 132px; height: 132px; align-self: center; position: relative; margin: 8px 0; }
+.ring svg { transform: rotate(-90deg); display: block; }
+.ring .num { position: absolute; inset: 0; display: grid; place-items: center; font-size: 44px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.answer.center .es { font-size: 28px; }
+
 /* la prochaine étape attend la fin de la première écoute */
 .next-step { display: flex; flex-direction: column; gap: 14px; transition: opacity .5s var(--ease), transform .5s var(--ease); }
 .next-step.waiting { opacity: .3; transform: translateY(6px); }

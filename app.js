@@ -1,10 +1,10 @@
 // Oído y Boca : enchaînement des écrans.
-// Bloc 2 : l'accueil, la série de cartes Oreille, et l'écran des mots de la semaine.
+// Bloc 3 : l'accueil, la série mixte de cartes Oreille et Bouche, et l'écran des mots de la semaine.
 
-import { chargerTableau, etatDuJour } from "./donnees.js";
-import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js";
-import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js";
-import { ouvrirCarnet, noter, serieSimple } from "./progression.js";
+import { chargerTableau, etatDuJour } from "./donnees.js?v=3";
+import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=3";
+import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=3";
+import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=3";
 
 const app = document.getElementById("app");
 const JOURS = { Lun: "Lundi", Mar: "Mardi", Mer: "Mercredi", Jeu: "Jeudi", Ven: "Vendredi", Sam: "Samedi", Dim: "Dimanche" };
@@ -16,23 +16,34 @@ const ICONES = {
   lent: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h12a4 4 0 0 0 4-4V9"/><path d="M6 18a6 6 0 1 1 10.5-4"/><path d="M20 9l-2-2"/></svg>',
   anneaux: '<svg class="rings" viewBox="0 0 30 20" aria-hidden="true"><circle cx="11" cy="10" r="7" fill="none" stroke="#13294B" stroke-width="2"/><circle cx="19" cy="10" r="7" fill="none" stroke="#F2B630" stroke-width="2.4"/></svg>',
 };
-const NOTES_OREILLE = [
-  { n: 1, titre: "Non", critere: "rien compris, ou faux" },
-  { n: 2, titre: "À moitié", critere: "une partie, ou après réécoute" },
-  { n: 3, titre: "Oui", critere: "tout, du premier coup" },
-];
+const NOTES = {
+  o: [
+    { n: 1, titre: "Non", critere: "rien compris, ou faux" },
+    { n: 2, titre: "À moitié", critere: "une partie, ou après réécoute" },
+    { n: 3, titre: "Oui", critere: "tout, du premier coup" },
+  ],
+  b: [
+    { n: 1, titre: "Non", critere: "pas trouvé" },
+    { n: 2, titre: "Avec peine", critere: "trouvé en cherchant" },
+    { n: 3, titre: "Oui", critere: "dit sans hésiter" },
+  ],
+};
+const DUREE_BOUCHE = 5; // secondes pour le dire à voix haute
+const CERCLE = 351.9;   // périmètre du cercle du compte à rebours (rayon 56)
 
 let etat = { donnees: null, jour: null, ecran: "accueil", serie: [], rang: 0, revele: false, ecoutee: false };
-let lecture = 0; // numéro de la lecture en cours : une lecture interrompue ne doit pas éteindre la suivante
+let lecture = 0;        // numéro de la lecture en cours : une lecture interrompue ne doit pas éteindre la suivante
+let compte = null;      // minuteur du compte à rebours Bouche
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const heure = iso => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 const dateCourte = iso => new Date(iso).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 const jourSeance = iso => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "short" });
 const jourSemaine = iso => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long" });
+const carteEnCours = () => etat.serie[etat.rang];
 
-// Affiche la phrase de la réponse : chaque mot se touche pour l'entendre seul,
-// et le mot étudié est surligné (« más despacio » dans « Más despacio, por favor »).
+// Affiche une phrase dont chaque mot se touche pour l'entendre seul,
+// avec le mot étudié surligné (« más despacio » dans « Más despacio, por favor »).
 // Si le mot n'apparaît pas tel quel (verbe conjugué…), rien n'est surligné.
 function phraseTouchable(phrase, mot) {
   const coeur = prononcable(mot).split(",")[0]
@@ -83,54 +94,97 @@ function accueil() {
   const lu = donnees.horsLigne
     ? `Sans réseau : copie du tableau du ${dateCourte(donnees.lu)} à ${heure(donnees.lu)}`
     : `Tableau lu à ${heure(donnees.lu)} · ${donnees.mots.length} mots`;
-  const prochaine = serieSimple("o", jour.mots).length;
+  const prochaine = serieMixte(jour.mots);
+  const nbBouche = prochaine.filter(c => c.sens === "b").length;
   return barre() + `
     <div><h1 class="title">${esc(titre)}</h1><div class="meta">${esc(dates)}</div></div>
     ${ligneDuChemin(jour.semaine)}
     ${jour.essai ? `<div class="trial"><b>Mode essai.</b> Le prof n'a encore noté aucune séance : l'appli prend les mots de la semaine 1. Ta progression d'essai sera effacée toute seule après ta première séance.</div>` : derniereSeance(jour)}
     ${voixChoisie() ? "" : `<div class="alert">Pas de voix espagnole trouvée sur ce téléphone. Installe « Espagnol (Espagne) » dans les réglages de synthèse vocale, puis recharge.</div>`}
-    <div class="today"><div><b>${prochaine}</b>cartes Oreille</div><div><b>${jour.mots.length}</b>mots débloqués</div></div>
+    <div class="today"><div><b>${prochaine.length - nbBouche}</b>cartes Oreille</div><div><b>${nbBouche}</b>cartes Bouche</div><div><b>${jour.mots.length}</b>mots débloqués</div></div>
     <div class="spacer"></div>
     <button class="primary" data-action="commencer">Commencer ${ICONES.fleche}</button>
     <button class="link center-self" data-ecran="mots">Écouter les mots de la semaine</button>
     <div class="foot">${esc(lu)}</div>`;
 }
 
-// ---------- carte Oreille ----------
-function carteOreille() {
-  const mot = etat.serie[etat.rang];
+// ---------- éléments communs aux cartes ----------
+function enTeteCarte(mode, sousTitre) {
   const total = etat.serie.length;
   const pct = Math.round(etat.rang / total * 100);
-  const reponse = etat.revele ? `
+  return barre(`<button class="link" data-action="quitter">Quitter</button>`) + `
+    <div class="progress" aria-label="Carte ${etat.rang + 1} sur ${total}"><div class="tr"><i style="width:${pct}%"></i></div><span>${etat.rang + 1} / ${total}</span></div>
+    <div class="mode"><b>${mode}</b> · ${sousTitre}</div>`;
+}
+
+function boutonsEcoute() {
+  return `<div class="twin">
+      <button class="secondary" data-action="ecouter">${ICONES.rejouer}Réécouter</button>
+      <button class="secondary" data-action="lentement">${ICONES.lent}Lentement</button>
+    </div>`;
+}
+
+function notes(sens, question) {
+  return `<div class="ask">${question}</div>
+    <div class="grades">${NOTES[sens].map(x =>
+      `<button class="grade g${x.n}" data-note="${x.n}">${x.titre}<small>${x.critere}</small></button>`).join("")}</div>`;
+}
+
+// ---------- carte Oreille ----------
+function carteOreille() {
+  const { mot } = carteEnCours();
+  const suite = etat.revele ? `
       <div class="answer">
         <div class="es">${phraseTouchable(mot.ex || mot.es, mot.es)}</div>
         <div class="fr"><b>${esc(mot.es)}</b> : ${esc(mot.fr)}</div>
         <div class="note">Touche un mot pour l'entendre seul.</div>
       </div>
-      <div class="ask">Tu avais compris ?</div>
-      <div class="grades">${NOTES_OREILLE.map(x =>
-        `<button class="grade g${x.n}" data-note="${x.n}">${x.titre}<small>${x.critere}</small></button>`).join("")}</div>`
+      ${notes("o", "Tu avais compris ?")}`
     : `
       <div class="next-step ${etat.ecoutee ? "" : "waiting"}" id="next-step">
         <p class="say-aloud">Dis à voix haute, <b>en français</b>,<br>ce que tu as compris.</p>
         <button class="primary" data-action="reveler">Afficher la réponse</button>
       </div>`;
-  return barre(`<button class="link" data-action="quitter">Quitter</button>`) + `
-    <div class="progress" aria-label="Carte ${etat.rang + 1} sur ${total}"><div class="tr"><i style="width:${pct}%"></i></div><span>${etat.rang + 1} / ${total}</span></div>
-    <div class="mode"><b>Oreille</b> · écoute sans lire</div>
+  return enTeteCarte("Oreille", "écoute sans lire") + `
     <button class="play" id="play" data-action="ecouter" aria-label="Écouter la phrase">${ICONES.play}${ICONES.barres}</button>
-    <div class="twin">
-      <button class="secondary" data-action="ecouter">${ICONES.rejouer}Réécouter</button>
-      <button class="secondary" data-action="lentement">${ICONES.lent}Lentement</button>
-    </div>
+    ${boutonsEcoute()}
     ${mot.ex ? "" : `<div class="note center">Pas encore de phrase pour ce mot : tu entends le mot seul.</div>`}
     <div class="spacer"></div>
-    ${reponse}`;
+    ${suite}`;
+}
+
+// ---------- carte Bouche ----------
+function carteBouche() {
+  const { mot } = carteEnCours();
+  if (!etat.revele) {
+    return enTeteCarte("Bouche", "dis-le à voix haute") + `
+      <div class="prompt">${esc(mot.fr)}</div>
+      <div class="ring" aria-hidden="true">
+        <svg width="132" height="132" viewBox="0 0 132 132">
+          <circle cx="66" cy="66" r="56" fill="none" stroke="#F9DA8C" stroke-width="10"/>
+          <circle id="arc" cx="66" cy="66" r="56" fill="none" stroke="#F2B630" stroke-width="10" stroke-linecap="round" stroke-dasharray="${CERCLE}" stroke-dashoffset="0"/>
+        </svg>
+        <div class="num" id="count">${DUREE_BOUCHE}</div>
+      </div>
+      <p class="say-aloud">Parle à voix haute,<br>même si ce n'est pas parfait.</p>
+      <div class="spacer"></div>
+      <button class="primary" data-action="reveler">Je l'ai dit</button>`;
+  }
+  return enTeteCarte("Bouche", "dis-le à voix haute") + `
+    <div class="prompt">${esc(mot.fr)}</div>
+    <div class="answer center">
+      <div class="es">${phraseTouchable(mot.es, mot.es)}</div>
+      ${mot.ex ? `<div class="fr">${phraseTouchable(mot.ex, mot.es)}</div>` : ""}
+      <div class="note">Touche un mot pour l'entendre seul.</div>
+    </div>
+    ${boutonsEcoute()}
+    <div class="spacer"></div>
+    ${notes("b", "Tu l'avais dit ?")}`;
 }
 
 function finDeSerie() {
   return barre() + `
-    <div><h1 class="title">Série terminée</h1><div class="meta">${etat.serie.length} cartes Oreille. L'écran de fin complet arrive au bloc 4.</div></div>
+    <div><h1 class="title">Série terminée</h1><div class="meta">${etat.serie.length} cartes. L'écran de fin complet arrive au bloc 4.</div></div>
     <div class="spacer"></div>
     <button class="primary" data-ecran="accueil">Retour à l'accueil</button>`;
 }
@@ -156,16 +210,24 @@ function ecranMots() {
     <div>${groupes}</div>`;
 }
 
-// ---------- affichage et actions ----------
+// ---------- affichage ----------
+function arreterCompte() { if (compte) { clearInterval(compte); compte = null; } }
+
 function afficher() {
   taire();
-  const ecrans = { accueil, mots: ecranMots, carte: carteOreille, fin: finDeSerie };
+  arreterCompte();
+  const carte = etat.ecran === "carte" ? carteEnCours() : null;
+  const ecrans = {
+    accueil, mots: ecranMots, fin: finDeSerie,
+    carte: () => (carte.sens === "b" ? carteBouche() : carteOreille()),
+  };
   app.innerHTML = (ecrans[etat.ecran] || accueil)();
   app.dataset.ecran = etat.ecran;
   window.scrollTo(0, 0);
 }
 
-// Fin d'une écoute complète : le disque revient au ▶, et la prochaine étape devient nette.
+// ---------- son ----------
+// Fin d'une écoute complète en Oreille : le disque revient au ▶, et la prochaine étape devient nette.
 function finEcoute(numero) {
   if (numero !== lecture) return; // une lecture plus récente a pris le relais
   document.getElementById("play")?.classList.remove("speaking");
@@ -175,16 +237,38 @@ function finEcoute(numero) {
   }
 }
 
-// Lance (ou relance depuis le début) la phrase de la carte.
+// Oreille : la phrase (ou le mot seul). Bouche : le mot, puis la phrase.
 function ecouter(lent = false) {
-  const mot = etat.serie[etat.rang];
+  const { sens, mot } = carteEnCours();
   const numero = ++lecture;
-  document.getElementById("play")?.classList.add("speaking");
   const fin = () => finEcoute(numero);
-  const lancee = dire(mot.ex || mot.es, { lent, fin });
+  let textes;
+  if (sens === "b") textes = lent ? mot.es : [mot.es, mot.ex];
+  else textes = mot.ex || mot.es;
+  document.getElementById("play")?.classList.add("speaking");
+  const lancee = dire(textes, { lent, fin });
   if (!lancee) fin();
-  // Filet de sécurité : certains Android n'annoncent pas toujours la fin de la voix.
-  setTimeout(fin, 12000);
+  setTimeout(fin, 12000); // filet de sécurité : certains Android n'annoncent pas toujours la fin de la voix
+}
+
+// ---------- déroulé de la série ----------
+function lancerCompte() {
+  const debut = Date.now();
+  compte = setInterval(() => {
+    const reste = Math.max(0, DUREE_BOUCHE - (Date.now() - debut) / 1000);
+    const num = document.getElementById("count");
+    const arc = document.getElementById("arc");
+    if (num) num.textContent = Math.ceil(reste);
+    if (arc) arc.setAttribute("stroke-dashoffset", (CERCLE * (1 - reste / DUREE_BOUCHE)).toFixed(1));
+    if (reste <= 0) reveler();
+  }, 100);
+}
+
+function reveler() {
+  arreterCompte();
+  etat.revele = true;
+  afficher();
+  if (carteEnCours().sens === "b") ecouter();
 }
 
 function ouvrirCarte() {
@@ -192,7 +276,8 @@ function ouvrirCarte() {
   etat.revele = false;
   etat.ecoutee = false;
   afficher();
-  ecouter();
+  if (carteEnCours().sens === "b") lancerCompte();
+  else ecouter();
 }
 
 app.addEventListener("click", e => {
@@ -202,14 +287,14 @@ app.addEventListener("click", e => {
 
   const action = b.dataset.action;
   if (action === "commencer") {
-    etat.serie = serieSimple("o", etat.jour.mots);
+    etat.serie = serieMixte(etat.jour.mots);
     etat.rang = 0;
     if (etat.serie.length) ouvrirCarte();
     return;
   }
   if (action === "ecouter") { ecouter(); return; }
   if (action === "lentement") { ecouter(true); return; }
-  if (action === "reveler") { etat.revele = true; afficher(); return; }
+  if (action === "reveler") { reveler(); return; }
   if (action === "quitter") { etat.ecran = "accueil"; afficher(); return; }
 
   if (b.dataset.tok) {
@@ -222,7 +307,8 @@ app.addEventListener("click", e => {
   }
 
   if (b.dataset.note) {
-    noter("o", etat.serie[etat.rang], Number(b.dataset.note));
+    const { sens, mot } = carteEnCours();
+    noter(sens, mot, Number(b.dataset.note));
     etat.rang += 1;
     if (etat.rang < etat.serie.length) ouvrirCarte();
     else { etat.ecran = "fin"; afficher(); }

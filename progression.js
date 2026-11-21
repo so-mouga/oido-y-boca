@@ -33,6 +33,21 @@ export function noter(sens, mot, note, quand = new Date()) {
 
 export function fiche(sens, mot) { return carnet[idCarte(sens, mot)] || { notes: [] }; }
 
+// Bloc 3 : une série mixte de cartes { sens, mot }.
+// Un mot ne passe en Bouche qu'après au moins une écoute en Oreille.
+// Au plus la moitié de cartes Bouche, le reste en Oreille, en alternant.
+export function serieMixte(mots, taille = 10) {
+  const entendus = mots.filter(m => fiche("o", m).notes.length > 0);
+  const bouche = serieSimple("b", entendus, Math.floor(taille / 2));
+  const oreille = serieSimple("o", mots, taille - bouche.length);
+  const serie = [];
+  for (let i = 0; serie.length < oreille.length + bouche.length; i++) {
+    if (oreille[i]) serie.push({ sens: "o", mot: oreille[i] });
+    if (bouche[i]) serie.push({ sens: "b", mot: bouche[i] });
+  }
+  return serie;
+}
+
 // Bloc 2 : une série simple. Les mots les moins travaillés d'abord, puis l'ordre du programme.
 // (Les vraies dates de retour et les plafonds arrivent au bloc 4.)
 export function serieSimple(sens, mots, taille = 10) {
