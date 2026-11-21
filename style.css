@@ -144,6 +144,12 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 .answer { display: flex; flex-direction: column; gap: 8px; }
 .es { font-size: 25px; font-weight: 600; line-height: 1.25; letter-spacing: -.01em; }
 .hl { background: linear-gradient(transparent 58%, var(--sun-halo) 58%, var(--sun-halo) 92%, transparent 92%); padding: 0 2px; }
+.tok {
+  border: 0; background: none; padding: 0; margin: 0; font: inherit; color: inherit; letter-spacing: inherit;
+  border-radius: 6px; cursor: pointer; transition: background-color .2s var(--ease);
+}
+.tok.hl { background: linear-gradient(transparent 58%, var(--sun-halo) 58%, var(--sun-halo) 92%, transparent 92%); }
+.tok.on { background: var(--sun-halo); }
 .fr { font-size: 16px; color: var(--marine-soft); }
 .fr b { font-weight: 500; color: var(--marine); }
 .ask { font-size: 15px; color: var(--marine-soft); }

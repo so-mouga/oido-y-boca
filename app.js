@@ -31,14 +31,23 @@ const dateCourte = iso => new Date(iso).toLocaleDateString("fr-FR", { day: "nume
 const jourSeance = iso => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "short" });
 const jourSemaine = iso => new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { weekday: "long" });
 
-// Surligne le mot dans sa phrase (« más despacio » dans « Más despacio, por favor »).
-// Si le mot n'apparaît pas tel quel (verbe conjugué…), la phrase reste sans surlignage.
-function surligner(phrase, mot) {
+// Affiche la phrase de la réponse : chaque mot se touche pour l'entendre seul,
+// et le mot étudié est surligné (« más despacio » dans « Más despacio, por favor »).
+// Si le mot n'apparaît pas tel quel (verbe conjugué…), rien n'est surligné.
+function phraseTouchable(phrase, mot) {
   const coeur = prononcable(mot).split(",")[0]
     .replace(/^(el|la|los|las)\s+/i, "").replace(/[¿?¡!]/g, "").trim();
-  const i = coeur ? phrase.toLowerCase().indexOf(coeur.toLowerCase()) : -1;
-  if (i < 0) return esc(phrase);
-  return esc(phrase.slice(0, i)) + `<span class="hl">${esc(phrase.slice(i, i + coeur.length))}</span>` + esc(phrase.slice(i + coeur.length));
+  const debut = coeur ? phrase.toLowerCase().indexOf(coeur.toLowerCase()) : -1;
+  const fin = debut < 0 ? -1 : debut + coeur.length;
+  let pos = 0;
+  return phrase.split(/(\s+)/).map(morceau => {
+    const a = pos; pos += morceau.length;
+    if (!morceau.trim()) return morceau;
+    const parle = morceau.replace(/[¿?¡!.,;:«»"…()]/g, "");
+    const dedans = debut >= 0 && a < fin && pos > debut;
+    if (!parle) return esc(morceau);
+    return `<button class="tok${dedans ? " hl" : ""}" data-tok="${esc(parle)}">${esc(morceau)}</button>`;
+  }).join("");
 }
 
 function barre(droite = "") {
@@ -94,8 +103,9 @@ function carteOreille() {
   const pct = Math.round(etat.rang / total * 100);
   const reponse = etat.revele ? `
       <div class="answer">
-        <div class="es">${mot.ex ? surligner(mot.ex, mot.es) : `<span class="hl">${esc(mot.es)}</span>`}</div>
+        <div class="es">${phraseTouchable(mot.ex || mot.es, mot.es)}</div>
         <div class="fr"><b>${esc(mot.es)}</b> : ${esc(mot.fr)}</div>
+        <div class="note">Touche un mot pour l'entendre seul.</div>
       </div>
       <div class="ask">Tu avais compris ?</div>
       <div class="grades">${NOTES_OREILLE.map(x =>
@@ -201,6 +211,15 @@ app.addEventListener("click", e => {
   if (action === "lentement") { ecouter(true); return; }
   if (action === "reveler") { etat.revele = true; afficher(); return; }
   if (action === "quitter") { etat.ecran = "accueil"; afficher(); return; }
+
+  if (b.dataset.tok) {
+    app.querySelectorAll(".tok.on").forEach(x => x.classList.remove("on"));
+    b.classList.add("on");
+    lecture++; // le mot seul remplace la phrase en cours
+    document.getElementById("play")?.classList.remove("speaking");
+    dire(b.dataset.tok, { fin: () => b.classList.remove("on") });
+    return;
+  }
 
   if (b.dataset.note) {
     noter("o", etat.serie[etat.rang], Number(b.dataset.note));
