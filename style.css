@@ -133,6 +133,29 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 
 [hidden] { display: none !important; }
 
+/* barre de progression en deux segments (Oreille, puis Bouche) */
+.progress.deux { gap: 8px; align-items: flex-start; }
+.seg-prog { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.seg-prog .tr { flex: none; width: 100%; }
+.seg-prog span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.seg-prog.actif span { color: var(--marine); font-weight: 600; }
+
+/* consigne de la carte Bouche */
+.consigne {
+  align-self: center; background: var(--marine); color: var(--sun-ground); border-radius: 999px;
+  padding: 7px 16px; font-size: 15px; font-weight: 500; margin-top: 6px;
+}
+
+/* écran de passage Oreille → Bouche */
+.passage { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin-top: 28px; }
+.passage-icone { width: 96px; height: 96px; border-radius: 50%; background: var(--marine); color: var(--sun); display: grid; place-items: center; box-shadow: 0 0 0 10px var(--sun-halo); }
+.passage-icone .i { width: 40px; height: 40px; }
+.passage .meta { max-width: 32ch; }
+
+/* chaque nouvelle carte entre en glissant */
+#app.entree { animation: entree .22s cubic-bezier(.2, .8, .2, 1); }
+@keyframes entree { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+
 /* carte Bouche : réponse. Règle de toute l'appli : le français petit et gris, l'espagnol en marine fort. */
 .prompt.petit { font-size: 17px; font-weight: 400; color: var(--muted); padding-top: 4px; }
 .vedette { font-size: 36px; font-weight: 600; line-height: 1.15; letter-spacing: -.015em; text-align: center; color: var(--marine); text-wrap: balance; margin-top: 4px; }
@@ -198,6 +221,6 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
-  .play .bars i, .play.speaking { animation: none; }
+  .play .bars i, .play.speaking, #app.entree, .mic.rec { animation: none; }
   .play .bars i:nth-child(2) { transform: scaleY(.7); }
 }

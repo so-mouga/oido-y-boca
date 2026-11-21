@@ -2,14 +2,15 @@
 // Bloc 3 : l'accueil, la série mixte de cartes Oreille et Bouche, et l'écran des mots de la semaine.
 // En Bouche, c'est toi qui déclenches chaque étape : tenir le micro, parler, lâcher (ou « Voir la réponse »).
 
-import { chargerTableau, etatDuJour } from "./donnees.js?v=6";
-import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=6";
-import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=6";
-import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=6";
+import { chargerTableau, etatDuJour } from "./donnees.js?v=7";
+import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=7";
+import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=7";
+import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=7";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   reecouterEnregistrement, effacerEnregistrement, aUnEnregistrement,
-} from "./enregistrement.js?v=6";
+} from "./enregistrement.js?v=7";
+import { vibrer, sonDeFin } from "./retours.js?v=7";
 
 const app = document.getElementById("app");
 const JOURS = { Lun: "Lundi", Mar: "Mardi", Mer: "Mercredi", Jeu: "Jeudi", Ven: "Vendredi", Sam: "Samedi", Dim: "Dimanche" };
@@ -128,11 +129,24 @@ function accueil() {
 }
 
 // ---------- éléments communs aux cartes ----------
+// La barre de progression en deux segments : les cartes Oreille, puis les cartes Bouche.
+function progression() {
+  const nbO = etat.serie.filter(c => c.sens === "o").length;
+  const nbB = etat.serie.length - nbO;
+  const faitesO = Math.min(etat.rang, nbO);
+  const faitesB = Math.max(0, etat.rang - nbO);
+  const enCours = etat.ecran === "carte" ? carteEnCours()?.sens : null; // sur l'écran de passage, aucune carte n'est commencée
+  const segment = (sens, nom, nb, faites) => nb ? `
+    <div class="seg-prog ${enCours === sens ? "actif" : ""}" style="flex:${nb}">
+      <div class="tr"><i style="width:${Math.round(faites / nb * 100)}%"></i></div>
+      <span>${nom} ${Math.min(faites + (enCours === sens ? 1 : 0), nb)}/${nb}</span>
+    </div>` : "";
+  return `<div class="progress deux" aria-label="Carte ${etat.rang + 1} sur ${etat.serie.length}">
+    ${segment("o", "Oreille", nbO, faitesO)}${segment("b", "Bouche", nbB, faitesB)}</div>`;
+}
+
 function enTeteCarte(mode, sousTitre) {
-  const total = etat.serie.length;
-  const pct = Math.round(etat.rang / total * 100);
-  return barre(`<button class="link" data-action="quitter">Quitter</button>`) + `
-    <div class="progress" aria-label="Carte ${etat.rang + 1} sur ${total}"><div class="tr"><i style="width:${pct}%"></i></div><span>${etat.rang + 1} / ${total}</span></div>
+  return barre(`<button class="link" data-action="quitter">Quitter</button>`) + progression() + `
     <div class="mode"><b>${mode}</b> · ${sousTitre}</div>`;
 }
 
@@ -162,7 +176,7 @@ function carteOreille() {
       <div class="answer">
         <div class="es">${phraseTouchable(mot.ex || mot.es, mot.es)}</div>
         <div class="fr"><b>${esc(mot.es)}</b> : ${esc(mot.fr)}</div>
-        <div class="note">Touche un mot pour l'entendre seul.</div>
+        <div class="note">Touche un mot pour l'entendre seul. Puis répète la phrase à voix haute.</div>
       </div>
       ${notes("o", "Tu avais compris ?")}`
     : `
@@ -182,7 +196,8 @@ function carteOreille() {
 function carteBouche() {
   const { mot } = carteEnCours();
   if (!etat.revele) {
-    return enTeteCarte("Bouche", "dis-le à voix haute") + `
+    return enTeteCarte("Bouche", "à toi de parler") + `
+      <div class="consigne">Dis-le en espagnol</div>
       <div class="prompt">${esc(mot.fr)}</div>
       <div class="ring" id="ring" aria-hidden="true">
         <svg width="132" height="132" viewBox="0 0 132 132">
@@ -214,7 +229,21 @@ function carteBouche() {
       <p class="say-aloud"><b>À toi : répète-le</b> à voix haute, juste après le modèle.</p>
       <button class="primary" data-action="suivante">Suivant ${ICONES.fleche}</button>`;
   }
-  return enTeteCarte("Bouche", "dis-le à voix haute") + reponse + notes("b", "Tu l'avais dit ?");
+  return enTeteCarte("Bouche", "à toi de parler") + reponse + notes("b", "Tu l'avais dit ?");
+}
+
+// ---------- l'écran de passage, entre la partie Oreille et la partie Bouche ----------
+function ecranPassage() {
+  const nbB = etat.serie.filter(c => c.sens === "b").length;
+  return barre(`<button class="link" data-action="quitter">Quitter</button>`) + progression() + `
+    <div class="passage">
+      <div class="passage-icone">${ICONES.micro}</div>
+      <h1 class="title">Bien écouté ! Maintenant, à toi de parler.</h1>
+      <p class="meta">${nbB} ${nbB > 1 ? "mots que tu as déjà entendus" : "mot que tu as déjà entendu"}. Tu vois le français, tu le dis en espagnol, à voix haute.</p>
+    </div>
+    <div class="spacer"></div>
+    <button class="primary" data-action="cest-parti">C'est parti ${ICONES.fleche}</button>
+    <button class="link center-self" data-action="plus-tard">Plus tard : je ne peux pas parler maintenant</button>`;
 }
 
 function finDeSerie() {
@@ -252,12 +281,19 @@ function afficher() {
   taire();
   arreterCompte();
   const ecrans = {
-    accueil, mots: ecranMots, fin: finDeSerie,
+    accueil, mots: ecranMots, fin: finDeSerie, passage: ecranPassage,
     carte: () => (carteEnCours().sens === "b" ? carteBouche() : carteOreille()),
   };
   app.innerHTML = (ecrans[etat.ecran] || accueil)();
   app.dataset.ecran = etat.ecran;
   window.scrollTo(0, 0);
+}
+
+// Une nouvelle carte (ou l'écran de passage) entre en glissant : on voit qu'on a changé de carte.
+function glisser() {
+  app.classList.remove("entree");
+  void app.offsetWidth; // relance l'animation
+  app.classList.add("entree");
 }
 
 // ---------- son ----------
@@ -368,15 +404,19 @@ function ouvrirCarte() {
   etat.ecoutee = false;
   etat.repete = false;
   afficher();
+  glisser();
   if (carteEnCours().sens === "b") lancerCercle();
   else ecouter();
 }
 
 function carteSuivante() {
   effacerEnregistrement();
+  const avant = carteEnCours()?.sens;
   etat.rang += 1;
-  if (etat.rang < etat.serie.length) ouvrirCarte();
-  else { etat.ecran = "fin"; afficher(); }
+  if (etat.rang >= etat.serie.length) { etat.ecran = "fin"; afficher(); glisser(); sonDeFin(); return; }
+  // Passage de la partie Oreille à la partie Bouche : un écran, une seule fois par série.
+  if (avant === "o" && carteEnCours().sens === "b") { etat.ecran = "passage"; afficher(); glisser(); return; }
+  ouvrirCarte();
 }
 
 // ---------- gestes ----------
@@ -407,6 +447,8 @@ app.addEventListener("click", e => {
   if (action === "lentement") { ecouter(true); return; }
   if (action === "reveler") { reveler(); return; }
   if (action === "suivante") { carteSuivante(); return; }
+  if (action === "cest-parti") { ouvrirCarte(); return; }
+  if (action === "plus-tard") { etat.ecran = "accueil"; afficher(); return; } // la partie Bouche attendra la prochaine série
   if (action === "quitter") { effacerEnregistrement(); etat.ecran = "accueil"; afficher(); return; }
   if (action === "modele") {
     // Le bouton alterne : normal, puis lent, puis normal… et l'annonce sur son libellé.
@@ -438,6 +480,7 @@ app.addEventListener("click", e => {
   if (b.dataset.note) {
     const { sens, mot } = carteEnCours();
     const note = Number(b.dataset.note);
+    vibrer();
     noter(sens, mot, note);
     if (sens === "b" && note < 3) {
       // Mot raté : la même carte devient « À toi : répète-le ». Pas de deuxième note.
