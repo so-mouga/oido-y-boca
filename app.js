@@ -10,6 +10,7 @@ const app = document.getElementById("app");
 const JOURS = { Lun: "Lundi", Mar: "Mardi", Mer: "Mercredi", Jeu: "Jeudi", Ven: "Vendredi", Sam: "Samedi", Dim: "Dimanche" };
 const ICONES = {
   play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>',
+  barres: '<span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>',
   fleche: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   rejouer: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
   lent: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h12a4 4 0 0 0 4-4V9"/><path d="M6 18a6 6 0 1 1 10.5-4"/><path d="M20 9l-2-2"/></svg>',
@@ -21,7 +22,8 @@ const NOTES_OREILLE = [
   { n: 3, titre: "Oui", critere: "tout, du premier coup" },
 ];
 
-let etat = { donnees: null, jour: null, ecran: "accueil", serie: [], rang: 0, revele: false };
+let etat = { donnees: null, jour: null, ecran: "accueil", serie: [], rang: 0, revele: false, ecoutee: false };
+let lecture = 0; // numéro de la lecture en cours : une lecture interrompue ne doit pas éteindre la suivante
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const heure = iso => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -99,12 +101,14 @@ function carteOreille() {
       <div class="grades">${NOTES_OREILLE.map(x =>
         `<button class="grade g${x.n}" data-note="${x.n}">${x.titre}<small>${x.critere}</small></button>`).join("")}</div>`
     : `
-      <p class="say-aloud">Dis à voix haute, <b>en français</b>,<br>ce que tu as compris.</p>
-      <button class="primary" data-action="reveler">Afficher la réponse</button>`;
+      <div class="next-step ${etat.ecoutee ? "" : "waiting"}" id="next-step">
+        <p class="say-aloud">Dis à voix haute, <b>en français</b>,<br>ce que tu as compris.</p>
+        <button class="primary" data-action="reveler">Afficher la réponse</button>
+      </div>`;
   return barre(`<button class="link" data-action="quitter">Quitter</button>`) + `
     <div class="progress" aria-label="Carte ${etat.rang + 1} sur ${total}"><div class="tr"><i style="width:${pct}%"></i></div><span>${etat.rang + 1} / ${total}</span></div>
     <div class="mode"><b>Oreille</b> · écoute sans lire</div>
-    <button class="play" id="play" data-action="ecouter" aria-label="Écouter la phrase">${ICONES.play}</button>
+    <button class="play" id="play" data-action="ecouter" aria-label="Écouter la phrase">${ICONES.play}${ICONES.barres}</button>
     <div class="twin">
       <button class="secondary" data-action="ecouter">${ICONES.rejouer}Réécouter</button>
       <button class="secondary" data-action="lentement">${ICONES.lent}Lentement</button>
@@ -151,18 +155,32 @@ function afficher() {
   window.scrollTo(0, 0);
 }
 
+// Fin d'une écoute complète : le disque revient au ▶, et la prochaine étape devient nette.
+function finEcoute(numero) {
+  if (numero !== lecture) return; // une lecture plus récente a pris le relais
+  document.getElementById("play")?.classList.remove("speaking");
+  if (!etat.ecoutee) {
+    etat.ecoutee = true;
+    document.getElementById("next-step")?.classList.remove("waiting");
+  }
+}
+
+// Lance (ou relance depuis le début) la phrase de la carte.
 function ecouter(lent = false) {
   const mot = etat.serie[etat.rang];
-  const disque = document.getElementById("play");
-  disque?.classList.add("speaking");
-  const fin = () => disque?.classList.remove("speaking");
-  if (lent) dire(mot.ex || mot.es, { lent: true, fin });
-  else dire(mot.ex || mot.es, { fin });
+  const numero = ++lecture;
+  document.getElementById("play")?.classList.add("speaking");
+  const fin = () => finEcoute(numero);
+  const lancee = dire(mot.ex || mot.es, { lent, fin });
+  if (!lancee) fin();
+  // Filet de sécurité : certains Android n'annoncent pas toujours la fin de la voix.
+  setTimeout(fin, 12000);
 }
 
 function ouvrirCarte() {
   etat.ecran = "carte";
   etat.revele = false;
+  etat.ecoutee = false;
   afficher();
   ecouter();
 }
