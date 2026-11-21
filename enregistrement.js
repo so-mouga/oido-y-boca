@@ -1,48 +1,45 @@
-// Enregistre ta voix pendant le compte à rebours du mode Bouche, pour te réécouter à côté du modèle.
+// Enregistre ta voix pendant que tu tiens le bouton micro du mode Bouche, pour te réécouter à côté du modèle.
 // Rien n'est gardé : l'enregistrement est effacé à la carte suivante, et rien n'est envoyé.
 // Le micro est ouvert seulement pendant l'enregistrement, puis refermé.
 
-const CLE_CHOIX = "oyb.enregistrer";
 let enCours = null;   // { recorder, flux, morceaux }
 let derniere = null;  // adresse locale (blob) du dernier enregistrement
 let lecteur = null;
 
-export function enregistrementActive() {
-  try { return localStorage.getItem(CLE_CHOIX) !== "non"; } catch { return true; }
-}
-export function choisirEnregistrement(oui) {
-  try { localStorage.setItem(CLE_CHOIX, oui ? "oui" : "non"); } catch { /* choix gardé pour la séance seulement */ }
-}
 export function enregistrementPossible() {
   return !!(navigator.mediaDevices?.getUserMedia && window.MediaRecorder);
 }
 
-// Démarre l'enregistrement. Ne lève jamais d'erreur : si le micro est refusé, la carte marche sans.
+// Démarre l'enregistrement et se résout quand le micro enregistre vraiment (true), ou false s'il est refusé.
 export async function demarrerEnregistrement() {
   effacerEnregistrement();
-  if (!enregistrementActive() || !enregistrementPossible()) return false;
+  if (!enregistrementPossible()) return false;
   try {
     const flux = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
     const recorder = new MediaRecorder(flux);
     const morceaux = [];
     recorder.ondataavailable = e => { if (e.data.size) morceaux.push(e.data); };
-    recorder.start();
     enCours = { recorder, flux, morceaux };
-    return true;
+    await new Promise(resolve => { recorder.onstart = resolve; recorder.start(); });
+    return enCours?.recorder === recorder;
   } catch {
+    if (enCours) { enCours.flux.getTracks().forEach(t => t.stop()); enCours = null; }
     return false;
   }
 }
 
-// Arrête l'enregistrement et referme le micro. Renvoie true s'il y a quelque chose à réécouter.
-export function arreterEnregistrement() {
+export function enregistrementEnCours() { return !!enCours; }
+
+// Arrête l'enregistrement et referme le micro.
+// garder = false jette l'enregistrement (appui trop bref). Renvoie true s'il y a quelque chose à réécouter.
+export function arreterEnregistrement(garder = true) {
   return new Promise(resolve => {
     const e = enCours;
     enCours = null;
     if (!e) return resolve(false);
     e.recorder.onstop = () => {
       e.flux.getTracks().forEach(t => t.stop());
-      if (e.morceaux.length) {
+      if (garder && e.morceaux.length) {
         derniere = URL.createObjectURL(new Blob(e.morceaux, { type: e.recorder.mimeType || "audio/webm" }));
         resolve(true);
       } else resolve(false);
