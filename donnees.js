@@ -4,7 +4,7 @@
 
 const ID_TABLEAU = "1xG8SU6emfDAjz8Xxh_GTXEgxm5i_G2ixCXKIkcobKxQ";
 const urlOnglet = nom => `https://docs.google.com/spreadsheets/d/${ID_TABLEAU}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nom)}`;
-const CLE_COPIE = "oyb.tableau.v2";
+const CLE_COPIE = "oyb.tableau.v3";
 export const ORDRE_JOURS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
 // Découpe un CSV en lignes de cellules (gère les guillemets, virgules et retours à la ligne dans une cellule).
@@ -42,8 +42,9 @@ export function versMots(lignes) {
   const c = colonnes(entete, { es: "espagnol", fr: "français", ex: "exemple", semaine: "semaine", jour: "jour", theme: "thème" });
   if (c.es < 0 || c.fr < 0 || c.semaine < 0 || c.jour < 0) throw new Error("colonnes du vocabulaire introuvables");
   return reste
-    .map((l, rang) => ({
-      id: `${val(l, c.semaine)}-${rang}`,
+    .map(l => ({
+      // Identifiant stable : la semaine et le mot espagnol (ne dépend pas de l'ordre des lignes).
+      id: `${val(l, c.semaine)}|${val(l, c.es)}`,
       es: val(l, c.es), fr: val(l, c.fr), ex: val(l, c.ex),
       semaine: parseInt(val(l, c.semaine), 10) || 0,
       jour: val(l, c.jour), theme: val(l, c.theme),
