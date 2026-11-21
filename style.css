@@ -131,7 +131,21 @@ svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none;
 @keyframes onde { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
 @keyframes respire { 0%, 100% { box-shadow: 0 0 0 12px var(--sun-halo); } 50% { box-shadow: 0 0 0 24px var(--sun-halo); } }
 
+[hidden] { display: none !important; }
+
+/* réglage sur l'accueil */
+.set { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding-top: 14px; border-top: 1px solid var(--hair); }
+.set > div { min-width: 0; }
+.set b { display: block; font-weight: 500; font-size: 15px; }
+.set small { display: block; font-size: 13px; color: var(--muted); line-height: 1.35; }
+.toggle { width: 52px; height: 32px; border-radius: 16px; border: 0; background: var(--hair); position: relative; flex: none; padding: 0; }
+.toggle::after { content: ""; position: absolute; top: 4px; left: 4px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: left .2s var(--ease); }
+.toggle[aria-pressed="true"] { background: var(--marine); }
+.toggle[aria-pressed="true"]::after { left: 24px; background: var(--sun); }
+
 /* carte Bouche */
+.moi { width: 100%; }
+.moi.on, .secondary.on { background: var(--sun-halo); }
 .prompt { font-size: 30px; font-weight: 600; text-align: center; line-height: 1.15; letter-spacing: -.01em; padding-top: 12px; text-wrap: balance; }
 .ring { width: 132px; height: 132px; align-self: center; position: relative; margin: 8px 0; }
 .ring svg { transform: rotate(-90deg); display: block; }

@@ -1,10 +1,15 @@
 // Oído y Boca : enchaînement des écrans.
-// Bloc 3 : l'accueil, la série mixte de cartes Oreille et Bouche, et l'écran des mots de la semaine.
+// Bloc 3 : l'accueil, la série mixte de cartes Oreille et Bouche (avec l'enregistrement de ta voix
+// et « À toi : répète-le » après un mot raté), et l'écran des mots de la semaine.
 
-import { chargerTableau, etatDuJour } from "./donnees.js?v=3";
-import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=3";
-import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=3";
-import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=3";
+import { chargerTableau, etatDuJour } from "./donnees.js?v=4";
+import { preparerVoix, voixChoisie, dire, taire, prononcable } from "./voix.js?v=4";
+import { ETAPES, trouverSemaine, semainesAvantBoda } from "./chemin.js?v=4";
+import { ouvrirCarnet, noter, serieMixte } from "./progression.js?v=4";
+import {
+  enregistrementActive, choisirEnregistrement, enregistrementPossible, demarrerEnregistrement,
+  arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement,
+} from "./enregistrement.js?v=4";
 
 const app = document.getElementById("app");
 const JOURS = { Lun: "Lundi", Mar: "Mardi", Mer: "Mercredi", Jeu: "Jeudi", Ven: "Vendredi", Sam: "Samedi", Dim: "Dimanche" };
@@ -14,6 +19,7 @@ const ICONES = {
   fleche: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
   rejouer: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>',
   lent: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18h12a4 4 0 0 0 4-4V9"/><path d="M6 18a6 6 0 1 1 10.5-4"/><path d="M20 9l-2-2"/></svg>',
+  voix: '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
   anneaux: '<svg class="rings" viewBox="0 0 30 20" aria-hidden="true"><circle cx="11" cy="10" r="7" fill="none" stroke="#13294B" stroke-width="2"/><circle cx="19" cy="10" r="7" fill="none" stroke="#F2B630" stroke-width="2.4"/></svg>',
 };
 const NOTES = {
@@ -29,11 +35,14 @@ const NOTES = {
   ],
 };
 const DUREE_BOUCHE = 5; // secondes pour le dire à voix haute
+const DUREE_REPETE = 3; // secondes pour répéter un mot raté
+const RAB_MICRO = 500;  // on garde le micro ouvert 0,5 s après la réponse, pour ne pas couper un mot
 const CERCLE = 351.9;   // périmètre du cercle du compte à rebours (rayon 56)
 
 let etat = { donnees: null, jour: null, ecran: "accueil", serie: [], rang: 0, revele: false, ecoutee: false };
 let lecture = 0;        // numéro de la lecture en cours : une lecture interrompue ne doit pas éteindre la suivante
 let compte = null;      // minuteur du compte à rebours Bouche
+let enregistre = false; // un enregistrement est en cours sur la carte Bouche
 
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const heure = iso => new Date(iso).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
@@ -102,6 +111,10 @@ function accueil() {
     ${jour.essai ? `<div class="trial"><b>Mode essai.</b> Le prof n'a encore noté aucune séance : l'appli prend les mots de la semaine 1. Ta progression d'essai sera effacée toute seule après ta première séance.</div>` : derniereSeance(jour)}
     ${voixChoisie() ? "" : `<div class="alert">Pas de voix espagnole trouvée sur ce téléphone. Installe « Espagnol (Espagne) » dans les réglages de synthèse vocale, puis recharge.</div>`}
     <div class="today"><div><b>${prochaine.length - nbBouche}</b>cartes Oreille</div><div><b>${nbBouche}</b>cartes Bouche</div><div><b>${jour.mots.length}</b>mots débloqués</div></div>
+    ${enregistrementPossible() ? `<div class="set">
+      <div><b>Enregistrer ma voix</b><small>En Bouche, pour te réécouter à côté du modèle. Rien n'est gardé.</small></div>
+      <button class="toggle" data-action="basculer-micro" aria-pressed="${enregistrementActive()}" aria-label="Enregistrer ma voix"></button>
+    </div>` : ""}
     <div class="spacer"></div>
     <button class="primary" data-action="commencer">Commencer ${ICONES.fleche}</button>
     <button class="link center-self" data-ecran="mots">Écouter les mots de la semaine</button>
@@ -167,6 +180,7 @@ function carteBouche() {
         <div class="num" id="count">${DUREE_BOUCHE}</div>
       </div>
       <p class="say-aloud">Parle à voix haute,<br>même si ce n'est pas parfait.</p>
+      <p class="note center" id="micro-etat" hidden>Enregistrement de ta voix…</p>
       <div class="spacer"></div>
       <button class="primary" data-action="reveler">Je l'ai dit</button>`;
   }
@@ -178,8 +192,27 @@ function carteBouche() {
       <div class="note">Touche un mot pour l'entendre seul.</div>
     </div>
     ${boutonsEcoute()}
+    <button class="secondary moi" id="moi" data-action="moi" hidden>${ICONES.voix}Me réécouter</button>
     <div class="spacer"></div>
     ${notes("b", "Tu l'avais dit ?")}`;
+}
+
+// ---------- « À toi : répète-le », après un mot raté en Bouche ----------
+function ecranRepete() {
+  const { mot } = carteEnCours();
+  return enTeteCarte("Bouche", "deuxième chance") + `
+    <div class="prompt">${esc(mot.fr)}</div>
+    <div class="answer center"><div class="es"><span class="hl">${esc(mot.es)}</span></div></div>
+    <div class="ring" aria-hidden="true">
+      <svg width="132" height="132" viewBox="0 0 132 132">
+        <circle cx="66" cy="66" r="56" fill="none" stroke="#F9DA8C" stroke-width="10"/>
+        <circle id="arc" cx="66" cy="66" r="56" fill="none" stroke="#F2B630" stroke-width="10" stroke-linecap="round" stroke-dasharray="${CERCLE}" stroke-dashoffset="0"/>
+      </svg>
+      <div class="num" id="count">${DUREE_REPETE}</div>
+    </div>
+    <p class="say-aloud"><b>À toi : répète-le</b> à voix haute,<br>juste après l'avoir entendu.</p>
+    <div class="spacer"></div>
+    <button class="primary" data-action="suivante">Carte suivante</button>`;
 }
 
 function finDeSerie() {
@@ -218,7 +251,7 @@ function afficher() {
   arreterCompte();
   const carte = etat.ecran === "carte" ? carteEnCours() : null;
   const ecrans = {
-    accueil, mots: ecranMots, fin: finDeSerie,
+    accueil, mots: ecranMots, fin: finDeSerie, repete: ecranRepete,
     carte: () => (carte.sens === "b" ? carteBouche() : carteOreille()),
   };
   app.innerHTML = (ecrans[etat.ecran] || accueil)();
@@ -252,15 +285,16 @@ function ecouter(lent = false) {
 }
 
 // ---------- déroulé de la série ----------
-function lancerCompte() {
+// Compte à rebours sur le cercle soleil ; appelle auBout() à zéro.
+function lancerCompte(duree, auBout) {
   const debut = Date.now();
   compte = setInterval(() => {
-    const reste = Math.max(0, DUREE_BOUCHE - (Date.now() - debut) / 1000);
+    const reste = Math.max(0, duree - (Date.now() - debut) / 1000);
     const num = document.getElementById("count");
     const arc = document.getElementById("arc");
     if (num) num.textContent = Math.ceil(reste);
-    if (arc) arc.setAttribute("stroke-dashoffset", (CERCLE * (1 - reste / DUREE_BOUCHE)).toFixed(1));
-    if (reste <= 0) reveler();
+    if (arc) arc.setAttribute("stroke-dashoffset", (CERCLE * (1 - reste / duree)).toFixed(1));
+    if (reste <= 0) { arreterCompte(); auBout(); }
   }, 100);
 }
 
@@ -268,16 +302,55 @@ function reveler() {
   arreterCompte();
   etat.revele = true;
   afficher();
-  if (carteEnCours().sens === "b") ecouter();
+  if (carteEnCours().sens !== "b") return;
+  // Bouche : on laisse le micro ouvert un instant (pour ne pas couper un mot), puis on fait parler le modèle.
+  const avecMicro = enregistre;
+  enregistre = false;
+  setTimeout(async () => {
+    if (avecMicro && await arreterEnregistrement()) {
+      const bouton = document.getElementById("moi");
+      if (bouton) bouton.hidden = false;
+    }
+    if (etat.ecran === "carte" && etat.revele) ecouter();
+  }, avecMicro ? RAB_MICRO : 0);
 }
 
-function ouvrirCarte() {
+async function ouvrirCarte() {
+  effacerEnregistrement();
+  enregistre = false;
   etat.ecran = "carte";
   etat.revele = false;
   etat.ecoutee = false;
   afficher();
-  if (carteEnCours().sens === "b") lancerCompte();
-  else ecouter();
+  if (carteEnCours().sens !== "b") { ecouter(); return; }
+  // Bouche : le compte commence tout de suite ; l'enregistrement le rejoint dès que le micro est prêt
+  // (la première fois, Chrome demande l'autorisation, et le compte ne doit pas rester bloqué).
+  const rang = etat.rang;
+  lancerCompte(DUREE_BOUCHE, reveler);
+  const ok = await demarrerEnregistrement();
+  if (etat.ecran !== "carte" || etat.rang !== rang || etat.revele) { if (ok) arreterEnregistrement(); return; }
+  enregistre = ok;
+  const etatMicro = document.getElementById("micro-etat");
+  if (etatMicro) etatMicro.hidden = !ok;
+}
+
+// Après un mot raté en Bouche : l'appli le redit, puis 3 secondes pour le répéter à voix haute.
+function ouvrirRepete() {
+  effacerEnregistrement();
+  etat.ecran = "repete";
+  afficher();
+  const { mot } = carteEnCours();
+  const numero = ++lecture;
+  let parti = false;
+  const partir = () => { if (parti || numero !== lecture || etat.ecran !== "repete") return; parti = true; lancerCompte(DUREE_REPETE, carteSuivante); };
+  if (!dire(mot.es, { fin: partir })) partir();
+  setTimeout(partir, 4000); // filet de sécurité si la fin de la voix n'est pas annoncée
+}
+
+function carteSuivante() {
+  etat.rang += 1;
+  if (etat.rang < etat.serie.length) ouvrirCarte();
+  else { effacerEnregistrement(); etat.ecran = "fin"; afficher(); }
 }
 
 app.addEventListener("click", e => {
@@ -295,7 +368,21 @@ app.addEventListener("click", e => {
   if (action === "ecouter") { ecouter(); return; }
   if (action === "lentement") { ecouter(true); return; }
   if (action === "reveler") { reveler(); return; }
-  if (action === "quitter") { etat.ecran = "accueil"; afficher(); return; }
+  if (action === "quitter") { effacerEnregistrement(); enregistre = false; etat.ecran = "accueil"; afficher(); return; }
+  if (action === "suivante") { lecture++; arreterCompte(); carteSuivante(); return; }
+  if (action === "basculer-micro") {
+    const oui = b.getAttribute("aria-pressed") !== "true";
+    choisirEnregistrement(oui);
+    b.setAttribute("aria-pressed", String(oui));
+    return;
+  }
+  if (action === "moi") {
+    taire();
+    lecture++;
+    b.classList.add("on");
+    reecouterEnregistrement(() => b.classList.remove("on"));
+    return;
+  }
 
   if (b.dataset.tok) {
     app.querySelectorAll(".tok.on").forEach(x => x.classList.remove("on"));
@@ -308,10 +395,10 @@ app.addEventListener("click", e => {
 
   if (b.dataset.note) {
     const { sens, mot } = carteEnCours();
-    noter(sens, mot, Number(b.dataset.note));
-    etat.rang += 1;
-    if (etat.rang < etat.serie.length) ouvrirCarte();
-    else { etat.ecran = "fin"; afficher(); }
+    const note = Number(b.dataset.note);
+    noter(sens, mot, note);
+    if (sens === "b" && note < 3) ouvrirRepete();
+    else carteSuivante();
     return;
   }
 
