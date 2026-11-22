@@ -1,18 +1,18 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=15";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=15";
-import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=15";
-import { ECOUTES } from "./ecoute.js?v=15";
-import { preparerVoix, dire, taire } from "./voix.js?v=15";
-import { vibrer } from "./retours.js?v=15";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=15";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=15";
-import { ecranLivre } from "./ecrans/livre.js?v=15";
-import { ecranLecon } from "./ecrans/lecon.js?v=15";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=15";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=15";
+import { chargerTableau } from "./donnees.js?v=16";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=16";
+import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=16";
+import { ECOUTES } from "./ecoute.js?v=16";
+import { preparerVoix, dire, taire } from "./voix.js?v=16";
+import { vibrer } from "./retours.js?v=16";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=16";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=16";
+import { ecranLivre } from "./ecrans/livre.js?v=16";
+import { ecranLecon } from "./ecrans/lecon.js?v=16";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=16";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=16";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -57,13 +57,17 @@ function bientot(nom, onglet) {
   return { onglet, html: `<main class="colonne vide"><h1>${esc(nom)}</h1><p class="sous">Cet écran arrive à la prochaine étape.</p><a class="lien" href="#/">Revenir à aujourd'hui</a></main>${barreOnglets(onglet)}` };
 }
 
-// Change d'écran avec la transition « Lumière qui monte » (fondu, légère montée, flou qui devient net).
+// Deux mouvements, chacun son sens :
+// - changer d'endroit (Livre, leçon, Ce soir…) : « Lumière qui monte » (fondu, légère montée, flou qui devient net) ;
+// - passer à la question suivante d'une série : « glisse », la question part à gauche, la suivante arrive de droite.
 // Sans transition quand le même écran se redessine (une réponse qui arrive, une case cochée).
 function afficher(transition = false) {
-  if (transition && document.startViewTransition) {
-    // Un toucher très rapide peut interrompre la transition en cours : l'écran s'affiche quand même.
-    document.startViewTransition(dessiner).ready.catch(() => {});
-  } else dessiner();
+  if (!transition || !document.startViewTransition) return dessiner();
+  const racine = document.documentElement;
+  racine.classList.toggle("glisse", transition === "glisse");
+  const t = document.startViewTransition(dessiner);
+  t.ready.catch(() => {}); // un toucher très rapide peut interrompre la transition : l'écran s'affiche quand même
+  t.finished.finally(() => racine.classList.remove("glisse"));
 }
 
 function dessiner() {
@@ -90,7 +94,7 @@ app.addEventListener("click", async e => {
   const action = e.target.closest("[data-p]");
   if (action) {
     const r = await actionPratique(ctx, action.dataset.p, action);
-    if (r) afficher(r === "suivant");
+    if (r) afficher(r === "suivant" ? "glisse" : false);
     return;
   }
   const caseCochee = e.target.closest("[data-cocher]");

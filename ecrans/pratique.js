@@ -1,17 +1,17 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
 
-import { esc, ICONES } from "../ui.js?v=15";
-import { lecon as trouver } from "../position.js?v=15";
-import { EXERCICES } from "../exercices.js?v=15";
-import { corriger } from "../corriger.js?v=15";
-import { noterMot, leconsARevoir, cocher } from "../progression.js?v=15";
-import { dire, taire } from "../voix.js?v=15";
-import { vibrer, son } from "../retours.js?v=15";
+import { esc, ICONES } from "../ui.js?v=16";
+import { lecon as trouver } from "../position.js?v=16";
+import { EXERCICES } from "../exercices.js?v=16";
+import { corriger } from "../corriger.js?v=16";
+import { noterMot, leconsARevoir, cocher } from "../progression.js?v=16";
+import { dire, taire } from "../voix.js?v=16";
+import { vibrer, son } from "../retours.js?v=16";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   reecouterEnregistrement, effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=15";
+} from "../enregistrement.js?v=16";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -59,7 +59,7 @@ function nouvelleSerie(ctx, cle, idLecon) {
 
 const barre = () => `<header class="barre-ex">
     <a class="quitter" href="${s.retour}">${ICONES.fermer}Quitter</a>
-    <span class="piste" role="progressbar" aria-valuemin="0" aria-valuemax="${s.items.length}" aria-valuenow="${s.i}"><i style="width:${(s.i / s.items.length) * 100}%"></i></span>
+    <span class="piste" role="progressbar" aria-valuemin="0" aria-valuemax="${s.items.length}" aria-valuenow="${s.i}"><i style="width:${((s.depuis ?? s.i) / s.items.length) * 100}%"></i></span>
     <span class="compte">${s.i + 1} / ${s.items.length}</span>
   </header>`;
 
@@ -188,7 +188,17 @@ export function ecranPratique(ctx, idLecon) {
   return {
     onglet: null,
     apres: () => {
-      if (it.type === "ecrire" && s.phase === "question") document.getElementById("reponse")?.focus();
+      // La barre avance sous tes yeux : elle part de la question précédente et glisse jusqu'à celle-ci.
+      if (s.depuis != null) {
+        const trait = document.querySelector(".piste i");
+        s.depuis = null;
+        requestAnimationFrame(() => requestAnimationFrame(() => { if (trait) trait.style.width = `${(s.i / s.items.length) * 100}%`; }));
+      }
+      // Le clavier monte une fois la nouvelle question arrivée, pas pendant qu'elle glisse.
+      if (it.type === "ecrire" && s.phase === "question") {
+        const i = s.i;
+        setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
+      }
       if (it.type === "carte" && s.phase === "reponse" && !s.dit) { s.dit = true; dire(it.mot.es); }
       s.vientDeTourner = false;
     },
@@ -201,6 +211,7 @@ export function ecranPratique(ctx, idLecon) {
 function suivant() {
   effacerEnregistrement();
   taire();
+  s.depuis = s.i;
   s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.astuce = ""; s.dit = false;
 }
 

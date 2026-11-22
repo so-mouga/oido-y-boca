@@ -78,6 +78,14 @@ button:active, .primaire:active, .secondaire:active, .quitter:active { transform
 .onglets { view-transition-name: onglets; }
 ::view-transition-old(root) { animation: fondu .18s var(--ease) both; }
 ::view-transition-new(root) { animation: monte .38s var(--ease) both; }
+/* Question suivante d'une série : la question part à gauche, la suivante arrive de droite. La barre du haut ne bouge pas. */
+.barre-ex { view-transition-name: barre-ex; }
+::view-transition-group(barre-ex), ::view-transition-new(barre-ex) { animation: none; }
+::view-transition-old(barre-ex) { display: none; }
+html.glisse::view-transition-old(root) { animation: sortGauche .24s ease-in both; }
+html.glisse::view-transition-new(root) { animation: entreDroite .4s var(--ease) both; }
+@keyframes sortGauche { to { opacity: 0; transform: translateX(-30%); } }
+@keyframes entreDroite { from { opacity: 0; transform: translateX(40%); } }
 @keyframes fondu { to { opacity: 0; } }
 @keyframes apparait { from { opacity: 0; } }
 @keyframes monte { from { opacity: 0; transform: translateY(14px); filter: blur(3px); } }
@@ -266,7 +274,7 @@ body.nuit ::selection { background: var(--sun); color: var(--night); }
 .quitter .i { width: 18px; height: 18px; }
 .piste { flex: 1; height: 6px; border-radius: 3px; background: var(--hair); overflow: hidden; }
 .piste i { display: block; height: 100%; background: var(--marine); border-radius: 3px; transition: width .5s var(--ease); }
-.compte { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.compte { font-size: 15px; font-weight: 600; color: var(--marine); font-variant-numeric: tabular-nums; }
 .sorte { font-size: 13px; font-weight: 500; color: var(--marine-soft); display: flex; align-items: center; gap: 8px; }
 .sorte i { width: 8px; height: 8px; border-radius: 50%; background: var(--sun); }
 .enonce { font-size: 24px; line-height: 1.3; font-weight: 500; letter-spacing: -.01em; text-wrap: pretty; }

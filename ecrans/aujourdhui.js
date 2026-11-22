@@ -1,9 +1,9 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=15";
-import { UNITES, uniteCourante } from "../position.js?v=15";
-import { cases, leconsARevoir, niveauEcoute } from "../progression.js?v=15";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=15";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=16";
+import { UNITES, uniteCourante } from "../position.js?v=16";
+import { cases, leconsARevoir, niveauEcoute } from "../progression.js?v=16";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=16";
 
 function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "" }) {
   const caseHtml = auto
