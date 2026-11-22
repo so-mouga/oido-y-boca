@@ -1,10 +1,10 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=22";
-import { UNITES, uniteCourante } from "../position.js?v=22";
-import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=22";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=22";
-import { controlePret, dernierResultat } from "./controle.js?v=22";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=23";
+import { UNITES, uniteCourante } from "../position.js?v=23";
+import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=23";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=23";
+import { controlePret, dernierResultat } from "./controle.js?v=23";
 
 function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "", cls = "" }) {
   const caseHtml = auto
@@ -101,7 +101,9 @@ export function ecranAujourdhui(ctx) {
   if (der && soir[der.id]) {
     taches.push(ligne({ cle: "soir", coche: c.soir, titre: "Ce soir avec Blanca", detail: esc(soir[der.id].kevin.split(";")[0]), href: "#/soir" }));
   }
-  if (new Date(jour + "T12:00:00").getDay() === 0) {
+  // Une fois par semaine, le jour de ton choix : la ligne reste tant qu'elle n'est pas cochée,
+  // disparaît le reste de la semaine une fois faite, et revient le lundi.
+  if (!cocheCetteSemaine(jour, "dimanche")) {
     taches.push(ligne({ cle: "dimanche", coche: c.dimanche, titre: "Ton écoute de la semaine", detail: "envoie-la au prof (le lien ou le texte)" }));
   }
 
