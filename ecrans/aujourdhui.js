@@ -1,9 +1,9 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=19";
-import { UNITES, uniteCourante } from "../position.js?v=19";
-import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=19";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=19";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=20";
+import { UNITES, uniteCourante } from "../position.js?v=20";
+import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=20";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=20";
 
 function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "" }) {
   const caseHtml = auto
@@ -37,6 +37,16 @@ function blocSauvegarde() {
       <button class="lien" data-restaurer>Restaurer depuis un fichier</button></div>
       <input type="file" accept=".json,application/json" data-fichier hidden>
     </section>`;
+}
+
+// Le rappel : sans sauvegarde depuis 7 jours (ou jamais), un bandeau en haut propose d'en faire une.
+const RAPPEL_JOURS = 7;
+function rappelSauvegarde(jour) {
+  const le = derniereSauvegarde();
+  const ecart = le ? Math.round((new Date(jour + "T12:00:00") - new Date(le + "T12:00:00")) / 86400000) : Infinity;
+  if (ecart < RAPPEL_JOURS) return "";
+  const quand = le ? `Ta dernière sauvegarde date d'il y a ${ecart} jours.` : "Ta progression n'a jamais été sauvegardée.";
+  return `<p class="bandeau rappel">${quand} <button class="lien" data-sauvegarder>Sauvegarder</button></p>`;
 }
 
 export function ecranAujourdhui(ctx) {
@@ -89,7 +99,7 @@ export function ecranAujourdhui(ctx) {
 
   const bandeau = apercu
     ? `<p class="bandeau">Aperçu : leçons jusqu'à ${esc(apercu)} faites pour l'exemple. Rien n'est enregistré.</p>`
-    : ctx.horsLigne ? `<p class="bandeau">Sans réseau : copie du tableau du ${esc(ctx.luLe)}.</p>` : "";
+    : (ctx.horsLigne ? `<p class="bandeau">Sans réseau : copie du tableau du ${esc(ctx.luLe)}.</p>` : "") + rappelSauvegarde(jour);
 
   return {
     onglet: "jour",
