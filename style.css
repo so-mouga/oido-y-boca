@@ -280,6 +280,13 @@ body.nuit ::selection { background: var(--sun); color: var(--night); }
 /* Exercices */
 .exo { padding-right: 22px; gap: 20px; min-height: 100dvh; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); }
 .exo .espace, .saisie .espace { flex: 1; }
+/* « À écrire », pendant la question : la page prend la hauteur visible (qui rétrécit quand le clavier s'ouvre).
+   Le champ et les boutons restent en bas, juste au-dessus du clavier ; le haut défile s'il manque de place. */
+.exo.ecrire-q { flex: none; height: 100dvh; min-height: 0; gap: 12px; padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); }
+.defile { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 20px; scrollbar-width: none; }
+.defile > * { flex: none; }
+.ecrire-q .saisie { flex: none; gap: 8px; }
+.ecrire-q .aides .secondaire { padding: 8px; }
 .barre-ex { display: flex; align-items: center; gap: 14px; }
 .quitter { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 500; color: var(--marine-soft); padding: 6px 0; }
 .quitter .i { width: 18px; height: 18px; }

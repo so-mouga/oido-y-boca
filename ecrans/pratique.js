@@ -1,17 +1,17 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
 
-import { esc, md, ICONES } from "../ui.js?v=17";
-import { lecon as trouver } from "../position.js?v=17";
-import { EXERCICES } from "../exercices.js?v=17";
-import { corriger } from "../corriger.js?v=17";
-import { noterMot, leconsARevoir, cocher } from "../progression.js?v=17";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=17";
-import { vibrer, son } from "../retours.js?v=17";
+import { esc, md, ICONES } from "../ui.js?v=18";
+import { lecon as trouver } from "../position.js?v=18";
+import { EXERCICES } from "../exercices.js?v=18";
+import { corriger } from "../corriger.js?v=18";
+import { noterMot, leconsARevoir, cocher } from "../progression.js?v=18";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=18";
+import { vibrer, son } from "../retours.js?v=18";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=17";
+} from "../enregistrement.js?v=18";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -100,14 +100,15 @@ function boutonIndice(it) {
   return `<button class="secondaire" type="button" data-p="indice" data-garde-focus>${s.indice ? "Un autre indice" : "Un indice"}</button>`;
 }
 
-function vueEcrire(it) {
+// Pendant la question, le champ et les boutons restent collés en bas (juste au-dessus du clavier quand il est ouvert) ;
+// le haut (barre, phrase, indice) défile s'il manque de place.
+function vueEcrire(it, enTete) {
   const consigne = sorte(`À écrire · ${it.consigne.toLowerCase()}`);
   if (s.phase === "question") {
-    return `${consigne}<p class="enonce">${esc(it.fr)}</p>${zoneIndice(it)}
+    return `<div class="defile">${enTete}${consigne}<p class="enonce">${esc(it.fr)}</p>${zoneIndice(it)}</div>
       <form class="saisie" data-p-form>
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
-        <div class="espace"></div>
         <button class="primaire" type="submit">Vérifier</button>
         <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
       </form>`;
@@ -118,7 +119,7 @@ function vueEcrire(it) {
   const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
   const tape = s.saisie && r.tape ? `<p class="tape">${surligne(r.tape, "faux")}</p>` : s.saisie ? `<p class="tape">${esc(s.saisie)}</p>` : "";
   const bonne = r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu);
-  return `${consigne}<p class="enonce">${esc(it.fr)}</p>
+  return `${enTete}${consigne}<p class="enonce">${esc(it.fr)}</p>
     ${tape}
     <div class="verdict ${ok ? "ok" : r.niveau === "passe" ? "ko passe" : "ko"}" role="status">
       <b>${titre}</b>
@@ -215,7 +216,9 @@ export function ecranPratique(ctx, idLecon) {
   }
 
   const it = s.items[s.i];
-  const vue = it.type === "ecrire" ? vueEcrire(it) : it.type === "dire" ? vueDire(it) : vueCarte(it);
+  const enTete = `${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}`;
+  const question = it.type === "ecrire" && s.phase === "question";
+  const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
   return {
     onglet: null,
     apres: () => {
@@ -238,7 +241,7 @@ export function ecranPratique(ctx, idLecon) {
       }
       s.vientDeTourner = false;
     },
-    html: `<main class="colonne exo">${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}${vue}</main>`,
+    html: `<main class="colonne exo${question ? " ecrire-q" : ""}">${vue}</main>`,
   };
 }
 
@@ -286,6 +289,8 @@ export async function actionPratique(ctx, action, el) {
       // L'indice s'ajoute sans redessiner l'écran : ta saisie et le clavier restent en place.
       s.indice++;
       document.querySelector(".zone-indice")?.replaceWith(document.createRange().createContextualFragment(zoneIndice(it)));
+      const defile = document.querySelector(".defile");
+      if (defile) defile.scrollTop = defile.scrollHeight;
       if (boutonIndice(it)) el.textContent = "Un autre indice"; else el.remove();
       vibrer(8);
       return false;
