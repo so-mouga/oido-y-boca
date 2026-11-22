@@ -1,17 +1,17 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
 
-import { esc, md, ICONES } from "../ui.js?v=18";
-import { lecon as trouver } from "../position.js?v=18";
-import { EXERCICES } from "../exercices.js?v=18";
-import { corriger } from "../corriger.js?v=18";
-import { noterMot, leconsARevoir, cocher } from "../progression.js?v=18";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=18";
-import { vibrer, son } from "../retours.js?v=18";
+import { esc, md, ICONES } from "../ui.js?v=19";
+import { lecon as trouver } from "../position.js?v=19";
+import { EXERCICES } from "../exercices.js?v=19";
+import { corriger } from "../corriger.js?v=19";
+import { noterMot, leconsARevoir, cocher } from "../progression.js?v=19";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=19";
+import { vibrer, son } from "../retours.js?v=19";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=18";
+} from "../enregistrement.js?v=19";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));

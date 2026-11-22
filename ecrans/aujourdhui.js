@@ -1,9 +1,9 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=18";
-import { UNITES, uniteCourante } from "../position.js?v=18";
-import { cases, leconsARevoir, niveauEcoute } from "../progression.js?v=18";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=18";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=19";
+import { UNITES, uniteCourante } from "../position.js?v=19";
+import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=19";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=19";
 
 function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "" }) {
   const caseHtml = auto
@@ -26,6 +26,17 @@ function tranche(pos) {
       const etat = u.id === courante.id ? "now" : finie ? "fini" : u.lecons.some(l => pos.faites.has(l.id)) ? "" : "fog";
       return `<a class="tab ${etat}" href="#/livre/${u.id}" aria-label="Unité ${u.n} : ${titre(u.titre)}">${u.n}</a>`;
     }).join("")}`).join("")}</nav>`;
+}
+
+// En bas, discret : sauvegarder la progression dans un fichier, ou la reprendre depuis un fichier.
+function blocSauvegarde() {
+  const le = derniereSauvegarde();
+  return `<section class="sauvegarde" aria-label="Ma progression">
+      <p>Ma progression${le ? ` · sauvegardée le ${esc(dateCourte(le))}` : " · jamais sauvegardée"}</p>
+      <div><button class="lien" data-sauvegarder>Sauvegarder</button>
+      <button class="lien" data-restaurer>Restaurer depuis un fichier</button></div>
+      <input type="file" accept=".json,application/json" data-fichier hidden>
+    </section>`;
 }
 
 export function ecranAujourdhui(ctx) {
@@ -91,6 +102,7 @@ export function ecranAujourdhui(ctx) {
             <h2 id="t-jour">Aujourd'hui</h2>
             <ul class="taches">${taches.join("")}</ul>
           </section>
+          ${blocSauvegarde()}
         </main>
         ${tranche(pos)}
       </div>${barreOnglets("jour")}`,

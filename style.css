@@ -380,3 +380,8 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .bilan li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hair); font-size: 15px; }
 .bilan b { font-weight: 500; }
 .bilan span { color: var(--marine-soft); }
+
+/* Ma progression : sauvegarder ou restaurer, discret en bas d'Aujourd'hui. */
+.sauvegarde { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--hair); display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
+.sauvegarde div { display: flex; flex-wrap: wrap; gap: 6px 20px; }
+.sauvegarde .lien { font-size: 14px; padding: 6px 0; }

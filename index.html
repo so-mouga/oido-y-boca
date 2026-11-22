@@ -5,15 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="theme-color" content="#FFF4DC">
   <title>Oído y Boca</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icone-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=19">
 </head>
 <body>
   <main id="app" aria-live="polite">
     <p class="chargement">Lecture du tableau…</p>
   </main>
-  <script type="module" src="app.js?v=18"></script>
+  <script type="module" src="app.js?v=19"></script>
+  <script>
+    // Garde l'appli sur le téléphone (voir sw.js). Le numéro suit celui des imports.
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js?v=19").catch(() => {});
+  </script>
 </body>
 </html>

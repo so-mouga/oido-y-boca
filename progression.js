@@ -63,5 +63,29 @@ export function cocher(aujourdhui, cle, valeur = true) {
 export function niveauEcoute() { return etat.ecoute; }
 export function monterEcoute(max) { etat.ecoute = Math.min(etat.ecoute + 1, max); sauver(); }
 
-// Sauvegarde dans un fichier, à la demande.
-export function exporter() { return JSON.stringify(etat, null, 1); }
+// Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
+const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
+export function exporter(aujourdhui) {
+  if (!apercu) try { localStorage.setItem(CLE_SAUVEGARDE, aujourdhui); } catch { /* sans importance */ }
+  return JSON.stringify({ appli: "oido-y-boca", le: aujourdhui, ...etat }, null, 1);
+}
+export function derniereSauvegarde() {
+  try { return localStorage.getItem(CLE_SAUVEGARDE) || ""; } catch { return ""; }
+}
+
+// Lit un fichier de sauvegarde. Renvoie { le, etat } ou lève une erreur si ce n'en est pas un.
+export function lireSauvegarde(texte) {
+  let d;
+  try { d = JSON.parse(texte); } catch { throw new Error("ce fichier n'est pas une sauvegarde de l'appli"); }
+  const objet = v => v && typeof v === "object" && !Array.isArray(v);
+  if (!objet(d) || !objet(d.mots) || !objet(d.jours) || typeof d.ecoute !== "number") {
+    throw new Error("ce fichier n'est pas une sauvegarde de l'appli");
+  }
+  return { le: d.le || "", etat: { mots: d.mots, jours: d.jours, ecoute: d.ecoute } };
+}
+
+// Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).
+export function restaurer(sauvegarde) {
+  etat = { ...sauvegarde.etat };
+  sauver();
+}

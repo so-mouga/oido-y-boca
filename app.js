@@ -1,19 +1,19 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=18";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=18";
-import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=18";
-import { ECOUTES } from "./ecoute.js?v=18";
-import { preparerVoix } from "./voix.js?v=18";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=18";
-import { vibrer } from "./retours.js?v=18";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=18";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=18";
-import { ecranLivre } from "./ecrans/livre.js?v=18";
-import { ecranLecon } from "./ecrans/lecon.js?v=18";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=18";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=18";
+import { chargerTableau } from "./donnees.js?v=19";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=19";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=19";
+import { ECOUTES } from "./ecoute.js?v=19";
+import { preparerVoix } from "./voix.js?v=19";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=19";
+import { vibrer } from "./retours.js?v=19";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=19";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=19";
+import { ecranLivre } from "./ecrans/livre.js?v=19";
+import { ecranLecon } from "./ecrans/lecon.js?v=19";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=19";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=19";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -111,6 +111,15 @@ app.addEventListener("click", async e => {
     basculerLecture(son);
     return;
   }
+  if (e.target.closest("[data-sauvegarder]")) {
+    telecharger(`oido-y-boca-${ctx.jour}.json`, exporter(ctx.jour));
+    afficher();
+    return;
+  }
+  if (e.target.closest("[data-restaurer]")) {
+    app.querySelector("[data-fichier]")?.click();
+    return;
+  }
   if (e.target.closest("[data-trop-facile]")) {
     monterEcoute(ECOUTES.length - 1);
     afficher();
@@ -133,8 +142,37 @@ window.addEventListener("pointerup", relacher);
 window.addEventListener("pointercancel", relacher);
 app.addEventListener("contextmenu", e => { if (e.target.closest("[data-micro]")) e.preventDefault(); });
 
+// Sauvegarde : un fichier JSON téléchargé (il arrive dans « Téléchargements » sur Android).
+function telecharger(nom, texte) {
+  const url = URL.createObjectURL(new Blob([texte], { type: "application/json" }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: nom });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Restauration : relit le fichier choisi, montre sa date et demande avant de tout remplacer.
+app.addEventListener("change", async e => {
+  if (!e.target.matches("[data-fichier]")) return;
+  const fichier = e.target.files[0];
+  e.target.value = "";
+  if (!fichier) return;
+  try {
+    const s = lireSauvegarde(await fichier.text());
+    const du = s.le ? ` du ${dateCourte(s.le)}` : "";
+    if (!confirm(`Remplacer ta progression actuelle par la sauvegarde${du} ?`)) return;
+    restaurer(s);
+    vibrer();
+    afficher();
+  } catch (err) {
+    alert(`Impossible de restaurer : ${err.message}.`);
+  }
+});
+
 async function demarrer() {
   preparerVoix();
+  // Demande à Chrome de ne jamais effacer la progression pour faire de la place (accordé sans question,
+  // surtout quand l'appli est installée).
+  navigator.storage?.persist?.().catch(() => {});
   try {
     ctx = contexte(await chargerTableau());
     afficher();
