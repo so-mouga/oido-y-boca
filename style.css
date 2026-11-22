@@ -386,3 +386,58 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .sauvegarde div { display: flex; flex-wrap: wrap; gap: 6px 20px; }
 .sauvegarde .lien { font-size: 14px; padding: 6px 0; }
 .bandeau.rappel .lien { color: var(--marine); margin-left: 4px; }
+
+/* Le contrôle blanc : la page, le bilan de l'écrit, ma présentation. */
+.lecon.controle.ouvert { color: var(--marine); }
+.lecon.controle.ouvert .losange { border-color: var(--sun-ink); }
+.lecon.controle.ouvert.reussi { color: var(--sage-ink); }
+.lecon.controle.ouvert.rate { color: var(--rose-ink); }
+.tache.ctl .case { border-color: var(--sun-ink); transform: rotate(45deg) scale(.8); border-radius: 4px; }
+.controle-page h1 { font-size: 30px; line-height: 1.1; }
+.controle-page h1 + .sous { margin-top: 6px; }
+.carte-claire h2 { font-size: 13px; font-weight: 500; color: var(--muted); }
+.verifie { display: flex; flex-direction: column; gap: 2px; }
+.verifie li { display: flex; gap: 10px; font-size: 14px; line-height: 1.4; padding: 3px 0; }
+.verifie li::before { content: ""; width: 9px; height: 9px; transform: rotate(45deg); border: 2px solid var(--sun-ink); flex: none; margin-top: 5px; }
+.partie-ctl { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--hair); border-radius: 18px; padding: 16px; }
+.partie-ctl .n { width: 34px; height: 34px; border-radius: 50%; background: var(--sun); display: grid; place-items: center; font-weight: 600; flex: none; }
+.partie-ctl .txt { flex: 1; min-width: 0; }
+.partie-ctl b { display: block; font-weight: 500; font-size: 16px; }
+.partie-ctl .txt > span { display: block; font-size: 13px; color: var(--muted); }
+.partie-ctl .txt > .der { color: var(--marine-soft); }
+.partie-ctl .i { color: var(--marine-soft); width: 18px; height: 18px; }
+.note-pied { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.note-pied.centre { text-align: center; margin-top: -8px; }
+.verdict .explication { color: var(--marine-soft); border-top: 1px solid rgba(19, 41, 75, .12); padding-top: 10px; }
+.verdict .explication b { color: var(--marine); }
+.resultat h1 { font-size: 30px; line-height: 1.15; }
+.reste-oral { font-size: 15px; color: var(--marine-soft); }
+.erreurs li { padding: 10px 0; border-top: 1px solid var(--hair); font-size: 15px; display: flex; flex-direction: column; gap: 2px; }
+.erreurs li > span { color: var(--muted); font-size: 13px; }
+.erreurs .explication { font-size: 13px; color: var(--marine-soft); }
+.six { padding: 0; margin: 0; counter-reset: p; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--marine-soft); line-height: 1.35; }
+.six li { counter-increment: p; display: flex; gap: 8px; }
+.six li::before { content: counter(p); width: 18px; height: 18px; border-radius: 50%; background: var(--sun-deep); color: var(--sun-ink); font-size: 11px; font-weight: 600; display: grid; place-items: center; flex: none; }
+textarea.texte { font: inherit; font-size: 17px; line-height: 1.5; color: var(--marine); background: #fff; border: 2px solid var(--marine-soft); border-radius: 16px; padding: 14px 16px; min-height: 190px; resize: vertical; outline: none; }
+textarea.texte:focus { border-color: var(--marine); box-shadow: 0 2px 10px rgba(19, 41, 75, .12); }
+.presentation .tape { font-size: 16px; }
+.question-note.gauche { text-align: left; }
+.coches li { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-top: 1px solid var(--hair); font-size: 15px; line-height: 1.35; }
+.coches .case { position: relative; }
+.coches .case::after { content: ""; position: absolute; inset: -9px; }
+.modele { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; padding: 12px 14px; font-size: 14px; line-height: 1.5; color: var(--marine-soft); }
+.modele summary { font-weight: 500; color: var(--marine); cursor: pointer; }
+.modele p { margin-top: 8px; }
+.anneau { position: relative; width: 180px; height: 180px; align-self: center; display: grid; place-items: center; }
+.anneau svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+.anneau circle { fill: none; stroke-width: 7; }
+.anneau .fond { stroke: var(--hair); }
+.anneau .plein { stroke: var(--sun); stroke-linecap: round; transition: stroke-dashoffset .25s linear; }
+.anneau .t { font-size: 40px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: center; }
+.anneau .t small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); }
+/* Le bouton d'enregistrement de la présentation : un appui pour commencer, un pour arrêter.
+   Volontairement différent du gros micro rond des exercices, qu'on tient appuyé. */
+.enreg { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 16px; padding: 16px; font-weight: 500; font-size: 16px; border: 2px solid var(--marine); color: var(--marine); background: var(--card); }
+.enreg .pt { width: 12px; height: 12px; border-radius: 50%; background: var(--sun-ink); }
+.enreg.on .pt { border-radius: 3px; background: var(--marine); }
+.blanca-ce-soir { padding: 13px 15px; font-size: 14px; }

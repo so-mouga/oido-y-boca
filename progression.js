@@ -1,15 +1,17 @@
 // Ce que l'appli garde sur le téléphone : la mémoire des mots (révision espacée),
-// les cases cochées du jour et le niveau d'écoute. Le Sheet n'est jamais modifié.
+// les cases cochées du jour, le niveau d'écoute, et pour chaque contrôle blanc le dernier résultat
+// de la partie écrite et le texte de ma présentation. Le Sheet n'est jamais modifié.
 
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
 const PLAFOND_REVISION = 2;                   // leçons à réviser par jour, au plus
 
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {} });
 let etat = lire();
 
 function lire() {
-  try { return { mots: {}, jours: {}, ecoute: 0, ...JSON.parse(localStorage.getItem(CLE) || "{}") }; }
-  catch { return { mots: {}, jours: {}, ecoute: 0 }; }
+  try { return { ...VIDE(), ...JSON.parse(localStorage.getItem(CLE) || "{}") }; }
+  catch { return VIDE(); }
 }
 function ecrire() {
   try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch { /* stockage indisponible : l'appli marche quand même */ }
@@ -19,7 +21,7 @@ function ecrire() {
 let apercu = false;
 export function modeApercu(oui) {
   apercu = oui;
-  if (oui) etat = { mots: {}, jours: {}, ecoute: 0 };
+  if (oui) etat = VIDE();
 }
 const sauver = () => { if (!apercu) ecrire(); };
 
@@ -63,6 +65,19 @@ export function cocher(aujourdhui, cle, valeur = true) {
 export function niveauEcoute() { return etat.ecoute; }
 export function monterEcoute(max) { etat.ecoute = Math.min(etat.ecoute + 1, max); sauver(); }
 
+// Contrôle blanc : le dernier résultat de la partie écrite ({ le, score }), et le texte de ma présentation.
+// Seulement sur le téléphone : c'est le prof qui note le vrai contrôle.
+export function resultatControle(idUnite) { return etat.controles[idUnite] || null; }
+export function noterControle(idUnite, aujourdhui, score) {
+  etat.controles = { ...etat.controles, [idUnite]: { le: aujourdhui, score } };
+  sauver();
+}
+export function textePresentation(idUnite) { return etat.presentations[idUnite] || ""; }
+export function garderPresentation(idUnite, texte) {
+  etat.presentations = { ...etat.presentations, [idUnite]: texte };
+  sauver();
+}
+
 // Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
 const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
 export function exporter(aujourdhui) {
@@ -81,7 +96,8 @@ export function lireSauvegarde(texte) {
   if (!objet(d) || !objet(d.mots) || !objet(d.jours) || typeof d.ecoute !== "number") {
     throw new Error("ce fichier n'est pas une sauvegarde de l'appli");
   }
-  return { le: d.le || "", etat: { mots: d.mots, jours: d.jours, ecoute: d.ecoute } };
+  return { le: d.le || "", etat: { ...VIDE(), mots: d.mots, jours: d.jours, ecoute: d.ecoute,
+    ...(objet(d.controles) && { controles: d.controles }), ...(objet(d.presentations) && { presentations: d.presentations }) } };
 }
 
 // Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).

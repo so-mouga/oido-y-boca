@@ -1,11 +1,12 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=20";
-import { UNITES, uniteCourante } from "../position.js?v=20";
-import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=20";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=20";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=21";
+import { UNITES, uniteCourante } from "../position.js?v=21";
+import { cases, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=21";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=21";
+import { controlePret, dernierResultat } from "./controle.js?v=21";
 
-function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "" }) {
+function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "", cls = "" }) {
   const caseHtml = auto
     ? `<span class="case${coche ? " on" : ""}" aria-label="${coche ? "fait" : "pas encore fait"}">${coche ? ICONES.coche : ""}</span>`
     : `<button class="case${coche ? " on" : ""}" data-cocher="${cle}" aria-pressed="${coche}" aria-label="Cocher : ${esc(titre)}">${coche ? ICONES.coche : ""}</button>`;
@@ -13,7 +14,7 @@ function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "" }) {
   const lien = href
     ? `<a class="aller" href="${href}"${externe ? ' target="_blank" rel="noopener"' : ""}>${corps}${externe ? ICONES.sortie : ICONES.chevron}</a>`
     : `<span class="aller">${corps}</span>`;
-  return `<li class="tache${coche ? " faite" : ""}">${caseHtml}${lien}${extra}</li>`;
+  return `<li class="tache${coche ? " faite" : ""}${cls ? ` ${cls}` : ""}">${caseHtml}${lien}${extra}</li>`;
 }
 
 // La tranche du livre : 25 onglets d'unité, groupés par partie.
@@ -78,6 +79,13 @@ export function ecranAujourdhui(ctx) {
         ? `Contrôle de l'unité ${pro.unite.n}` : `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}` };
 
   const taches = [ligne({ cle: "prof", auto: true, titre: "Leçon avec le prof", ...prof })];
+
+  // Le contrôle approche : les leçons de l'unité sont faites, le prochain pas est le contrôle.
+  if (pro?.type === "contrôle" && controlePret(pro.unite, pos)) {
+    const r = dernierResultat(pro.unite.id);
+    taches.push(ligne({ cle: "controle", auto: true, cls: "ctl", titre: "Préparer le contrôle",
+      detail: r ? `Partie écrite ${esc(r)}` : "Contrôle blanc : l'écrit, puis ta présentation", href: `#/controle/${pro.unite.id}` }));
+  }
 
   if (der) {
     const aReviser = leconsARevoir([...pos.faites], der.id, motsParLecon, jour);

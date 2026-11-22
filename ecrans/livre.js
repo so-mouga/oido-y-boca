@@ -1,9 +1,10 @@
 // « Le livre » : les 4 parties, les unités, les leçons. Le prof débloque en écrivant dans « Suivi » ;
 // ici on n'ouvre que les leçons faites. Une unité à la fois est dépliée (#/livre/U3).
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=20";
-import { PARTIES } from "../livre.js?v=20";
-import { etatLecon, uniteCourante, LECONS } from "../position.js?v=20";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=21";
+import { PARTIES } from "../livre.js?v=21";
+import { etatLecon, uniteCourante, LECONS } from "../position.js?v=21";
+import { controlePret } from "./controle.js?v=21";
 
 function ligneLecon(l, pos) {
   const etat = etatLecon(l.id, pos);
@@ -20,7 +21,10 @@ function ligneControle(u, pos) {
   const score = pos.controles[u.id];
   const etat = score === undefined ? "" : pos.controleReussi(u.id) ? "reussi" : "rate";
   const texte = score === undefined ? `Contrôle de l'unité ${u.n}` : `Contrôle de l'unité ${u.n} · ${score} %`;
-  return `<li><span class="lecon controle ${etat}"><span class="losange" aria-hidden="true"></span><span class="nom">${texte}</span></span></li>`;
+  const losange = `<span class="losange" aria-hidden="true"></span><span class="nom">${texte}</span>`;
+  // Dès que les leçons de l'unité sont faites, le losange ouvre le contrôle blanc (et le reste, pour réviser).
+  if (controlePret(u, pos)) return `<li><a class="lecon controle ouvert ${etat}" href="#/controle/${u.id}">${losange}${ICONES.chevron}</a></li>`;
+  return `<li><span class="lecon controle ${etat}">${losange}</span></li>`;
 }
 
 function unite(u, pos, ouverte, courante) {

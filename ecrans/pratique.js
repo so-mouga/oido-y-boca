@@ -1,17 +1,20 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
+// Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
+// avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, ICONES } from "../ui.js?v=20";
-import { lecon as trouver } from "../position.js?v=20";
-import { EXERCICES } from "../exercices.js?v=20";
-import { corriger } from "../corriger.js?v=20";
-import { noterMot, leconsARevoir, cocher } from "../progression.js?v=20";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=20";
-import { vibrer, son } from "../retours.js?v=20";
+import { esc, md, ICONES } from "../ui.js?v=21";
+import { lecon as trouver } from "../position.js?v=21";
+import { EXERCICES } from "../exercices.js?v=21";
+import { corriger } from "../corriger.js?v=21";
+import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=21";
+import { CONTROLES, tirerEcrit, phraseJuste } from "../controles.js?v=21";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=21";
+import { vibrer, son } from "../retours.js?v=21";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=20";
+} from "../enregistrement.js?v=21";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -49,10 +52,17 @@ function serieRevision(ctx) {
   return { titre: `Révision · ${ids.join(" · ")}`, retour: "#/", revision: true, items };
 }
 
-function nouvelleSerie(ctx, cle, idLecon) {
+// La partie écrite du contrôle blanc : les questions tirées au hasard, thème après thème.
+function serieControle(ctx, idUnite) {
+  const c = CONTROLES[idUnite];
+  const mots = Object.entries(ctx.motsParLecon).filter(([l]) => l.startsWith(`${idUnite}-`)).flatMap(([, m]) => m);
+  return { titre: `Contrôle blanc · unité ${idUnite.slice(1)}`, retour: `#/controle/${idUnite}`, controle: idUnite, items: tirerEcrit(c, mots) };
+}
+
+function nouvelleSerie(ctx, cle, construire) {
   effacerEnregistrement();
-  const base = idLecon ? serieLecon(ctx, idLecon) : serieRevision(ctx);
-  s = { cle, ...base, i: 0, phase: "question", resultat: null, saisie: "", astuce: "", indice: 0, notes: { ecrire: [], dire: [], carte: [], aide: { ecrire: 0, dire: 0, carte: 0 } } };
+  const base = construire();
+  s = { cle, ...base, resultats: [], i: 0, phase: "question", resultat: null, saisie: "", astuce: "", indice: 0, notes: { ecrire: [], dire: [], carte: [], aide: { ecrire: 0, dire: 0, carte: 0 } } };
 }
 
 // ——— l'affichage ———
@@ -96,6 +106,7 @@ function etapesIndice(it) {
 
 const zoneIndice = it => `<div class="zone-indice" role="status">${s.indice ? `<div class="indice">${etapesIndice(it).slice(0, s.indice).join("")}</div>` : ""}</div>`;
 function boutonIndice(it) {
+  if (it.controle) return "";
   if (etapesIndice(it).length - s.indice <= 0) return "";
   return `<button class="secondaire" type="button" data-p="indice" data-garde-focus>${s.indice ? "Un autre indice" : "Un indice"}</button>`;
 }
@@ -115,7 +126,9 @@ function vueEcrire(it, enTete) {
   }
   const r = s.resultat;
   const ok = r.niveau === "juste" || r.niveau === "accents";
-  const titre = { juste: s.indice ? "Juste, avec un indice" : "Juste", accents: "Juste, aux accents près", presque: "Presque : un mot", faux: "Pas encore", passe: "La réponse" }[r.niveau];
+  // « Presque : un mot » n'a pas de sens quand la réponse n'a qu'un mot (« Complète ») : c'est « Pas encore ».
+  const unSeulMot = r.attendu.trim().split(/\s+/).length === 1;
+  const titre = { juste: s.indice ? "Juste, avec un indice" : "Juste", accents: "Juste, aux accents près", presque: unSeulMot ? "Pas encore" : "Presque : un mot", faux: "Pas encore", passe: "La réponse" }[r.niveau];
   const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
   const tape = s.saisie && r.tape ? `<p class="tape">${surligne(r.tape, "faux")}</p>` : s.saisie ? `<p class="tape">${esc(s.saisie)}</p>` : "";
   const bonne = r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu);
@@ -126,9 +139,17 @@ function vueEcrire(it, enTete) {
       <div class="bonne">${ecouter(r.attendu)}<p lang="es">${bonne}</p></div>
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
+      ${explication(it)}
     </div>
     <div class="espace"></div>
     <button class="primaire" data-p="suivant">Suivant</button>`;
+}
+
+// Contrôle blanc : la règle de la bonne réponse, ou la phrase d'exemple du mot.
+function explication(it) {
+  if (it.expl) return `<p class="explication">${md(it.expl)}</p>`;
+  if (it.exemple) return `<p class="explication">Exemple : <span lang="es">${esc(it.exemple)}</span></p>`;
+  return "";
 }
 
 function vueDire(it) {
@@ -174,7 +195,34 @@ function vueCarte(it) {
     ${notes("Tu l'avais trouvé avant de retourner la carte ?", false)}`;
 }
 
+// La fin de la partie écrite : le pourcentage, le détail par thème, et les erreurs avec leur explication.
+// Rien n'est gardé des erreurs ; seul le dernier pourcentage reste sur le téléphone.
+function vueFinControle() {
+  const r = s.resultats;
+  const score = Math.round((r.filter(x => x.ok).length / r.length) * 100);
+  const themes = [...new Set(r.map(x => x.it.theme))].map(t => {
+    const du = r.filter(x => x.it.theme === t);
+    return `<li><b>${esc(t)}</b><span>${du.filter(x => x.ok).length} sur ${du.length}</span></li>`;
+  }).join("");
+  const erreurs = r.filter(x => !x.ok).map(({ it, saisie }) => `<li>
+      <p lang="es">${phraseJuste(it)}</p>
+      <span>${it.fr.includes("___") ? "" : `${esc(it.fr)} · `}${saisie ? `tu as écrit « <span lang="es">${esc(saisie)}</span> »` : "tu n'as pas trouvé"}</span>
+      ${explication(it)}
+    </li>`).join("");
+  return `<div class="fin resultat">
+      <p class="sous">${esc(s.titre)}</p>
+      <h1>Partie écrite : ${score} %</h1>
+      <p class="reste-oral">Il reste l'oral : c'est lui qui compte le plus face au prof.</p>
+      <ul class="bilan">${themes}</ul>
+      ${erreurs ? `<section aria-labelledby="t-erreurs"><h2 id="t-erreurs">Tes erreurs</h2><ul class="erreurs">${erreurs}</ul></section>` : `<p class="sous">Aucune erreur.</p>`}
+    </div>
+    <div class="espace"></div>
+    <a class="primaire" href="#/controle/${s.controle}/presentation">Passer à ma présentation</a>
+    <a class="secondaire" href="${s.retour}">Revenir au contrôle</a>`;
+}
+
 function vueFin() {
+  if (s.controle) return vueFinControle();
   const n = s.notes;
   const justes = n.ecrire.filter(Boolean).length;
   const aide = k => n.aide[k] ? `, ${n.aide[k]} avec indice` : "";
@@ -197,7 +245,16 @@ function vueFin() {
 
 export function ecranPratique(ctx, idLecon) {
   const cle = idLecon ? `lecon:${idLecon}` : `revision:${ctx.jour}`;
-  if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, idLecon ? decodeURIComponent(idLecon) : null);
+  const id = idLecon ? decodeURIComponent(idLecon) : null;
+  return ecranSerie(ctx, cle, () => id ? serieLecon(ctx, id) : serieRevision(ctx), idLecon);
+}
+
+export function ecranEcritControle(ctx, idUnite) {
+  return ecranSerie(ctx, `controle:${idUnite}`, () => serieControle(ctx, idUnite));
+}
+
+function ecranSerie(ctx, cle, construire, idLecon) {
+  if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, construire);
 
   if (!s.items.length) {
     s = null;
@@ -211,6 +268,7 @@ export function ecranPratique(ctx, idLecon) {
       s.fini = true;
       son("fin");
       if (s.revision) cocher(ctx.jour, "revision", true);
+      if (s.controle) noterControle(s.controle, ctx.jour, Math.round((s.resultats.filter(x => x.ok).length / s.resultats.length) * 100));
     }
     return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
   }
@@ -264,16 +322,17 @@ export async function actionPratique(ctx, action, el) {
       s.saisie = document.getElementById("reponse")?.value.trim() || "";
       if (!s.saisie) return false;
       s.resultat = corriger(s.saisie, it.es);
-      s.notes.ecrire.push(s.resultat.niveau === "juste" || s.resultat.niveau === "accents");
+      const ok = s.resultat.niveau === "juste" || s.resultat.niveau === "accents";
+      s.notes.ecrire.push(ok);
+      s.resultats.push({ it, ok, saisie: s.saisie });
       if (s.indice) s.notes.aide.ecrire++;
       s.phase = "reponse";
-      const ok = s.resultat.niveau === "juste" || s.resultat.niveau === "accents";
       vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
       return true;
     }
     case "sais-pas":
       s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0] };
-      s.notes.ecrire.push(false); s.phase = "reponse";
+      s.notes.ecrire.push(false); s.resultats.push({ it, ok: false, saisie: "" }); s.phase = "reponse";
       return true;
     case "voir":
       if (it.type === "carte" && !mouvementReduit()) {

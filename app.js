@@ -1,19 +1,20 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=20";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=20";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=20";
-import { ECOUTES } from "./ecoute.js?v=20";
-import { preparerVoix } from "./voix.js?v=20";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=20";
-import { vibrer } from "./retours.js?v=20";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=20";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=20";
-import { ecranLivre } from "./ecrans/livre.js?v=20";
-import { ecranLecon } from "./ecrans/lecon.js?v=20";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=20";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=20";
+import { chargerTableau } from "./donnees.js?v=21";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=21";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=21";
+import { ECOUTES } from "./ecoute.js?v=21";
+import { preparerVoix } from "./voix.js?v=21";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=21";
+import { vibrer } from "./retours.js?v=21";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=21";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=21";
+import { ecranLivre } from "./ecrans/livre.js?v=21";
+import { ecranLecon } from "./ecrans/lecon.js?v=21";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=21";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=21";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=21";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -52,6 +53,7 @@ const ECRANS = {
   guia: ecranGuia,
   pratique: ecranPratique,
   revision: ctx => ecranPratique(ctx, null),
+  controle: ecranControle,
 };
 
 function bientot(nom, onglet) {
@@ -95,6 +97,12 @@ app.addEventListener("click", async e => {
   const action = e.target.closest("[data-p]");
   if (action) {
     const r = await actionPratique(ctx, action.dataset.p, action);
+    if (r) afficher(r === "suivant" ? "glisse" : false);
+    return;
+  }
+  const etape = e.target.closest("[data-c]");
+  if (etape) {
+    const r = await actionControle(ctx, etape.dataset.c, etape, t => afficher(t === "suivant" ? "glisse" : false));
     if (r) afficher(r === "suivant" ? "glisse" : false);
     return;
   }
