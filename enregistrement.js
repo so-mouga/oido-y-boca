@@ -11,8 +11,11 @@ export function enregistrementPossible() {
 }
 
 // Démarre l'enregistrement et se résout quand le micro enregistre vraiment (true), ou false s'il est refusé.
+// L'enregistrement précédent est gardé jusqu'à ce que le nouveau soit valable (un appui trop bref ne l'efface pas).
 export async function demarrerEnregistrement() {
-  effacerEnregistrement();
+  lecteur?.pause();
+  lecteur = null;
+  if (enCours) await arreterEnregistrement(false);
   if (!enregistrementPossible()) return false;
   try {
     const flux = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
@@ -40,7 +43,8 @@ export function arreterEnregistrement(garder = true) {
     e.recorder.onstop = () => {
       e.flux.getTracks().forEach(t => t.stop());
       if (garder && e.morceaux.length) {
-        derniere = URL.createObjectURL(new Blob(e.morceaux, { type: e.recorder.mimeType || "audio/webm" }));
+        if (derniere) URL.revokeObjectURL(derniere);
+        derniere =URL.createObjectURL(new Blob(e.morceaux, { type: e.recorder.mimeType || "audio/webm" }));
         resolve(true);
       } else resolve(false);
     };

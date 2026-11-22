@@ -1,17 +1,20 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
 
-import { esc, ICONES } from "../ui.js?v=13";
-import { lecon as trouver } from "../position.js?v=13";
-import { EXERCICES } from "../exercices.js?v=13";
-import { corriger } from "../corriger.js?v=13";
-import { noterMot, leconsARevoir, cocher } from "../progression.js?v=13";
-import { dire, taire } from "../voix.js?v=13";
-import { vibrer, sonDeFin } from "../retours.js?v=13";
+import { esc, ICONES } from "../ui.js?v=15";
+import { lecon as trouver } from "../position.js?v=15";
+import { EXERCICES } from "../exercices.js?v=15";
+import { corriger } from "../corriger.js?v=15";
+import { noterMot, leconsARevoir, cocher } from "../progression.js?v=15";
+import { dire, taire } from "../voix.js?v=15";
+import { vibrer, son } from "../retours.js?v=15";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   reecouterEnregistrement, effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=13";
+} from "../enregistrement.js?v=15";
+
+const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const pause = ms => new Promise(r => setTimeout(r, ms));
 
 let s = null; // la série en cours
 
@@ -49,7 +52,7 @@ function serieRevision(ctx) {
 function nouvelleSerie(ctx, cle, idLecon) {
   effacerEnregistrement();
   const base = idLecon ? serieLecon(ctx, idLecon) : serieRevision(ctx);
-  s = { cle, ...base, i: 0, phase: "question", resultat: null, saisie: "", enreg: false, notes: { ecrire: [], dire: [], carte: [] } };
+  s = { cle, ...base, i: 0, phase: "question", resultat: null, saisie: "", astuce: "", notes: { ecrire: [], dire: [], carte: [] } };
 }
 
 // ——— l'affichage ———
@@ -89,7 +92,7 @@ function vueEcrire(it) {
   const bonne = r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu);
   return `${consigne}<p class="enonce">${esc(it.fr)}</p>
     ${tape}
-    <div class="verdict ${ok ? "ok" : "ko"}" role="status">
+    <div class="verdict ${ok ? "ok" : r.niveau === "passe" ? "ko passe" : "ko"}" role="status">
       <b>${titre}</b>
       <div class="bonne">${ecouter(r.attendu)}<p lang="es">${bonne}</p></div>
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
@@ -103,9 +106,10 @@ function vueDire(it) {
   const tete = `${sorte("À dire · à voix haute")}<p class="enonce">${esc(it.fr)}</p>`;
   if (s.phase === "question") {
     const micro = enregistrementPossible()
-      ? `<button class="micro${s.enreg ? " on" : ""}" data-p="micro" aria-pressed="${s.enreg}">${ICONES.micro}<span>${s.enreg ? "Appuie quand tu as fini" : "Appuie, puis parle"}</span></button>`
+      ? `${s.astuce ? `<p class="astuce" role="status">${esc(s.astuce)}</p>` : ""}
+        <button class="micro" data-micro aria-label="Reste appuyé pour t'enregistrer">${ICONES.micro}<span class="chrono">Appuie et reste appuyé pour parler</span></button>`
       : `<p class="sous">Dis-le à voix haute, puis regarde la réponse.</p>`;
-    return `${tete}<div class="espace"></div>${micro}<button class="secondaire" data-p="voir">Voir la réponse</button>`;
+    return `${tete}<div class="espace"></div>${micro}<div class="espace"></div><button class="secondaire" data-p="voir">Voir la réponse</button>`;
   }
   return `${tete}
     <div class="carte-reponse">
@@ -115,6 +119,8 @@ function vueDire(it) {
         <button data-dire="${esc(it.es)}">${ICONES.play}Le modèle</button>
         ${aUnEnregistrement() ? `<button data-p="ma-voix">${ICONES.play}Ma voix</button>` : ""}
       </div>
+      ${enregistrementPossible() ? `<button class="reessai" data-micro><span class="chrono">${aUnEnregistrement() ? "Reste appuyé ici pour te réenregistrer" : "Reste appuyé ici pour t'enregistrer"}</span></button>` : ""}
+      ${s.astuce ? `<p class="astuce" role="status">${esc(s.astuce)}</p>` : ""}
     </div>
     <div class="espace"></div>
     ${notes("Tu l'as trouvé ?", true)}`;
@@ -127,7 +133,7 @@ function vueCarte(it) {
     return `${tete}<div class="carte"><p class="fr-seul">${esc(m.fr)}</p><p class="sous">Dis-le en espagnol, puis retourne la carte.</p></div>
       <div class="espace"></div><button class="primaire" data-p="voir">Retourner la carte</button>`;
   }
-  return `${tete}<div class="carte">
+  return `${tete}<div class="carte${s.vientDeTourner ? " retournee" : ""}">
       <p class="fr">${esc(m.fr)}</p>
       <p class="es" lang="es">${esc(m.es)}</p>
       ${ecouter(m.ex ? `${m.es}. ${m.ex}` : m.es, "grand")}
@@ -171,7 +177,7 @@ export function ecranPratique(ctx, idLecon) {
   if (s.i >= s.items.length) {
     if (!s.fini) {
       s.fini = true;
-      sonDeFin();
+      son("fin");
       if (s.revision) cocher(ctx.jour, "revision", true);
     }
     return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
@@ -184,6 +190,7 @@ export function ecranPratique(ctx, idLecon) {
     apres: () => {
       if (it.type === "ecrire" && s.phase === "question") document.getElementById("reponse")?.focus();
       if (it.type === "carte" && s.phase === "reponse" && !s.dit) { s.dit = true; dire(it.mot.es); }
+      s.vientDeTourner = false;
     },
     html: `<main class="colonne exo">${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}${vue}</main>`,
   };
@@ -194,10 +201,11 @@ export function ecranPratique(ctx, idLecon) {
 function suivant() {
   effacerEnregistrement();
   taire();
-  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.enreg = false; s.dit = false;
+  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.astuce = ""; s.dit = false;
 }
 
-// Renvoie true si l'écran doit être redessiné.
+// Renvoie "suivant" quand on passe à un autre exercice (l'écran change, avec la transition),
+// true quand le même écran doit être redessiné, false sinon.
 export async function actionPratique(ctx, action, el) {
   if (!s) return false;
   const it = s.items[s.i];
@@ -207,24 +215,23 @@ export async function actionPratique(ctx, action, el) {
       if (!s.saisie) return false;
       s.resultat = corriger(s.saisie, it.es);
       s.notes.ecrire.push(s.resultat.niveau === "juste" || s.resultat.niveau === "accents");
-      s.phase = "reponse"; vibrer();
+      s.phase = "reponse";
+      const ok = s.resultat.niveau === "juste" || s.resultat.niveau === "accents";
+      vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
       return true;
     }
     case "sais-pas":
       s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0] };
       s.notes.ecrire.push(false); s.phase = "reponse";
       return true;
-    case "micro":
-      if (!s.enreg) {
-        s.enreg = await demarrerEnregistrement();
-        return true;
-      }
-      s.enreg = false;
-      await arreterEnregistrement(true);
-      s.phase = "reponse";
-      return true;
     case "voir":
-      if (s.enreg) { s.enreg = false; await arreterEnregistrement(true); }
+      if (it.type === "carte" && !mouvementReduit()) {
+        document.querySelector(".carte")?.classList.add("tourne");
+        vibrer(8);
+        await pause(220);
+        s.vientDeTourner = true;
+      }
+      s.astuce = "";
       s.phase = "reponse";
       return true;
     case "ma-voix":
@@ -235,11 +242,65 @@ export async function actionPratique(ctx, action, el) {
       if (it.type === "carte") { noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); }
       else s.notes.dire.push(n);
       vibrer(); suivant();
-      return true;
+      return "suivant";
     }
     case "suivant":
       suivant();
-      return true;
+      return "suivant";
   }
   return false;
+}
+
+// ——— le micro : on enregistre tant que le doigt reste posé ———
+// Un appui de moins d'une demi-seconde ne compte pas (et n'efface pas l'enregistrement précédent).
+
+const MINIMUM = 500;
+let appui = null; // { bouton, debut, relache, minuteur }
+
+export async function microAppui(bouton) {
+  if (!s || appui) return;
+  const a = appui = { bouton, debut: Date.now(), relache: false, minuteur: null };
+  const chrono = bouton.querySelector(".chrono");
+  const texte = chrono?.textContent;
+  bouton.classList.add("on");
+  vibrer(15);
+  if (chrono) chrono.textContent = "Je t'écoute…";
+  const ok = await demarrerEnregistrement();
+  if (appui !== a) return;
+  if (!ok) {
+    appui = null;
+    bouton.classList.remove("on");
+    if (chrono) chrono.textContent = texte;
+    s.astuce = "Le micro n'est pas disponible : dis-le à voix haute, puis regarde la réponse.";
+    return "redessiner";
+  }
+  if (a.relache) {
+    // Le doigt est parti pendant que le micro s'ouvrait (souvent la première fois, à cause de l'autorisation).
+    appui = null;
+    await arreterEnregistrement(false);
+    s.astuce = "Le micro est prêt. Reste appuyé pendant que tu parles.";
+    return "redessiner";
+  }
+  a.debut = Date.now();
+  a.minuteur = setInterval(() => {
+    if (chrono) chrono.textContent = `Je t'écoute… ${((Date.now() - a.debut) / 1000).toFixed(1)} s`;
+  }, 100);
+}
+
+// Renvoie true si l'écran doit être redessiné.
+export async function microRelache() {
+  const a = appui;
+  if (!a || a.relache) return false;
+  a.relache = true;
+  if (!a.minuteur) return false; // le micro n'est pas encore ouvert : microAppui s'en occupe
+  appui = null;
+  clearInterval(a.minuteur);
+  a.bouton.classList.remove("on");
+  vibrer(10);
+  const assezLong = Date.now() - a.debut >= MINIMUM;
+  const garde = await arreterEnregistrement(assezLong);
+  if (!garde) { s.astuce = "Reste appuyé pendant que tu parles."; return true; }
+  s.astuce = "";
+  s.phase = "reponse";
+  return true;
 }

@@ -1,18 +1,18 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=13";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=13";
-import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=13";
-import { ECOUTES } from "./ecoute.js?v=13";
-import { preparerVoix, dire, taire } from "./voix.js?v=13";
-import { vibrer } from "./retours.js?v=13";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=13";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=13";
-import { ecranLivre } from "./ecrans/livre.js?v=13";
-import { ecranLecon } from "./ecrans/lecon.js?v=13";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=13";
-import { ecranPratique, actionPratique } from "./ecrans/pratique.js?v=13";
+import { chargerTableau } from "./donnees.js?v=15";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=15";
+import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=15";
+import { ECOUTES } from "./ecoute.js?v=15";
+import { preparerVoix, dire, taire } from "./voix.js?v=15";
+import { vibrer } from "./retours.js?v=15";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=15";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=15";
+import { ecranLivre } from "./ecrans/livre.js?v=15";
+import { ecranLecon } from "./ecrans/lecon.js?v=15";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=15";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=15";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -57,7 +57,16 @@ function bientot(nom, onglet) {
   return { onglet, html: `<main class="colonne vide"><h1>${esc(nom)}</h1><p class="sous">Cet écran arrive à la prochaine étape.</p><a class="lien" href="#/">Revenir à aujourd'hui</a></main>${barreOnglets(onglet)}` };
 }
 
-function afficher() {
+// Change d'écran avec la transition « Lumière qui monte » (fondu, légère montée, flou qui devient net).
+// Sans transition quand le même écran se redessine (une réponse qui arrive, une case cochée).
+function afficher(transition = false) {
+  if (transition && document.startViewTransition) {
+    // Un toucher très rapide peut interrompre la transition en cours : l'écran s'affiche quand même.
+    document.startViewTransition(dessiner).ready.catch(() => {});
+  } else dessiner();
+}
+
+function dessiner() {
   const [route, ...args] = location.hash.replace(/^#\/?/, "").split("/");
   const ecran = ECRANS[route];
   const rendu = ecran ? ecran(ctx, ...args)
@@ -80,7 +89,8 @@ app.addEventListener("submit", async e => {
 app.addEventListener("click", async e => {
   const action = e.target.closest("[data-p]");
   if (action) {
-    if (await actionPratique(ctx, action.dataset.p, action)) afficher();
+    const r = await actionPratique(ctx, action.dataset.p, action);
+    if (r) afficher(r === "suivant");
     return;
   }
   const caseCochee = e.target.closest("[data-cocher]");
@@ -104,7 +114,19 @@ app.addEventListener("click", async e => {
   }
 });
 
-window.addEventListener("hashchange", afficher);
+window.addEventListener("hashchange", () => afficher(true));
+
+// Le micro : appuyer et rester appuyé pour parler, relâcher pour arrêter.
+app.addEventListener("pointerdown", async e => {
+  const bouton = e.target.closest("[data-micro]");
+  if (!bouton) return;
+  e.preventDefault();
+  if (await microAppui(bouton)) afficher();
+});
+const relacher = async () => { if (await microRelache()) afficher(); };
+window.addEventListener("pointerup", relacher);
+window.addEventListener("pointercancel", relacher);
+app.addEventListener("contextmenu", e => { if (e.target.closest("[data-micro]")) e.preventDefault(); });
 
 async function demarrer() {
   preparerVoix();
