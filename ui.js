@@ -23,6 +23,10 @@ export const ICONES = {
   play: svg('<path d="M8 5.5v13l10.5-6.5z"/>', "i plein"),
   micro: svg('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/>'),
   lune: svg('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>'),
+  // Le bouton de son : la flèche de lecture, remplacée par des barres qui bougent pendant que ça joue.
+  get lecture() {
+    return `<span class="lecture" aria-hidden="true">${this.play}<span class="barres"><i></i><i></i><i></i></span></span>`;
+  },
   sortie: svg('<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>'),
 };
 

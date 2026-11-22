@@ -63,6 +63,11 @@ export function reecouterEnregistrement(fin) {
   return true;
 }
 
+export function arreterReecoute() {
+  lecteur?.pause();
+  lecteur = null;
+}
+
 // Efface l'enregistrement précédent (et coupe un enregistrement oublié).
 export function effacerEnregistrement() {
   lecteur?.pause();

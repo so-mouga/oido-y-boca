@@ -1,18 +1,19 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=16";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=16";
-import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=16";
-import { ECOUTES } from "./ecoute.js?v=16";
-import { preparerVoix, dire, taire } from "./voix.js?v=16";
-import { vibrer } from "./retours.js?v=16";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=16";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=16";
-import { ecranLivre } from "./ecrans/livre.js?v=16";
-import { ecranLecon } from "./ecrans/lecon.js?v=16";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=16";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=16";
+import { chargerTableau } from "./donnees.js?v=17";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=17";
+import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=17";
+import { ECOUTES } from "./ecoute.js?v=17";
+import { preparerVoix } from "./voix.js?v=17";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=17";
+import { vibrer } from "./retours.js?v=17";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=17";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=17";
+import { ecranLivre } from "./ecrans/livre.js?v=17";
+import { ecranLecon } from "./ecrans/lecon.js?v=17";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=17";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=17";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -75,7 +76,7 @@ function dessiner() {
   const ecran = ECRANS[route];
   const rendu = ecran ? ecran(ctx, ...args)
     : bientot("Bientôt", "jour");
-  taire();
+  arreterLecture();
   app.dataset.ecran = route || "jour";
   document.body.classList.toggle("nuit", !!rendu.nuit);
   document.querySelector('meta[name="theme-color"]').content = rendu.nuit ? "#13294B" : "#FFF4DC";
@@ -105,11 +106,9 @@ app.addEventListener("click", async e => {
     afficher();
     return;
   }
-  const son = e.target.closest("[data-dire]");
+  const son = e.target.closest("[data-dire], [data-voix]");
   if (son) {
-    app.querySelectorAll(".ecoute.on").forEach(b => b.classList.remove("on"));
-    son.classList.add("on");
-    if (!dire(son.dataset.dire, { fin: () => son.classList.remove("on") })) son.classList.remove("on");
+    basculerLecture(son);
     return;
   }
   if (e.target.closest("[data-trop-facile]")) {
@@ -122,6 +121,8 @@ window.addEventListener("hashchange", () => afficher(true));
 
 // Le micro : appuyer et rester appuyé pour parler, relâcher pour arrêter.
 app.addEventListener("pointerdown", async e => {
+  // « Un indice » ne doit pas fermer le clavier : le champ garde le focus.
+  if (e.target.closest("[data-garde-focus]")) { e.preventDefault(); return; }
   const bouton = e.target.closest("[data-micro]");
   if (!bouton) return;
   e.preventDefault();
