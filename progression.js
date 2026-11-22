@@ -1,54 +1,67 @@
-// Ta progression de révision, gardée sur le téléphone.
-// Deux carnets séparés : « essai » (avant la première séance notée par le prof) et « reel ».
-// Dès que le prof note une première séance, le carnet d'essai est effacé.
+// Ce que l'appli garde sur le téléphone : la mémoire des mots (révision espacée),
+// les cases cochées du jour et le niveau d'écoute. Le Sheet n'est jamais modifié.
 
-const CLE = mode => `oyb.progression.${mode}`;
-let mode = "essai";
-let carnet = {};
+const CLE = "oyb.v2";
+const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
+const PLAFOND_REVISION = 2;                   // leçons à réviser par jour, au plus
 
-function lire(m) {
-  try { const t = localStorage.getItem(CLE(m)); return t ? JSON.parse(t) : {}; } catch { return {}; }
+let etat = lire();
+
+function lire() {
+  try { return { mots: {}, jours: {}, ecoute: 0, ...JSON.parse(localStorage.getItem(CLE) || "{}") }; }
+  catch { return { mots: {}, jours: {}, ecoute: 0 }; }
 }
 function ecrire() {
-  try { localStorage.setItem(CLE(mode), JSON.stringify(carnet)); } catch { /* stockage indisponible : la séance marche quand même */ }
+  try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch { /* stockage indisponible : l'appli marche quand même */ }
 }
 
-export function ouvrirCarnet(essai) {
-  mode = essai ? "essai" : "reel";
-  if (!essai) { try { localStorage.removeItem(CLE("essai")); } catch { /* rien à effacer */ } }
-  carnet = lire(mode);
+// Mode aperçu : rien n'est enregistré, pour ne pas mélanger un essai et la vraie progression.
+let apercu = false;
+export function modeApercu(oui) {
+  apercu = oui;
+  if (oui) etat = { mots: {}, jours: {}, ecoute: 0 };
+}
+const sauver = () => { if (!apercu) ecrire(); };
+
+const jours = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
+
+// note : 1 = Non, 2 = Avec peine, 3 = Oui
+export function noterMot(idMot, note, aujourdhui) {
+  const f = etat.mots[idMot] || { boite: 0, vu: null };
+  f.boite = note === 3 ? Math.min(f.boite + 1, INTERVALLES.length - 1) : note === 1 ? 0 : f.boite;
+  f.vu = aujourdhui;
+  etat.mots[idMot] = f;
+  sauver();
 }
 
-// Une carte = un mot travaillé d'une façon : « o » pour Oreille, « b » pour Bouche.
-export const idCarte = (sens, mot) => `${sens}:${mot.id}`;
-
-// note : 1 = Non, 2 = À moitié / Avec peine, 3 = Oui
-export function noter(sens, mot, note, quand = new Date()) {
-  const id = idCarte(sens, mot);
-  const fiche = carnet[id] || { notes: [] };
-  fiche.notes.push({ d: quand.toISOString(), n: note });
-  carnet[id] = fiche;
-  ecrire();
+// Un mot est « à revoir » s'il n'a jamais été travaillé ici, ou si son intervalle est passé.
+export function aRevoir(idMot, aujourdhui) {
+  const f = etat.mots[idMot];
+  if (!f || !f.vu) return true;
+  return jours(f.vu, aujourdhui) >= INTERVALLES[f.boite];
 }
 
-export function fiche(sens, mot) { return carnet[idCarte(sens, mot)] || { notes: [] }; }
-
-// Une série de cartes { sens, mot } en deux parties : d'abord toutes les cartes Oreille, puis toutes les Bouche.
-// Un mot ne passe en Bouche qu'après au moins une écoute en Oreille (lors d'une série précédente).
-// Au plus la moitié de cartes Bouche.
-export function serieMixte(mots, taille = 10) {
-  const entendus = mots.filter(m => fiche("o", m).notes.length > 0);
-  const bouche = serieSimple("b", entendus, Math.floor(taille / 2));
-  const oreille = serieSimple("o", mots, taille - bouche.length);
-  return [...oreille.map(mot => ({ sens: "o", mot })), ...bouche.map(mot => ({ sens: "b", mot }))];
+// Les leçons à réviser aujourd'hui : parmi les leçons faites (sauf la dernière, fraîche du matin),
+// celles qui ont le plus de mots à revoir. Au plus 2.
+export function leconsARevoir(idsFaites, derniereId, motsParLecon, aujourdhui) {
+  return idsFaites
+    .filter(id => id !== derniereId)
+    .map(id => ({ id, du: (motsParLecon[id] || []).filter(m => aRevoir(m.id, aujourdhui)).length }))
+    .filter(x => x.du > 0)
+    .sort((a, b) => b.du - a.du)
+    .slice(0, PLAFOND_REVISION)
+    .map(x => x.id);
 }
 
-// Bloc 2 : une série simple. Les mots les moins travaillés d'abord, puis l'ordre du programme.
-// (Les vraies dates de retour et les plafonds arrivent au bloc 4.)
-export function serieSimple(sens, mots, taille = 10) {
-  return mots
-    .map((m, rang) => ({ m, rang, fois: fiche(sens, m).notes.length }))
-    .sort((a, b) => a.fois - b.fois || a.rang - b.rang)
-    .slice(0, taille)
-    .map(x => x.m);
+// Les cases du jour (révision, écoute, soir). La case « prof » vient de « Suivi », pas d'ici.
+export function cases(aujourdhui) { return etat.jours[aujourdhui] || {}; }
+export function cocher(aujourdhui, cle, valeur = true) {
+  etat.jours[aujourdhui] = { ...cases(aujourdhui), [cle]: valeur };
+  sauver();
 }
+
+export function niveauEcoute() { return etat.ecoute; }
+export function monterEcoute(max) { etat.ecoute = Math.min(etat.ecoute + 1, max); sauver(); }
+
+// Sauvegarde dans un fichier, à la demande.
+export function exporter() { return JSON.stringify(etat, null, 1); }
