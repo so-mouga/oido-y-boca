@@ -1,9 +1,9 @@
 // La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer ».
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=12";
-import { lecon as trouver } from "../position.js?v=12";
-import { EXERCICES } from "../exercices.js?v=12";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=13";
+import { lecon as trouver } from "../position.js?v=13";
+import { EXERCICES } from "../exercices.js?v=13";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}">${ICONES.play}</button>`;

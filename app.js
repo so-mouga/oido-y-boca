@@ -1,18 +1,18 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=12";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=12";
-import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=12";
-import { ECOUTES } from "./ecoute.js?v=12";
-import { preparerVoix, dire, taire } from "./voix.js?v=12";
-import { vibrer } from "./retours.js?v=12";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=12";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=12";
-import { ecranLivre } from "./ecrans/livre.js?v=12";
-import { ecranLecon } from "./ecrans/lecon.js?v=12";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=12";
-import { ecranPratique, actionPratique } from "./ecrans/pratique.js?v=12";
+import { chargerTableau } from "./donnees.js?v=13";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=13";
+import { cocher, cases, monterEcoute, modeApercu } from "./progression.js?v=13";
+import { ECOUTES } from "./ecoute.js?v=13";
+import { preparerVoix, dire, taire } from "./voix.js?v=13";
+import { vibrer } from "./retours.js?v=13";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=13";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=13";
+import { ecranLivre } from "./ecrans/livre.js?v=13";
+import { ecranLecon } from "./ecrans/lecon.js?v=13";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=13";
+import { ecranPratique, actionPratique } from "./ecrans/pratique.js?v=13";
 
 const app = document.getElementById("app");
 let ctx = null;

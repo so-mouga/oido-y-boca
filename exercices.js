@@ -92,7 +92,7 @@ export const EXERCICES = {
   "U2-L1": {
     ecrire: [
       { consigne: T, fr: "Dorian a sept ans.", es: ["Dorian tiene siete años."] },
-      { consigne: C, fr: "Nosotros ___ dos niños en casa. (tener)", es: ["tenemos"] },
+      { consigne: C, fr: "Nosotros ___ dos hijos. (tener)", es: ["tenemos"] },
       { consigne: L, fr: "15", es: ["quince"] },
       { consigne: T, fr: "Quand est ton anniversaire ?", es: ["¿Cuándo es tu cumpleaños?"] },
     ],
@@ -110,9 +110,9 @@ export const EXERCICES = {
       { consigne: T, fr: "C'est à peu près quarante euros.", es: ["Son más o menos cuarenta euros."] },
     ],
     dire: [
-      { fr: "Ça fait douze euros cinquante.", es: "Son doce euros con cincuenta." },
+      { fr: "Ça fait trois euros vingt.", es: "Son tres euros con veinte céntimos." },
       { fr: "La moitié de cent, c'est cinquante.", es: "La mitad de cien es cincuenta." },
-      { fr: "Dis ce numéro par deux chiffres : 61 23 45 67", es: "sesenta y uno, veintitrés, cuarenta y cinco, sesenta y siete" },
+      { fr: "Dis ce numéro de portable, comme en Espagne : 6 12 34 56 78", es: "seis, doce, treinta y cuatro, cincuenta y seis, setenta y ocho" },
     ],
   },
   "U2-L3": {
@@ -136,7 +136,7 @@ export const EXERCICES = {
       { consigne: T, fr: "Demain, c'est mardi.", es: ["Mañana es martes."] },
     ],
     dire: [
-      { fr: "Le jeudi, je ne vais pas à la salle de sport.", es: "Los jueves no voy al gimnasio." },
+      { fr: "Aujourd'hui, c'est lundi ; hier, c'était dimanche.", es: "Hoy es lunes, ayer fue domingo." },
       { fr: "Je vais à la salle de sport quatre jours par semaine.", es: "Voy al gimnasio cuatro días a la semana." },
       { fr: "Demain matin, je travaille à la maison.", es: "Mañana por la mañana trabajo desde casa." },
     ],
@@ -150,7 +150,7 @@ export const EXERCICES = {
     ],
     dire: [
       { fr: "Nous nous marions le 19 juin 2027.", es: "Nos casamos el diecinueve de junio de dos mil veintisiete." },
-      { fr: "Quand est ton anniversaire ?", es: "¿Cuándo es tu cumpleaños?" },
+      { fr: "Quelle est la date du mariage ?", es: "¿Cuál es la fecha de la boda?" },
       { fr: "Noël, c'est le 25 décembre.", es: "Navidad es el veinticinco de diciembre." },
     ],
   },
