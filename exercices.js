@@ -2,6 +2,8 @@
 // Ils n'utilisent que les mots et la grammaire déjà vus. Les cartes, elles, viennent des 5 mots du tableau.
 //
 // ecrire : { consigne, fr, es: [réponses acceptées] }   → tu tapes la réponse, l'appli vérifie.
+//          + v, p pour un verbe à conjuguer (p : 0 = yo … 5 = ellos) : l'explication se calcule toute seule.
+//          + expl (facultatif) : l'explication écrite, quand la règle de la leçon n'aide pas pour cette phrase.
 // dire   : { fr, es }                                    → tu la dis à voix haute, tu compares, tu te notes.
 //
 // Unités prêtes : 1 et 2. Les suivantes s'ajoutent au fil des leçons.
@@ -15,7 +17,7 @@ export const EXERCICES = {
     ecrire: [
       { consigne: T, fr: "Je ne comprends pas.", es: ["No entiendo."] },
       { consigne: T, fr: "Tu peux parler plus lentement ?", es: ["¿Puedes hablar más despacio?"] },
-      { consigne: C, fr: "Nosotros ___ francés en casa. (hablar)", es: ["hablamos"] },
+      { consigne: C, fr: "Nosotros ___ francés en casa. (hablar)", es: ["hablamos"], v: "hablar", p: 3 },
       { consigne: T, fr: "Comment on dit « fourchette » en espagnol ?", es: ["¿Cómo se dice fourchette en español?"] },
     ],
     dire: [
@@ -27,7 +29,7 @@ export const EXERCICES = {
   "U1-L2": {
     ecrire: [
       { consigne: T, fr: "Je m'appelle Kevin.", es: ["Me llamo Kevin."] },
-      { consigne: C, fr: "Blanca ___ española. (ser)", es: ["es"] },
+      { consigne: C, fr: "Blanca ___ española. (ser)", es: ["es"], v: "ser", p: 2 },
       { consigne: T, fr: "Léo a quatre ans.", es: ["Léo tiene cuatro años."] },
       { consigne: T, fr: "Quel est ton nom de famille ?", es: ["¿Cuál es tu apellido?"] },
     ],
@@ -40,7 +42,7 @@ export const EXERCICES = {
   "U1-L3": {
     ecrire: [
       { consigne: T, fr: "J'habite à Huesca depuis cinq ans.", es: ["Vivo en Huesca desde hace cinco años."] },
-      { consigne: C, fr: "Nosotros ___ en un piso. (vivir)", es: ["vivimos"] },
+      { consigne: C, fr: "Nosotros ___ en un piso. (vivir)", es: ["vivimos"], v: "vivir", p: 3 },
       { consigne: T, fr: "Tu habites dans un appartement ou dans une maison ?", es: ["¿Vives en un piso o en una casa?"] },
       { consigne: T, fr: "Huesca est une petite ville.", es: ["Huesca es una ciudad pequeña."] },
     ],
@@ -53,7 +55,7 @@ export const EXERCICES = {
   "U1-L4": {
     ecrire: [
       { consigne: T, fr: "Je travaille à la maison.", es: ["Trabajo desde casa.", "Trabajo en casa."] },
-      { consigne: C, fr: "Hoy ___ muy cansado. (estar, yo)", es: ["estoy"] },
+      { consigne: C, fr: "Hoy ___ muy cansado. (estar, yo)", es: ["estoy"], v: "estar", p: 0 },
       { consigne: T, fr: "J'ai une réunion à dix heures.", es: ["Tengo una reunión a las diez."] },
       { consigne: T, fr: "Je suis dans mon bureau.", es: ["Estoy en mi despacho."] },
     ],
@@ -65,10 +67,10 @@ export const EXERCICES = {
   },
   "U1-L5": {
     ecrire: [
-      { consigne: C, fr: "Nosotros ___ con mis suegros el domingo. (comer)", es: ["comemos"] },
+      { consigne: C, fr: "Nosotros ___ con mis suegros el domingo. (comer)", es: ["comemos"], v: "comer", p: 3 },
       { consigne: T, fr: "Tu as des frères et sœurs ?", es: ["¿Tienes hermanos?"] },
       { consigne: T, fr: "Blanca est ma compagne.", es: ["Blanca es mi pareja."] },
-      { consigne: C, fr: "Mis suegros ___ en Huesca hoy. (estar)", es: ["están"] },
+      { consigne: C, fr: "Mis suegros ___ en Huesca hoy. (estar)", es: ["están"], v: "estar", p: 5 },
     ],
     dire: [
       { fr: "Blanca est ma compagne. Nous nous marions en juin.", es: "Blanca es mi pareja. Nos casamos en junio." },

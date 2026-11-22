@@ -410,6 +410,7 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .note-pied.centre { text-align: center; margin-top: -8px; }
 .verdict .explication { color: var(--marine-soft); border-top: 1px solid rgba(19, 41, 75, .12); padding-top: 10px; }
 .verdict .explication b { color: var(--marine); }
+.verdict .revoir { align-self: flex-start; font-size: 14px; padding: 4px 0; }
 .resultat h1 { font-size: 30px; line-height: 1.15; }
 .reste-oral { font-size: 15px; color: var(--marine-soft); }
 .erreurs li { padding: 10px 0; border-top: 1px solid var(--hair); font-size: 15px; display: flex; flex-direction: column; gap: 2px; }

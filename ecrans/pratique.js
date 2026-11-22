@@ -1,20 +1,21 @@
 // Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
 // à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
+// Après une erreur dans une leçon : pourquoi c'est la bonne réponse, et un lien vers la leçon (pas en révision).
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, ICONES } from "../ui.js?v=21";
-import { lecon as trouver } from "../position.js?v=21";
-import { EXERCICES } from "../exercices.js?v=21";
-import { corriger } from "../corriger.js?v=21";
-import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=21";
-import { CONTROLES, tirerEcrit, phraseJuste } from "../controles.js?v=21";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=21";
-import { vibrer, son } from "../retours.js?v=21";
+import { esc, md, ICONES } from "../ui.js?v=22";
+import { lecon as trouver } from "../position.js?v=22";
+import { EXERCICES } from "../exercices.js?v=22";
+import { corriger } from "../corriger.js?v=22";
+import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=22";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=22";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=22";
+import { vibrer, son } from "../retours.js?v=22";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=21";
+} from "../enregistrement.js?v=22";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -96,10 +97,27 @@ const notes = (question, avecCriteres) => s.indice
 const reponseDe = it => it.type === "ecrire" ? it.es[0] : it.type === "dire" ? it.es : it.mot.es;
 const initiales = texte => texte.replace(/\p{L}+/gu, mot => mot[0] + "·".repeat(mot.length - 1));
 
+// La règle de la leçon (la grammaire du livre), avec une majuscule.
+function regleDe(it) {
+  const regle = it.type !== "carte" && trouver(it.lecon)?.grammaire;
+  return regle ? regle.charAt(0).toUpperCase() + regle.slice(1) : "";
+}
+
+// Après une erreur, la règle ne s'affiche que si elle concerne la phrase : au moins un mot de la bonne réponse
+// se retrouve dans ses exemples en italique (*vivo, vives…*). Sans accents ni majuscules, comme corriger.js.
+// Les noms propres des exemples (*vivo en Huesca*) ne comptent pas.
+const sansAccents = t => t.toLowerCase().replace(/ñ/g, "\u0001").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u0001/g, "ñ");
+const motsDe = t => t.match(/\p{L}+/gu) || [];
+function regleConcerne(it) {
+  const exemples = new Set([...regleDe(it).matchAll(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g)]
+    .flatMap(m => motsDe(m[1]).filter((w, i) => i === 0 || w[0] === w[0].toLowerCase()).map(sansAccents)));
+  return motsDe(reponseDe(it)).some(w => exemples.has(sansAccents(w)));
+}
+
 function etapesIndice(it) {
   const etapes = [];
-  const regle = it.type !== "carte" && trouver(it.lecon)?.grammaire;
-  if (regle) etapes.push(`<p class="regle">${md(regle.charAt(0).toUpperCase() + regle.slice(1))}</p>`);
+  const regle = regleDe(it);
+  if (regle) etapes.push(`<p class="regle">${md(regle)}</p>`);
   etapes.push(`<p class="initiales" lang="es">${esc(initiales(reponseDe(it)))}</p>`);
   return etapes;
 }
@@ -139,16 +157,21 @@ function vueEcrire(it, enTete) {
       <div class="bonne">${ecouter(r.attendu)}<p lang="es">${bonne}</p></div>
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
-      ${explication(it)}
+      ${it.controle || !ok ? explication(it) : ""}
+      ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}">Revoir la leçon</a>` : ""}
     </div>
     <div class="espace"></div>
     <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
-// Contrôle blanc : la règle de la bonne réponse, ou la phrase d'exemple du mot.
+// Pourquoi c'est la bonne réponse : l'explication écrite pour la phrase s'il y en a une,
+// sinon la conjugaison calculée (verbe v, personne p), la phrase d'exemple du mot (contrôle),
+// ou, dans les leçons, la règle de la leçon quand elle concerne la phrase.
 function explication(it) {
   if (it.expl) return `<p class="explication">${md(it.expl)}</p>`;
+  if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p))}</p>`;
   if (it.exemple) return `<p class="explication">Exemple : <span lang="es">${esc(it.exemple)}</span></p>`;
+  if (!it.controle && regleConcerne(it)) return `<p class="explication">${md(regleDe(it))}</p>`;
   return "";
 }
 
