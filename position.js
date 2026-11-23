@@ -1,7 +1,7 @@
 // Où j'en suis dans le livre, d'après l'onglet « Suivi » (écrit seulement par le prof).
 // Fait = une ligne de type « leçon » pour cette leçon. L'appli n'ouvre que ce qui est fait.
 
-import { PARTIES } from "./livre.js?v=32";
+import { PARTIES } from "./livre.js?v=33";
 
 export const UNITES = PARTIES.flatMap(p => p.unites.map(u => ({ ...u, partie: p.n })));
 export const LECONS = UNITES.flatMap(u => u.lecons.map(l => ({ ...l, unite: u, partie: u.partie })));

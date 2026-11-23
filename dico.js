@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=32";
-import { mesMots, apprisEnAvance } from "./progression.js?v=32";
-import { LECONS } from "./position.js?v=32";
+import { irregulierConnu } from "./controles.js?v=33";
+import { mesMots, apprisEnAvance } from "./progression.js?v=33";
+import { LECONS } from "./position.js?v=33";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -48,37 +48,42 @@ export const origineMonMot = m => `${m.via === "ecoute" ? "entendu" : "ajouté"}
 export const normaliser = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "")
   .toLowerCase().replace(/[¿¡?!…«»"().,;:=]/g, " ").replace(/\s+/g, " ").trim();
 
-// Cherche dans l'espagnol et le français. D'abord les mots dont un mot commence par la recherche, puis les autres.
-export function chercher(mots, texte) {
+// Cherche dans l'espagnol et le français. D'abord les mots dont l'espagnol ou le français commence par la recherche,
+// puis ceux dont un mot à l'intérieur commence par elle, puis ceux qui la contiennent seulement
+// (« ser » : *ser* avant *descansar*, « se repo-ser »). À rang égal : ordre(m) s'il est donné (la leçon la plus proche), sinon l'ordre reçu.
+export function chercher(mots, texte, ordre = () => 0) {
   const q = normaliser(texte);
   if (!q) return [];
-  return mots.map(m => {
-    const t = `${normaliser(m.es)} | ${normaliser(m.fr)}`;
+  return mots.map((m, i) => {
+    const es = normaliser(m.es), fr = normaliser(m.fr);
+    const t = `${es} | ${fr}`;
     if (!t.includes(q)) return null;
-    return { m, rang: ` ${t}`.includes(` ${q}`) ? 0 : 1 };
-  }).filter(Boolean).sort((a, b) => a.rang - b.rang).map(x => x.m);
+    const rang = es.startsWith(q) || fr.startsWith(q) ? 0 : ` ${t}`.includes(` ${q}`) ? 1 : 2;
+    return { m, i, rang, o: ordre(m) };
+  }).filter(Boolean).sort((a, b) => a.rang - b.rang || a.o - b.o || a.i - b.i).map(x => x.m);
 }
 
 // ── Les verbes ──
 // Le Sheet ne dit pas si un verbe est régulier. Les deux listes ci-dessous le disent pour les 160 verbes du Sheet,
-// vérifiés un par un le 23 nov. 2026 (sans -se : « levantarse » → levantar).
+// vérifiés un par un le 23 nov. 2026, plus les 13 verbes de grammaire ajoutés le même jour (Q63) (sans -se : « levantarse » → levantar).
 // Un verbe qui n'est dans aucune des deux (ajouté au Sheet plus tard) n'a pas de formes : l'appli n'invente rien.
 // Pour lui donner ses formes, le vérifier puis l'ajouter à l'une des deux listes.
 const REGULIERS = new Set(`abrir aceptar aclarar acompañar acostumbrar adaptar adelgazar ahorrar alegrar alquilar apagar aprender
   apuntar arreglar avisar añadir bailar bajar bañar beber brindar cambiar cancelar casar cenar cocinar coincidir comer compartir
   confirmar contestar correr cortar creer cuidar cumplir currar decidir dejar desayunar descansar discutir duchar durar emocionar
   enamorar ensayar enterar entrenar equivocar esconder escribir esperar estirar explicar felicitar firmar flipar ganar grabar
-  gritar invitar jubilar lavar leer levantar ligar llamar llegar llevar llorar mejorar mezclar mirar molestar mudar necesitar
+  gritar hablar invitar jubilar lavar leer levantar ligar llamar llegar llevar llorar mejorar mezclar mirar molestar mudar necesitar
   ocurrir odiar olvidar opinar organizar pasar pasear pegar pelar pelear pillar portar preguntar preocupar preparar presentar
-  prometer quedar quitar rellenar reservar respetar respirar retrasar romper subir terminar tirar tocar trabajar viajar vomitar`.split(/\s+/));
+  prometer quedar quitar rellenar reservar respetar respirar retrasar romper subir terminar tirar tocar trabajar viajar vivir vomitar`.split(/\s+/));
 // d = la voyelle qui change (o → ue, e → ie, e → i), gustar = se construit comme gustar, irr = irrégulier.
 const PARTICULIERS = {
   // o → ue
   acostar: { d: "ue" }, acordar: { d: "ue" }, aprobar: { d: "ue" }, colgar: { d: "ue" }, contar: { d: "ue" },
   devolver: { d: "ue" }, encontrar: { d: "ue" }, soler: { d: "ue" },
+  poder: { d: "ue" }, volver: { d: "ue" }, dormir: { d: "ue" }, // ajoutés au Sheet le 23 nov. (Q63)
   // e → ie
   atender: { d: "ie" }, despertar: { d: "ie" }, fregar: { d: "ie" }, hervir: { d: "ie" }, merendar: { d: "ie" },
-  pensar: { d: "ie" }, perder: { d: "ie" }, preferir: { d: "ie" }, sentar: { d: "ie" }, sentir: { d: "ie" },
+  pensar: { d: "ie" }, perder: { d: "ie" }, querer: { d: "ie" }, empezar: { d: "ie" }, preferir: { d: "ie" }, sentar: { d: "ie" }, sentir: { d: "ie" },
   // e → i
   pedir: { d: "i" }, servir: { d: "i" }, vestir: { d: "i" },
   // Comme gustar (« me gusta, te gusta… ») : on ne montre que la forme qui sert, avec me, te, le, nos, os, les.

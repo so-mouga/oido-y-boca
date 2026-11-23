@@ -10,7 +10,7 @@
 // Une phrase : { fr, v, p, d, sens } → la réponse et son explication se calculent (controles.js).
 //   v : le verbe ; p : 0 = yo … 5 = ellos ; d : "ue", "ie" ou "i" pour un verbe qui change de voyelle ;
 //   sens : le sens du verbe nouveau (« acheter »), affiché « comprar = acheter » ;
-//   mot (au lieu de sens) : un autre mot nouveau, affiché tel quel (« italiano = italien »).
+//   mot : un autre mot nouveau, affiché tel quel (« italiano = italien »), seul ou après le sens du verbe.
 //   Sans v : { fr, es: [réponses acceptées], mot, expl }.
 // Que des mots et de la grammaire déjà vus, sauf le mot nouveau dont le sens est donné.
 // ⚠ Pas de v sur un verbe irrégulier que controles.js ne connaît pas (IRREGULIERS) : il serait calculé comme régulier.
@@ -59,12 +59,12 @@ export const BONUS = {
     phrases: [
       { fr: "Yo ___ en español.", v: "escribir", p: 0, sens: "écrire" },
       { fr: "¿Tú ___ en francés?", v: "escribir", p: 1, sens: "écrire" },
-      { fr: "Blanca ___ la casa.", v: "abrir", p: 2, sens: "ouvrir" },
+      { fr: "Blanca ___ la puerta.", v: "abrir", p: 2, sens: "ouvrir", mot: "la puerta = la porte" },
       { fr: "Nosotros ___ un piso.", v: "compartir", p: 3, sens: "partager" },
-      { fr: "Vosotros ___ en español.", v: "discutir", p: 4, sens: "discuter" },
+      { fr: "Vosotros ___ a casa.", v: "subir", p: 4, sens: "monter" },
       { fr: "Los padres de Blanca ___ a Kevin en el pueblo.", v: "recibir", p: 5, sens: "recevoir" },
       { fr: "Blanca ___ en español y en francés.", v: "escribir", p: 2, sens: "écrire" },
-      { fr: "Vosotros ___ la casa.", v: "abrir", p: 4, sens: "ouvrir" },
+      { fr: "Vosotros ___ la puerta.", v: "abrir", p: 4, sens: "ouvrir", mot: "la puerta = la porte" },
       { fr: "¿Vosotros ___ un piso o una casa?", v: "compartir", p: 4, sens: "partager" },
       { fr: "Nosotros ___ a los padres de Blanca.", v: "recibir", p: 3, sens: "recevoir" },
     ],
@@ -119,7 +119,7 @@ export const BONUS = {
       { fr: "Vosotros también ___ un piso.", v: "buscar", p: 4, sens: "chercher" },
       { fr: "Yo también ___ a mis suegros.", v: "ayudar", p: 0, sens: "aider" },
       { fr: "¿Vosotros ___ en el pueblo?", v: "correr", p: 4, sens: "courir" },
-      { fr: "Blanca ___ la casa.", v: "abrir", p: 2, sens: "ouvrir" },
+      { fr: "Blanca ___ la puerta.", v: "abrir", p: 2, sens: "ouvrir", mot: "la puerta = la porte" },
       { fr: "Nosotros ___ a los primos porque viven en el pueblo.", v: "visitar", p: 3, sens: "rendre visite à" },
       { fr: "Mis hermanos ___ el piso.", v: "compartir", p: 5, sens: "partager" },
     ],

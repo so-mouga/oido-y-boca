@@ -593,3 +593,6 @@ details.sec > summary h2 { position: static; align-items: center; }
 details.sec > summary h2 .i { width: 16px; height: 16px; margin-left: auto; flex: none; transition: transform .2s var(--ease); }
 details.sec[open] > summary h2 .i { transform: rotate(90deg); }
 details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 10px; }
+/* « Les 6 formes » des exercices : terminaison et voyelle surlignées, comme dans le Dico. */
+.six-formes .term { font-weight: 600; color: var(--sun-ink); background: var(--sun-halo); border-radius: 4px; padding: 0 2px; }
+.six-formes .ici .term { background: #fff; }

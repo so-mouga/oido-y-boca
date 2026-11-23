@@ -1,22 +1,22 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=32";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=32";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=32";
-import { ECOUTES } from "./ecoute.js?v=32";
-import { preparerVoix } from "./voix.js?v=32";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=32";
-import { vibrer } from "./retours.js?v=32";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=32";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=32";
-import { ecranLivre } from "./ecrans/livre.js?v=32";
-import { ecranLecon } from "./ecrans/lecon.js?v=32";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=32";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=32";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=32";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=32";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=32";
+import { chargerTableau } from "./donnees.js?v=33";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=33";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=33";
+import { ECOUTES } from "./ecoute.js?v=33";
+import { preparerVoix } from "./voix.js?v=33";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=33";
+import { vibrer } from "./retours.js?v=33";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=33";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=33";
+import { ecranLivre } from "./ecrans/livre.js?v=33";
+import { ecranLecon } from "./ecrans/lecon.js?v=33";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=33";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=33";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=33";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=33";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=33";
 
 const app = document.getElementById("app");
 let ctx = null;

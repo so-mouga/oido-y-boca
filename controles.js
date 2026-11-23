@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=32";
+import { md } from "./ui.js?v=33";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -34,8 +34,13 @@ const decouper = v => {
   const inf = se ? v.slice(0, -2) : v;
   return { se, inf, g: inf.slice(-2), r: inf.slice(0, -2) };
 };
+// gras : la voyelle entre ** — celle qui change (c**ue**nto), ou celle qui ne change pas avec nosotros et vosotros (c**o**ntamos).
 function radical(r, d, p, gras = false) {
-  if (!change(d, p)) return r;
+  if (!change(d, p)) {
+    if (!gras || !d) return r;
+    const i = r.lastIndexOf(AVANT[d]);
+    return i < 0 ? r : `${r.slice(0, i)}**${AVANT[d]}**${r.slice(i + 1)}`;
+  }
   const i = r.lastIndexOf(AVANT[d]);
   return r.slice(0, i) + (gras ? `**${d}**` : d) + r.slice(i + 1);
 }
@@ -48,7 +53,7 @@ export function conjuguer(v, p, d) {
 }
 export const sixFormes = (v, d) => PERSONNES.map((_, p) => conjuguer(v, p, d));
 
-// Pour le Dico : les 6 formes, terminaison et voyelle changée entre ** (« me ac**ue**st**o** »).
+// Pour le Dico et « Les 6 formes » des exercices : les 6 formes, terminaison et voyelle entre ** (« me ac**ue**st**o** »).
 // Un irrégulier connu n'a rien de surligné : toute la forme s'apprend.
 export const irregulierConnu = inf => !!IRREGULIERS[inf];
 export function formesSurlignees(v, d) {
@@ -75,6 +80,20 @@ export function explicationConjugaison(v, p, d) {
     : ` Avec ${PERSONNES[p]}, le ${AVANT[d]} ne change pas.`;
   return `${avec} : ${pronom}${radical(r, d, p, true)} + **${TERMINAISONS[g][p]}**.${voyelle}${devant}${d || se ? "" : groupe}`;
 }
+
+// La règle générale d'un verbe, sans personne, de la plus particulière à la plus générale :
+// « Le o devient ue, sauf avec nosotros et vosotros. », « Devant le verbe : me, te… », « Les verbes en -ar : on enlève -ar, puis -o, -as… ».
+// Le tableau « tout le verbe » les montre toutes ; « À retenir » seulement la première (celle de la réserve).
+export function reglesVerbe(v, d) {
+  const { se, inf, g } = decouper(v);
+  if (IRREGULIERS[inf]) return [`*${inf[0].toUpperCase() + inf.slice(1)}* est irrégulier : ${IRREGULIERS[inf].join(", ")}.`];
+  return [
+    d && `Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`,
+    se && "Devant le verbe : me, te, se, nos, os, se.",
+    `Les verbes en ‑${g} : on enlève ‑${g}, puis ${TERMINAISONS[g].map(t => `‑${t}`).join(", ")}.`,
+  ].filter(Boolean);
+}
+export const regleVerbe = (v, d) => reglesVerbe(v, d).join(" ");
 
 const ESTAR_LIEU = "*Estar* : le lieu où l'on se trouve.";
 const EN_LIEU = "« À » ou « dans » + un lieu se dit **en** (pour être ou habiter quelque part).";

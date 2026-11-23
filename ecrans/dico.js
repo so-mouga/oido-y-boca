@@ -3,11 +3,11 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=32";
-import { lecon as trouver } from "../position.js?v=32";
-import { PERSONNES, formesSurlignees, conjuguer } from "../controles.js?v=32";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=32";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=32";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=33";
+import { lecon as trouver } from "../position.js?v=33";
+import { PERSONNES, formesSurlignees, conjuguer } from "../controles.js?v=33";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=33";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=33";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -47,7 +47,7 @@ function zoneSommaire(ctx) {
   if (recherche.trim()) {
     const trouves = chercher(mots, recherche);
     // Puis les mots des leçons à venir, de la plus proche à la plus lointaine.
-    const plusLoin = chercher(motsAVenir(ctx), recherche).sort((a, b) => rangLecon(a.lecon) - rangLecon(b.lecon));
+    const plusLoin = chercher(motsAVenir(ctx), recherche, m => rangLecon(m.lecon));
     if (!trouves.length && !plusLoin.length) return `<p class="sous">Aucun mot trouvé, ni dans tes leçons, ni plus loin dans le livre.</p>`;
     return `${trouves.length ? `<ul class="liste res">${trouves.map(m => ligneMot(m, "dico", sorteDe(m).tag)).join("")}</ul>`
         : `<p class="sous">Rien dans tes leçons faites.</p>`}
@@ -148,7 +148,7 @@ function corpsPage(ctx, sorte) {
   }
   if (texte) {
     // Pendant une recherche : à la suite, les mots pas encore vus qui correspondent, les plus proches d'abord.
-    const plusLoin = chercher(aVenirTous, texte).sort((a, b) => rangLecon(a.lecon) - rangLecon(b.lecon));
+    const plusLoin = chercher(aVenirTous, texte, m => rangLecon(m.lecon));
     if (!corps && !plusLoin.length) return `<p class="sous">Aucun mot trouvé.</p>`;
     return `${corps || `<p class="sous">Rien dans tes leçons faites.</p>`}
       ${plusLoin.length ? `<section class="plus-loin"><h2>Plus loin dans le livre</h2>${listeAVenir(plusLoin, sorte.cle)}</section>` : ""}`;

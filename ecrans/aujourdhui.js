@@ -2,14 +2,14 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=32";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=32";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=32";
-import { EXERCICES } from "../exercices.js?v=32";
-import { controlePret, dernierResultat } from "./controle.js?v=32";
-import { motsDus, PAQUET } from "./pratique.js?v=32";
-import { BONUS } from "../bonus.js?v=32";
-import { motsDeLaSemaine } from "./mesmots.js?v=32";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=33";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=33";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=33";
+import { EXERCICES } from "../exercices.js?v=33";
+import { controlePret, dernierResultat } from "./controle.js?v=33";
+import { motsDus, PAQUET } from "./pratique.js?v=33";
+import { BONUS } from "../bonus.js?v=33";
+import { motsDeLaSemaine } from "./mesmots.js?v=33";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;

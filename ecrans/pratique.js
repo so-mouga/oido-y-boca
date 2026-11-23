@@ -7,20 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=32";
-import { lecon as trouver } from "../position.js?v=32";
-import { EXERCICES } from "../exercices.js?v=32";
-import { corriger } from "../corriger.js?v=32";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=32";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=32";
-import { BONUS } from "../bonus.js?v=32";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=32";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=32";
-import { vibrer, son } from "../retours.js?v=32";
+import { esc, md, id, ICONES } from "../ui.js?v=33";
+import { lecon as trouver } from "../position.js?v=33";
+import { EXERCICES } from "../exercices.js?v=33";
+import { corriger } from "../corriger.js?v=33";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=33";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe } from "../controles.js?v=33";
+import { BONUS } from "../bonus.js?v=33";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=33";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=33";
+import { vibrer, son } from "../retours.js?v=33";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=32";
+} from "../enregistrement.js?v=33";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -88,7 +88,7 @@ function serieBonus(idLecon) {
   const phrases = tirer(b.phrases, b.tableaux ? 5 : 6, idLecon).map(ph => ({
     type: "ecrire", ...commun, consigne: b.consigne || "Complète", ...ph,
     es: ph.es || [conjuguer(ph.v, ph.p, ph.d)],
-    sens: ph.sens ? `${ph.v} = ${ph.sens}` : ph.mot,
+    sens: [ph.sens && `${ph.v} = ${ph.sens}`, ph.mot].filter(Boolean).join(" · "),
     expl: ph.expl || (ph.v ? undefined : b.regle),
   }));
   const tableau = b.tableaux ? tirer(b.tableaux, 1, `${idLecon}:tableau`).map(t => ({
@@ -217,11 +217,12 @@ function explication(it) {
   return "";
 }
 
-// « Les 6 formes » : fermé par défaut, la forme de la phrase surlignée.
+// « Les 6 formes » : fermé par défaut, la forme de la phrase surlignée ; terminaisons et voyelle comme dans le Dico.
+const surligne = f => esc(f).replace(/\*\*(.+?)\*\*/g, `<span class="term">$1</span>`);
 function lesSixFormes(v, d, p) {
-  const f = sixFormes(v, d);
+  const f = formesSurlignees(v, d);
   return `<details class="six-formes"><summary>Les 6 formes</summary><dl>${PERSONNES.map((per, i) =>
-    `<dt>${per}</dt><dd lang="es"${i === p ? ' class="ici"' : ""}>${esc(f[i])}</dd>`).join("")}</dl></details>`;
+    `<dt>${per}</dt><dd lang="es"${i === p ? ' class="ici"' : ""}>${surligne(f[i])}</dd>`).join("")}</dl></details>`;
 }
 
 // Le tableau « tout le verbe » : les 6 personnes d'un coup, vérifiées en une fois.
@@ -248,7 +249,7 @@ function vueTableau(it, enTete) {
     <div class="verdict ${n === 6 ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
       <b>${titre}</b>
       <dl class="formes-tableau">${lignes}</dl>
-      ${n < 6 ? `<p class="explication">${md(explicationConjugaison(it.v, r.lignes.findIndex(l => !l.ok), it.d))}</p>` : ""}
+      ${n < 6 ? `<p class="explication">${md(regleVerbe(it.v, it.d))}</p>` : ""}
     </div>
     <div class="espace"></div>
     <button class="primaire" data-p="suivant">Suivant</button>`;
@@ -344,19 +345,42 @@ function vueFinControle() {
 }
 
 // La fin du bonus : le score et les formes ratées. Rien n'est gardé.
+// Le titre suit le score, toujours calme : 5-6 sur 6 « Bien entraîné », 3-4 « Pas mal », 0-2 « À retravailler ».
+const titreBonus = (ok, sur) => ok >= sur - 1 ? "Bien entraîné" : ok >= sur / 2 ? "Pas mal" : "À retravailler";
+
+// « À retenir » : une ligne par verbe raté avec ses formes ratées (sans doublon), puis la règle une seule fois.
+function aRetenir(r) {
+  const verbes = new Map(), phrases = [], regles = new Set();
+  for (const { it, ok, lignes } of r) {
+    if (ok) continue;
+    if (it.v) {
+      const cle = `${it.v}|${it.d || ""}`;
+      const v = verbes.get(cle) || verbes.set(cle, { v: it.v, formes: new Map() }).get(cle);
+      const ratees = it.type === "tableau" ? lignes.map((l, p) => l.ok ? null : [p, l.attendu]).filter(Boolean) : [[it.p, it.es[0]]];
+      for (const [p, f] of ratees) v.formes.set(p, f);
+      regles.add(reglesVerbe(it.v, it.d)[0]);
+    } else {
+      const ligne = `<span lang="es">${phraseJuste(it)}</span>${it.fr.includes("___") ? "" : ` <small>(${esc(it.fr)})</small>`}`;
+      if (!phrases.includes(ligne)) phrases.push(ligne);
+      if (it.expl) regles.add(it.expl);
+    }
+  }
+  const lignes = [...verbes.values()].map(({ v, formes }) => `<i lang="es">${esc(v)}</i> : ${[...formes.entries()].sort((a, b) => a[0] - b[0])
+    .map(([p, f]) => `${PERSONNES[p]} → <b lang="es">${esc(f)}</b>`).join(", ")}`);
+  return { lignes: [...lignes, ...phrases], regles: [...regles] };
+}
+
 function vueFinBonus() {
   const r = s.resultats;
-  const retenir = r.filter(x => !x.ok).flatMap(({ it, lignes }) => {
-    if (it.type === "tableau") return lignes.map((l, p) => l.ok ? null : `<i lang="es">${esc(it.v)}</i>, ${PERSONNES[p]} → <b lang="es">${esc(l.attendu)}</b>`).filter(Boolean);
-    if (it.v) return [`<i lang="es">${esc(it.v)}</i>, ${PERSONNES[it.p]} → <b lang="es">${esc(it.es[0])}</b>`];
-    return [`<span lang="es">${phraseJuste(it)}</span>${it.fr.includes("___") ? "" : ` <small>(${esc(it.fr)})</small>`}`];
-  });
+  const { lignes: retenir, regles } = aRetenir(r);
   const nom = s.items[0].nom;
+  const ok = r.filter(x => x.ok).length;
   return `<div class="fin">
-      <h1>Bien entraîné</h1>
+      <h1>${titreBonus(ok, r.length)}</h1>
       <p class="sous">Entraînement · ${esc(nom)} · ${r.length} phrases</p>
       <ul class="bilan"><li><b>Justes</b><span>${r.filter(x => x.ok).length} sur ${r.length}</span></li></ul>
-      ${retenir.length ? `<section aria-labelledby="t-retenir"><h2 id="t-retenir">À retenir</h2><ul class="a-retenir">${retenir.map(t => `<li>${t}</li>`).join("")}</ul></section>` : ""}
+      ${retenir.length ? `<section aria-labelledby="t-retenir"><h2 id="t-retenir">À retenir</h2><ul class="a-retenir">${retenir.map(t => `<li>${t}</li>`).join("")}</ul>
+        ${regles.map(t => `<p class="explication">${md(t)}</p>`).join("")}</section>` : ""}
       <p class="sous">Tu peux recommencer : ce ne seront pas tout à fait les mêmes phrases.</p>
     </div>
     <div class="espace"></div>
