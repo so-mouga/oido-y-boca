@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=36";
+import { md } from "./ui.js?v=37";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -22,6 +22,15 @@ const IRREGULIERS = {
   estar: ["estoy", "estás", "está", "estamos", "estáis", "están"],
   tener: ["tengo", "tienes", "tiene", "tenemos", "tenéis", "tienen"],
   ir: ["voy", "vas", "va", "vamos", "vais", "van"],
+  // Ajoutés le 23 nov. (Q80), vérifiés forme par forme dans outils/test-irreguliers.mjs.
+  hacer: ["hago", "haces", "hace", "hacemos", "hacéis", "hacen"],
+  poner: ["pongo", "pones", "pone", "ponemos", "ponéis", "ponen"],
+  traer: ["traigo", "traes", "trae", "traemos", "traéis", "traen"],
+  dar: ["doy", "das", "da", "damos", "dais", "dan"],
+  salir: ["salgo", "sales", "sale", "salimos", "salís", "salen"],
+  decir: ["digo", "dices", "dice", "decimos", "decís", "dicen"],
+  venir: ["vengo", "vienes", "viene", "venimos", "venís", "vienen"],
+  jugar: ["juego", "juegas", "juega", "jugamos", "jugáis", "juegan"],
 };
 // Les verbes qui changent de voyelle (d : "ue", "ie" ou "i") : la dernière voyelle du radical change,
 // sauf avec nosotros et vosotros (contar → cuento… contamos ; vestirse → me visto).

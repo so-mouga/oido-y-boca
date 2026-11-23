@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=36";
-import { mesMots, apprisEnAvance } from "./progression.js?v=36";
-import { LECONS } from "./position.js?v=36";
+import { irregulierConnu } from "./controles.js?v=37";
+import { mesMots, apprisEnAvance } from "./progression.js?v=37";
+import { LECONS } from "./position.js?v=37";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -93,7 +93,8 @@ const PARTICULIERS = {
   // Comme gustar (« me gusta, te gusta… ») : on ne montre que la forme qui sert, avec me, te, le, nos, os, les.
   gustar: { gustar: true }, encantar: { gustar: true }, apetecer: { gustar: true }, molar: { gustar: true },
   parecer: { gustar: true }, costar: { gustar: true, d: "ue" },
-  // Irréguliers : l'appli connaît les formes de ser, estar, tener, ir (controles.js) ; pour les autres, elle n'invente rien.
+  // Irréguliers : l'appli connaît les formes de ser, estar, tener, ir, hacer, poner, dar, salir, decir, venir, jugar (controles.js) ;
+  // pour les autres, elle n'invente rien.
   ser: { irr: true }, estar: { irr: true }, tener: { irr: true }, ir: { irr: true },
   hacer: { irr: true }, poner: { irr: true }, salir: { irr: true }, ver: { irr: true }, dar: { irr: true },
   jugar: { irr: true }, enviar: { irr: true }, reenviar: { irr: true }, confiar: { irr: true },
@@ -115,7 +116,10 @@ export const REGLES = {
   i: { lecon: "U6-L2", texte: "Le e devient i, sauf avec nosotros et vosotros." },
   gustar: { lecon: "U6-L1", texte: "Comme *gustar* : le verbe ne change pas, c'est le petit mot devant qui dit à qui (me, te, le, nos, os, les)." },
 };
-const LECON_IRREGULIER = { ser: "U1-L2", estar: "U1-L4", tener: "U2-L1", ir: "U3-L6" };
+const LECON_IRREGULIER = {
+  ser: "U1-L2", estar: "U1-L4", tener: "U2-L1", ir: "U3-L6",
+  hacer: "U7-L4", poner: "U7-L4", traer: "U7-L4", dar: "U7-L4", salir: "U7-L5", decir: "U7-L5", venir: "U7-L5", jugar: "U8-L5",
+};
 
 // Ce que l'appli sait d'un verbe du Sheet. « tener … años » → tener ; « comer (= déjeuner) » → comer ;
 // « hacerse daño » → hacerse. Renvoie null si le mot n'est pas un verbe qu'on sait lire.
