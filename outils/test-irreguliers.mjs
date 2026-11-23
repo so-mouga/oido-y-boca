@@ -18,9 +18,20 @@ const ATTENDU = {
   decir: ["digo", "dices", "dice", "decimos", "decís", "dicen"],
   venir: ["vengo", "vienes", "viene", "venimos", "venís", "vienen"],
   jugar: ["juego", "juegas", "juega", "jugamos", "jugáis", "juegan"],
+  // Ajoutés pour les unités 9 à 15 (23 nov.)
+  ver: ["veo", "ves", "ve", "vemos", "veis", "ven"],
+  enviar: ["envío", "envías", "envía", "enviamos", "enviáis", "envían"],
+  recoger: ["recojo", "recoges", "recoge", "recogemos", "recogéis", "recogen"],
+  crecer: ["crezco", "creces", "crece", "crecemos", "crecéis", "crecen"],
+  conducir: ["conduzco", "conduces", "conduce", "conducimos", "conducís", "conducen"],
+  caer: ["caigo", "caes", "cae", "caemos", "caéis", "caen"],
+  conocer: ["conozco", "conoces", "conoce", "conocemos", "conocéis", "conocen"],
+  saber: ["sé", "sabes", "sabe", "sabemos", "sabéis", "saben"],
   // Les verbes en -se se construisent avec le pronom devant.
   ponerse: ["me pongo", "te pones", "se pone", "nos ponemos", "os ponéis", "se ponen"],
   darse: ["me doy", "te das", "se da", "nos damos", "os dais", "se dan"],
+  caerse: ["me caigo", "te caes", "se cae", "nos caemos", "os caéis", "se caen"],
+  conocerse: ["me conozco", "te conoces", "se conoce", "nos conocemos", "os conocéis", "se conocen"],
 };
 
 // controles.js importe ui.js (pour l'affichage) : on le charge sans cet import.

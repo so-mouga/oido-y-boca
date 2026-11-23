@@ -655,3 +655,16 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .tu-le-sais .oui { background: var(--sage-ink); color: #fff; border-radius: 12px; padding: 11px; font-weight: 600; }
 .tu-le-sais small { font-size: 13px; }
 .tu-le-sais.sorti { display: block; }
+
+/* Les onglets par temps de la fiche d'un verbe (Dico, unités 9 à 15) */
+.bloc .temps { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+.bloc .temps button { font: inherit; font-size: 14px; font-weight: 500; color: var(--marine); background: #fff; border: 1.5px solid var(--hair);
+  border-radius: 12px; padding: 8px 6px; min-height: 44px; line-height: 1.2; cursor: pointer; }
+.bloc .temps button small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); }
+.bloc .temps button[aria-selected="true"] { background: var(--marine); border-color: var(--marine); color: var(--sun-ground); }
+.bloc .temps button[aria-selected="true"] small { color: var(--sun-halo); }
+.bloc [data-panneau] { display: flex; flex-direction: column; gap: 9px; align-items: flex-start; width: 100%; }
+.bloc [data-panneau][hidden] { display: none; }
+.bloc .pas-vu { background: var(--sun-deep); color: var(--sun-ink); border-radius: 12px; padding: 8px 10px; font-size: 13.5px; line-height: 1.4; }
+.bloc .nom-temps { font-size: 13.5px; color: var(--marine-soft); }
+.bloc .nom-temps i { color: var(--muted); }

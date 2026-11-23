@@ -5,10 +5,11 @@
 //          + v, p pour un verbe à conjuguer (p : 0 = yo … 5 = ellos) : l'explication se calcule toute seule.
 //            + d ("ue", "ie" ou "i") pour un verbe qui change de voyelle (dormir, empezar, vestirse).
 //            ⚠ Jamais de v sur un irrégulier que controles.js ne connaît pas (IRREGULIERS).
+//            + t ("pc", "ps" ou "imp") pour un temps du passé (absent = présent) : réponse, explication et « Les 6 formes » au bon temps.
 //          + expl (facultatif) : l'explication écrite, quand la règle de la leçon n'aide pas pour cette phrase.
 // dire   : { fr, es }                                    → tu la dis à voix haute, tu compares, tu te notes.
 //
-// Unités prêtes : 1 à 8, et Noël. Les suivantes s'ajoutent au fil des leçons.
+// Unités prêtes : 1 à 14, et Noël. Les suivantes s'ajoutent au fil des leçons.
 
 const T = "Traduis";
 const C = "Complète";
@@ -51,7 +52,7 @@ export const EXERCICES = {
     dire: [
       { fr: "Nous habitons dans un appartement, en ville.", es: "Vivimos en un piso, en la ciudad." },
       { fr: "Où est-ce que tu habites ?", es: "¿Dónde vives?" },
-      { fr: "Les parents de Blanca habitent dans un village.", es: "Los padres de Blanca viven en un pueblo." },
+      { fr: "Mes parents habitent à Paris avec ma petite sœur.", es: "Mis padres viven en París con mi hermana pequeña." },
     ],
   },
   "U1-L4": {
@@ -69,15 +70,15 @@ export const EXERCICES = {
   },
   "U1-L5": {
     ecrire: [
-      { consigne: C, fr: "Nosotros ___ con mis suegros el domingo. (comer)", es: ["comemos"], v: "comer", p: 3 },
+      { consigne: C, fr: "Nosotros ___ con mi suegro el domingo. (comer)", es: ["comemos"], v: "comer", p: 3 },
       { consigne: T, fr: "Tu as des frères et sœurs ?", es: ["¿Tienes hermanos?"] },
       { consigne: T, fr: "Blanca est ma compagne.", es: ["Blanca es mi pareja."] },
-      { consigne: C, fr: "Mis suegros ___ en Huesca hoy. (estar)", es: ["están"], v: "estar", p: 5 },
+      { consigne: C, fr: "Léo y Dorian ___ en casa hoy. (estar)", es: ["están"], v: "estar", p: 5 },
     ],
     dire: [
       { fr: "Blanca est ma compagne. Nous nous marions en juin.", es: "Blanca es mi pareja. Nos casamos en junio." },
       { fr: "Tes cousins viennent au mariage ?", es: "¿Vienen tus primos a la boda?" },
-      { fr: "Ce dimanche, nous mangeons avec mes beaux-parents.", es: "Este domingo comemos con mis suegros." },
+      { fr: "Ce dimanche, nous mangeons avec mon beau-père.", es: "Este domingo comemos con mi suegro." },
     ],
   },
   "U1-L6": {
@@ -406,7 +407,7 @@ export const EXERCICES = {
       { consigne: T, fr: "J'aime beaucoup cuisiner, mais je n'aime pas nettoyer.", es: ["Me gusta mucho cocinar, pero no me gusta limpiar."] },
       { consigne: C, fr: "A Blanca ___ gusta Huesca. (à elle)", es: ["le"], expl: "« À elle, à lui » : **le** gusta. (me, te, **le**, nos, os, les)" },
       { consigne: C, fr: "A Léo y a Dorian les ___ los sábados. (encantar)", es: ["encantan"], expl: "*Los sábados* est au pluriel : **encantan**. Le verbe s'accorde avec ce qui plaît." },
-      { consigne: T, fr: "Tu préfères déjeuner à la maison ou au village ? Ça m'est égal.", es: ["¿Prefieres comer en casa o en el pueblo? Me da igual."] },
+      { consigne: T, fr: "Tu préfères déjeuner à la maison ou au restaurant ? Ça m'est égal.", es: ["¿Prefieres comer en casa o en el restaurante? Me da igual."] },
     ],
     dire: [
       { fr: "Je déteste me lever tôt.", es: "Odio levantarme temprano." },
@@ -541,7 +542,7 @@ export const EXERCICES = {
     dire: [
       { fr: "Je t'attends à l'entrée de l'immeuble.", es: "Te espero en el portal." },
       { fr: "Tu viens à la terrasse avec nous ?", es: "¿Vienes a la terraza con nosotros?" },
-      { fr: "Mes beaux-parents viennent dimanche.", es: "Mis suegros vienen el domingo." },
+      { fr: "Mon beau-père vient dimanche.", es: "Mi suegro viene el domingo." },
     ],
   },
   "U7-L6": {
@@ -662,6 +663,475 @@ export const EXERCICES = {
       { fr: "Bonjour, je suis Kevin, le fiancé de Blanca. Ravi de te connaître.", es: "Hola, soy Kevin, el novio de Blanca. Encantado de conocerte." },
       { fr: "En Espagne, le temps à table après le repas est très long.", es: "En España la sobremesa es muy larga." },
       { fr: "Tu as des enfants ? Quel âge ont-ils ?", es: "¿Tienes hijos? ¿Cuántos años tienen?" },
+    ],
+  },
+  // ── Unité 9 : le passé composé (t: "pc"). L'indice dit le temps : « (ir, passé composé) ». ──
+  "U9-L1": {
+    ecrire: [
+      { consigne: T, fr: "Aujourd'hui, j'ai travaillé à la maison toute la journée.", es: ["Hoy he trabajado en casa todo el día.", "Hoy he trabajado desde casa todo el día."] },
+      { consigne: C, fr: "Esta mañana ___ al gimnasio. (ir, passé composé)", es: ["he ido"], v: "ir", p: 0, t: "pc" },
+      { consigne: T, fr: "Cet après-midi, Blanca a déjeuné avec sa sœur.", es: ["Esta tarde Blanca ha comido con su hermana."] },
+      { consigne: C, fr: "Esta semana Léo y Dorian ___ un montón. (dormir, passé composé)", es: ["han dormido"], v: "dormir", d: "ue", p: 5, t: "pc" },
+    ],
+    dire: [
+      { fr: "Qu'est-ce que tu as mangé aujourd'hui ?", es: "¿Qué has comido hoy?" },
+      { fr: "Ce matin j'ai travaillé, et cet après-midi je suis allé à la salle.", es: "Esta mañana he trabajado y esta tarde he ido al gimnasio." },
+      { fr: "Cette semaine, j'ai cuisiné un tas de fois.", es: "Esta semana he cocinado un montón." },
+    ],
+  },
+  "U9-L2": {
+    ecrire: [
+      { consigne: T, fr: "Aujourd'hui, je n'ai pas envoyé de courriels.", es: ["Hoy no he enviado correos.", "Hoy no he enviado ningún correo."] },
+      { consigne: C, fr: "Esta mañana ___ a las siete. (levantarse, passé composé)", es: ["me he levantado"], v: "levantarse", p: 0, t: "pc" },
+      { consigne: T, fr: "Tu t'es douché ?", es: ["¿Te has duchado?"] },
+      { consigne: C, fr: "Hoy mi ordenador no ___. (funcionar, passé composé)", es: ["ha funcionado"], v: "funcionar", p: 2, t: "pc",
+        expl: "*No* se met avant *haber* : no **ha funcionado** (jamais entre *ha* et le participe)." },
+    ],
+    dire: [
+      { fr: "Ça a été, ta journée ? Tu as beaucoup travaillé ?", es: "¿Qué tal el día? ¿Has trabajado mucho?" },
+      { fr: "Ce matin, j'ai eu trois réunions et j'ai envoyé un tas de courriels.", es: "Esta mañana he tenido tres reuniones y he enviado un montón de correos." },
+      { fr: "J'ai travaillé de la maison toute la journée et je ne suis pas sorti.", es: "He trabajado desde casa todo el día y no he salido." },
+    ],
+  },
+  "U9-L3": {
+    ecrire: [
+      { consigne: T, fr: "J'ai lancé la machine et j'ai regardé les infos.", es: ["He puesto la lavadora y he visto las noticias."] },
+      { consigne: C, fr: "¿Qué ___ hoy, Blanca? (hacer, passé composé)", es: ["has hecho"], v: "hacer", p: 1, t: "pc" },
+      { consigne: T, fr: "Léo a regardé la télé tout l'après-midi.", es: ["Léo ha visto la tele toda la tarde."] },
+      { consigne: C, fr: "Mis hermanas me ___ un correo. (escribir, passé composé)", es: ["han escrito"], v: "escribir", p: 5, t: "pc" },
+    ],
+    dire: [
+      { fr: "Qu'est-ce que tu as fait aujourd'hui ?", es: "¿Qué has hecho hoy?" },
+      { fr: "Dorian a dit qu'il n'a pas de devoirs.", es: "Dorian ha dicho que no tiene deberes." },
+      { fr: "J'ai fait les courses et j'ai lancé la machine.", es: "He hecho la compra y he puesto la lavadora." },
+    ],
+  },
+  "U9-L4": {
+    ecrire: [
+      { consigne: T, fr: "Je suis rentré de la salle et Léo a cassé un verre.", es: ["He vuelto del gimnasio y Léo ha roto un vaso."] },
+      { consigne: C, fr: "Blanca ___ a casa a las seis. (volver, passé composé)", es: ["ha vuelto"], v: "volver", d: "ue", p: 2, t: "pc",
+        expl: "*volver* a un participe irrégulier : **ha vuelto**. Il ne change jamais, même pour Blanca (pas « vuelta »)." },
+      { consigne: T, fr: "Qui a ouvert la fenêtre ?", es: ["¿Quién ha abierto la ventana?"] },
+      { consigne: C, fr: "Hoy yo ___ los platos. (fregar, passé composé)", es: ["he fregado"], v: "fregar", d: "ie", p: 0, t: "pc" },
+    ],
+    dire: [
+      { fr: "Dorian a fermé la porte.", es: "Dorian ha cerrado la puerta." },
+      { fr: "Léo a cassé une assiette !", es: "¡Léo ha roto un plato!" },
+      { fr: "Les enfants sont rentrés à cinq heures.", es: "Los niños han vuelto a las cinco." },
+    ],
+  },
+  "U9-L5": {
+    ecrire: [
+      { consigne: T, fr: "J'ai déjà fait les courses, mais je n'ai pas encore cuisiné.", es: ["Ya he hecho la compra, pero todavía no he cocinado.", "Ya he hecho la compra, pero aún no he cocinado."] },
+      { consigne: C, fr: "___ llegar a casa. (je viens de)", es: ["Acabo de"], expl: "« Je viens de » + infinitif : **acabo de** (*acabar de*, au présent)." },
+      { consigne: T, fr: "Dorian a oublié son sac à dos.", es: ["Dorian ha olvidado la mochila.", "Dorian ha olvidado su mochila.", "Dorian se ha olvidado la mochila."] },
+      { consigne: C, fr: "Léo ___ no ha cenado. (pas encore)", es: ["todavía", "aún"], expl: "« Pas encore » : **todavía no** (ou **aún no**), avant *haber*." },
+    ],
+    dire: [
+      { fr: "Tu as déjà mangé ? Non, pas encore.", es: "¿Ya has comido? No, todavía no." },
+      { fr: "Je viens de rentrer de la salle.", es: "Acabo de volver del gimnasio." },
+      { fr: "Enfin ! Léo et Dorian sont au lit.", es: "¡Por fin! Léo y Dorian ya están en la cama." },
+    ],
+  },
+  // ── Unité 10 : l'école. a devant une personne, lo / la / los / las (le accepté pour un garçon : leísmo admis par la RAE). ──
+  "U10-L1": {
+    ecrire: [
+      { consigne: T, fr: "Aujourd'hui, c'est moi qui récupère Léo à cinq heures.", es: ["Hoy recojo yo a Léo a las cinco.", "Hoy recojo a Léo a las cinco.", "Hoy yo recojo a Léo a las cinco."] },
+      { consigne: C, fr: "Yo ___ a Dorian a la salida del cole. (recoger)", es: ["recojo"], v: "recoger", p: 0 },
+      { consigne: T, fr: "Je vois la maîtresse de Léo dans la cour.", es: ["Veo a la tutora de Léo en el patio."] },
+      { consigne: C, fr: "Blanca recoge ___ Léo y yo recojo la mochila. (a ?)", es: ["a"],
+        expl: "Devant une personne, on met **a** : *recoge **a** Léo*. Pas devant une chose : *recojo la mochila*." },
+    ],
+    dire: [
+      { fr: "On se voit à la sortie de l'école.", es: "Nos vemos a la salida del cole." },
+      { fr: "Je suis à l'entrée de l'école.", es: "Estoy en la entrada del cole." },
+      { fr: "Tu prends le sac de Dorian ?", es: "¿Coges tú la mochila de Dorian?" },
+    ],
+  },
+  "U10-L2": {
+    ecrire: [
+      { consigne: T, fr: "Le sac de Léo ? C'est moi qui l'ai.", es: ["¿La mochila de Léo? La tengo yo."] },
+      { consigne: C, fr: "¿Los zapatos? ___ llevo yo. (les)", es: ["Los"], expl: "*Los zapatos* (masculin pluriel) → **los**, avant le verbe." },
+      { consigne: T, fr: "Aujourd'hui, Dorian a été sage.", es: ["Hoy Dorian se ha portado bien.", "Dorian se ha portado bien hoy."] },
+      { consigne: C, fr: "¿El libro? Dorian ___ tiene. (le)", es: ["lo"], expl: "*El libro* (masculin) → **lo**, avant le verbe." },
+    ],
+    dire: [
+      { fr: "Léo a pleuré aujourd'hui en classe ?", es: "¿Léo ha llorado hoy en clase?" },
+      { fr: "Tu t'es disputé avec un camarade ?", es: "¿Te has peleado con un compañero?" },
+      { fr: "La maîtresse ? Je la vois demain.", es: "¿La tutora? La veo mañana." },
+    ],
+  },
+  "U10-L3": {
+    ecrire: [
+      { consigne: T, fr: "Le goûter de Dorian, je l'ai mis dans le sac.", es: ["La merienda de Dorian, la he puesto en la mochila.", "La merienda de Dorian la he puesto en la mochila."] },
+      { consigne: C, fr: "¿El zumo? ___ he olvidado. (le)", es: ["Lo"], expl: "Avec le passé composé, **lo** se met avant *haber* : **lo** he olvidado." },
+      { consigne: T, fr: "Les biscuits ? Je dois les acheter.", es: ["¿Las galletas? Tengo que comprarlas.", "¿Las galletas? Las tengo que comprar."] },
+      { consigne: C, fr: "¿El bocadillo? Tengo que ___. (le faire)", es: ["hacerlo"], expl: "Avec un infinitif, **lo** se colle à la fin : *hacer* + *lo* = **hacerlo**." },
+    ],
+    dire: [
+      { fr: "Qu'est-ce que tu as mangé à la cantine ?", es: "¿Qué has comido en el comedor?" },
+      { fr: "Le jus, je l'ai mis dans le sac.", es: "El zumo lo he puesto en la mochila." },
+      { fr: "Je le mets ici.", es: "Lo pongo aquí." },
+    ],
+  },
+  "U10-L4": {
+    ecrire: [
+      { consigne: T, fr: "J'ai déjà signé l'autorisation : c'est Dorian qui l'a dans son cahier.", es: ["Ya he firmado la autorización: la tiene Dorian en la agenda.", "Ya he firmado la autorización: la tiene Dorian en su agenda."] },
+      { consigne: C, fr: "¿La circular? ¡___, Blanca! (signe-la)", es: ["Fírmala"], expl: "À l'impératif, **la** se colle à la fin : *firma* + *la* = **fírmala**. Accent, car *firma* a 2 syllabes." },
+      { consigne: T, fr: "Le livre ? Apporte-le, Dorian !", es: ["¿El libro? ¡Tráelo, Dorian!"] },
+      { consigne: C, fr: "¿Los zapatos? ¡___ aquí, Léo! (mets-les)", es: ["Ponlos"], expl: "*pon* + *los* = **ponlos**. Pas d'accent, car *pon* n'a qu'une syllabe." },
+    ],
+    dire: [
+      { fr: "Tu as lu la circulaire de l'école ?", es: "¿Has leído la circular del cole?" },
+      { fr: "La maîtresse a écrit un mot dans le cahier.", es: "La tutora ha escrito una nota en la agenda." },
+      { fr: "Le sac ? Prends-le !", es: "¿La mochila? ¡Cógela!" },
+    ],
+  },
+  "U10-L5": {
+    ecrire: [
+      { consigne: T, fr: "À quelle heure est le rendez-vous avec la maîtresse jeudi prochain ?", es: ["¿A qué hora es la tutoría el jueves que viene?"] },
+      { consigne: C, fr: "La excursión es la semana ___. (prochaine)", es: ["que viene"], expl: "« La semaine prochaine » : la semana **que viene**, après le mot." },
+      { consigne: T, fr: "Le spectacle de Noël est le mois prochain.", es: ["La función de Navidad es el mes que viene."] },
+      { consigne: C, fr: "¿___ a Dorian a una actividad? (on inscrit)", es: ["Apuntamos"], expl: "*apuntar* (inscrire), avec *nosotros* : **apuntamos**." },
+    ],
+    dire: [
+      { fr: "Léo a besoin d'un déguisement pour vendredi prochain.", es: "Léo necesita un disfraz para el viernes que viene." },
+      { fr: "La sortie scolaire, c'est quel jour ?", es: "¿Qué día es la excursión?" },
+      { fr: "Qu'est-ce que les enfants doivent apporter ?", es: "¿Qué tienen que traer los niños?" },
+    ],
+  },
+  "U10-L6": {
+    ecrire: [
+      { consigne: T, fr: "Léo parle français à la maison. Comment le trouves-tu en classe ?", es: ["Léo habla francés en casa. ¿Cómo lo ves en clase?", "Léo habla francés en casa. ¿Cómo le ves en clase?"] },
+      { consigne: C, fr: "A Léo le ___ hablar en clase. (costar)", es: ["cuesta"], expl: "*Costar* (avoir du mal) se construit comme *gustar* : a Léo le **cuesta** hablar." },
+      { consigne: T, fr: "Il a bien mangé aujourd'hui ?", es: ["¿Ha comido bien hoy?", "¿Hoy ha comido bien?"] },
+      { consigne: C, fr: "¿Cómo ___ Léo a la clase? (adaptarse, passé composé)", es: ["se ha adaptado"], v: "adaptarse", p: 2, t: "pc" },
+    ],
+    dire: [
+      { fr: "Est-ce que je dois m'inquiéter ?", es: "¿Tengo que preocuparme?" },
+      { fr: "Léo a beaucoup progressé cette année.", es: "Léo ha mejorado mucho este año." },
+      { fr: "Dorian a beaucoup grandi cette année.", es: "Dorian ha crecido mucho este año." },
+    ],
+  },
+  // ── Unité 11 : chez le pédiatre. « pedir hora » accepté comme « pedir cita ». ──
+  "U11-L1": {
+    ecrire: [
+      { consigne: T, fr: "Je voudrais prendre rendez-vous avec la pédiatre pour mon fils Léo.", es: ["Quería pedir cita con la pediatra para mi hijo Léo.", "Quería pedir una cita con la pediatra para mi hijo Léo.", "Quería pedir hora con la pediatra para mi hijo Léo."] },
+      { consigne: C, fr: "Blanca ___ cita para Dorian. (pedir)", es: ["pide"], v: "pedir", d: "i", p: 2 },
+      { consigne: T, fr: "Un rendez-vous pour demain, s'il vous plaît.", es: ["Una cita para mañana, por favor."] },
+      { consigne: C, fr: "¿Tiene la ___ del niño? (carte de santé)", es: ["tarjeta sanitaria"], expl: "La carte de santé : **la tarjeta sanitaria**." },
+    ],
+    dire: [
+      { fr: "Ce matin, j'ai appelé le centre de santé.", es: "Esta mañana he llamado al centro de salud." },
+      { fr: "Léo a rendez-vous avec le médecin demain.", es: "Léo tiene cita con el médico mañana." },
+      { fr: "Je voudrais un rendez-vous pour Dorian, pour lundi.", es: "Quería una cita para Dorian, para el lunes." },
+    ],
+  },
+  "U11-L2": {
+    ecrire: [
+      { consigne: T, fr: "Léo a mal au ventre.", es: ["A Léo le duele la tripa.", "Léo tiene dolor de tripa."] },
+      { consigne: C, fr: "Me ___ los oídos. (doler)", es: ["duelen"], expl: "*Doler* se construit comme *gustar* : avec un pluriel (*los oídos*), **duelen**. Le o devient ue." },
+      { consigne: T, fr: "Où as-tu mal, Dorian ?", es: ["¿Dónde te duele, Dorian?"] },
+      { consigne: C, fr: "A Dorian le ___ la garganta. (doler)", es: ["duele"], expl: "*Doler* se construit comme *gustar* : avec un singulier (*la garganta*), **duele**. Le o devient ue." },
+    ],
+    dire: [
+      { fr: "J'ai mal à la tête.", es: "Me duele la cabeza." },
+      { fr: "Tu as mal à l'œil, Léo ?", es: "¿Te duele el ojo, Léo?" },
+      { fr: "Ouvre la bouche, Léo.", es: "Abre la boca, Léo." },
+    ],
+  },
+  "U11-L3": {
+    ecrire: [
+      { consigne: T, fr: "Il a vomi deux fois cette nuit et il a de la fièvre.", es: ["Ha vomitado dos veces esta noche y tiene fiebre."] },
+      { consigne: C, fr: "Léo tiene ___. (de la toux)", es: ["tos"], expl: "*Tener tos*, sans article (comme *tener fiebre, tener mocos*)." },
+      { consigne: T, fr: "Aujourd'hui, Dorian a eu de la fièvre.", es: ["Hoy Dorian ha tenido fiebre.", "Dorian ha tenido fiebre hoy."] },
+      { consigne: C, fr: "Esta noche Léo ___ dos veces. (vomitar, passé composé)", es: ["ha vomitado"], v: "vomitar", p: 2, t: "pc" },
+    ],
+    dire: [
+      { fr: "Léo a le nez qui coule et il tousse beaucoup.", es: "Léo tiene mocos y mucha tos." },
+      { fr: "Il a eu la diarrhée ?", es: "¿Ha tenido diarrea?" },
+      { fr: "Cette nuit, Dorian a beaucoup toussé.", es: "Esta noche Dorian ha tenido mucha tos." },
+    ],
+  },
+  "U11-L4": {
+    ecrire: [
+      { consigne: T, fr: "Il a de la fièvre depuis hier. Ce matin, il a eu trente-neuf.", es: ["Tiene fiebre desde ayer. Esta mañana ha tenido treinta y nueve."] },
+      { consigne: C, fr: "Tiene tos ___ dos días. (depuis)", es: ["desde hace"], expl: "« Depuis » + une durée (*dos días*) : **desde hace**. + un moment (*ayer*) : *desde*." },
+      { consigne: T, fr: "Depuis quand a-t-il de la fièvre ?", es: ["¿Desde cuándo tiene fiebre?"] },
+      { consigne: C, fr: "Ha vomitado tres ___. (fois)", es: ["veces"], expl: "*Una vez, dos veces, tres veces*." },
+    ],
+    dire: [
+      { fr: "Il a trente-huit et demi.", es: "Tiene treinta y ocho y medio." },
+      { fr: "Combien de fois a-t-il vomi ?", es: "¿Cuántas veces ha vomitado?" },
+      { fr: "La fièvre a baissé cet après-midi.", es: "La fiebre ha bajado esta tarde." },
+    ],
+  },
+  "U11-L5": {
+    ecrire: [
+      { consigne: T, fr: "D'habitude il mange bien, mais aujourd'hui il n'a rien mangé, seulement un peu de riz.", es: ["Normalmente come bien, pero hoy no ha comido nada, solo un poco de arroz."] },
+      { consigne: C, fr: "Normalmente Léo ___ a las nueve. (acostarse)", es: ["se acuesta"], v: "acostarse", d: "ue", p: 2 },
+      { consigne: T, fr: "Aujourd'hui, il a bu beaucoup d'eau.", es: ["Hoy ha bebido mucha agua."] },
+      { consigne: C, fr: "Hoy Dorian no ___ apetito. (tener, passé composé)", es: ["ha tenido"], v: "tener", p: 2, t: "pc" },
+    ],
+    dire: [
+      { fr: "Le soir, il boit un verre de lait.", es: "Por la noche bebe un vaso de leche." },
+      { fr: "Aujourd'hui, il a mangé un yaourt.", es: "Hoy ha comido un yogur. (ou : Hoy se ha comido un yogur.)" },
+      { fr: "À quelle heure il dîne ? À huit heures.", es: "¿A qué hora cena? A las ocho." },
+    ],
+  },
+  "U11-L6": {
+    ecrire: [
+      { consigne: T, fr: "Combien de fois par jour doit-il prendre le sirop ?", es: ["¿Cuántas veces al día tiene que tomar el jarabe?"] },
+      { consigne: C, fr: "Tiene que tomar el antibiótico ___ cinco días. (pendant)", es: ["durante"], expl: "« Pendant » + une durée : **durante**." },
+      { consigne: T, fr: "La pédiatre m'a donné une ordonnance.", es: ["La pediatra me ha dado una receta."] },
+      { consigne: C, fr: "Tiene que tomar el jarabe ___ ocho horas. (toutes les)", es: ["cada"], expl: "« Toutes les huit heures » : **cada** ocho horas." },
+    ],
+    dire: [
+      { fr: "Quelle est la dose pour un enfant de quatre ans ?", es: "¿Cuál es la dosis para un niño de cuatro años?" },
+      { fr: "Avant ou après manger ?", es: "¿Antes o después de comer?" },
+      { fr: "Il a des allergies ?", es: "¿Tiene alergias?" },
+    ],
+  },
+  // ── Unité 12 : le passé simple (t: "ps"), seulement des verbes réguliers (les irréguliers arrivent en U13). ──
+  "U12-L1": {
+    ecrire: [
+      { consigne: T, fr: "Hier, je me suis entraîné une heure et ensuite j'ai cuisiné pour tout le monde.", es: ["Ayer entrené una hora y luego cociné para todos."] },
+      { consigne: C, fr: "Anoche Blanca ___ tarde. (cenar, passé simple)", es: ["cenó"], v: "cenar", p: 2, t: "ps" },
+      { consigne: T, fr: "La semaine dernière, j'ai beaucoup travaillé.", es: ["La semana pasada trabajé mucho."] },
+      { consigne: C, fr: "El sábado pasado nosotros ___ con los niños. (pasear, passé simple)", es: ["paseamos"], v: "pasear", p: 3, t: "ps" },
+    ],
+    dire: [
+      { fr: "Avant-hier, Blanca a travaillé toute la journée.", es: "Anteayer Blanca trabajó todo el día." },
+      { fr: "Samedi dernier, on a dîné chez mon beau-père.", es: "El sábado pasado cenamos en casa de mi suegro." },
+      { fr: "Hier, je n'ai pas travaillé.", es: "Ayer no trabajé." },
+    ],
+  },
+  "U12-L2": {
+    ecrire: [
+      { consigne: T, fr: "Samedi, les enfants ont couru dans le parc et sont montés sur le toboggan.", es: ["El sábado los niños corrieron por el parque y subieron al tobogán.", "El sábado los niños corrieron en el parque y subieron al tobogán.", "El sábado los niños corrieron por el parque y se subieron al tobogán."] },
+      { consigne: C, fr: "Ayer Léo ___ mucho. (comer, passé simple)", es: ["comió"], v: "comer", p: 2, t: "ps" },
+      { consigne: T, fr: "Hier soir, j'ai écrit à ma sœur.", es: ["Anoche escribí a mi hermana.", "Anoche le escribí a mi hermana."] },
+      { consigne: C, fr: "El sábado pasado Dorian ___ al tobogán diez veces. (subir, passé simple)", es: ["subió"], v: "subir", p: 2, t: "ps" },
+    ],
+    dire: [
+      { fr: "Qu'est-ce que tu as mangé samedi, Dorian ?", es: "¿Qué comiste el sábado, Dorian?" },
+      { fr: "Léo est monté sur la balançoire.", es: "Léo subió al columpio. (ou : Léo se subió al columpio.)" },
+      { fr: "Hier, on a bu beaucoup d'eau.", es: "Ayer bebimos mucha agua." },
+    ],
+  },
+  "U12-L3": {
+    ecrire: [
+      { consigne: T, fr: "Aujourd'hui je suis allé à la salle, mais hier je ne me suis pas entraîné.", es: ["Hoy he ido al gimnasio, pero ayer no entrené."] },
+      { consigne: C, fr: "Ayer ___ en casa todo el día. (trabajar, yo)", es: ["trabajé"], v: "trabajar", p: 0, t: "ps",
+        expl: "*Ayer* : un temps fini, donc le passé simple : **trabajé**." },
+      { consigne: T, fr: "Je suis arrivé à Huesca il y a cinq ans.", es: ["Llegué a Huesca hace cinco años."] },
+      { consigne: C, fr: "Esta mañana ___ un correo a mi jefe. (enviar, yo)", es: ["he enviado"], v: "enviar", p: 0, t: "pc",
+        expl: "*Esta mañana* : un temps pas encore fini (aujourd'hui), donc le passé composé : **he enviado**." },
+    ],
+    dire: [
+      { fr: "Il y a un moment, j'ai mangé un yaourt.", es: "Hace un rato he comido un yogur." },
+      { fr: "Ces derniers temps, j'ai beaucoup travaillé.", es: "Últimamente he trabajado mucho." },
+      { fr: "Pour l'instant, je n'ai pas eu le temps.", es: "De momento no he tenido tiempo." },
+    ],
+  },
+  "U12-L4": {
+    ecrire: [
+      { consigne: T, fr: "Vendredi, je suis rentré tard : on a pris un verre avec des amis, et ensuite on a dansé.", es: ["El viernes llegué tarde: tomamos algo con unos amigos y luego bailamos.", "El viernes llegué tarde: tomamos algo con unos amigos y después bailamos."] },
+      { consigne: C, fr: "Anoche yo ___ la cena. (pagar, passé simple)", es: ["pagué"], v: "pagar", p: 0, t: "ps" },
+      { consigne: T, fr: "J'ai cherché les clés toute la matinée.", es: ["Busqué las llaves toda la mañana."] },
+      { consigne: C, fr: "Ayer yo ___ a trabajar a las ocho. (empezar, passé simple)", es: ["empecé"], v: "empezar", d: "ie", p: 0, t: "ps" },
+    ],
+    dire: [
+      { fr: "Samedi dernier, j'ai joué avec Léo et Dorian.", es: "El sábado pasado jugué con Léo y Dorian." },
+      { fr: "Qui t'a invité ?", es: "¿Quién te invitó?" },
+      { fr: "Après le dîner, on a pris un verre.", es: "Después de cenar tomamos una copa." },
+    ],
+  },
+  "U12-L5": {
+    ecrire: [
+      { consigne: T, fr: "Dimanche, Léo a beaucoup dormi et Dorian a joué au parc.", es: ["El domingo Léo durmió mucho y Dorian jugó en el parque."] },
+      { consigne: C, fr: "En el restaurante, Blanca ___ pescado. (pedir, passé simple)", es: ["pidió"], v: "pedir", d: "i", p: 2, t: "ps" },
+      { consigne: T, fr: "Les enfants ont dormi dix heures.", es: ["Los niños durmieron diez horas."] },
+      { consigne: C, fr: "Ayer Léo ___ solo. (vestirse, passé simple)", es: ["se vistió"], v: "vestirse", d: "i", p: 2, t: "ps" },
+    ],
+    dire: [
+      { fr: "Dimanche, on s'est promenés à la montagne.", es: "El domingo paseamos por la montaña." },
+      { fr: "Tu as joué au padel dimanche ?", es: "¿Jugaste al pádel el domingo?" },
+      { fr: "Les enfants ont joué dans la piscine.", es: "Los niños jugaron en la piscina." },
+    ],
+  },
+  "U12-L6": {
+    ecrire: [
+      { consigne: T, fr: "Comment s'est passé le week-end ? — Très bien, on s'est super bien amusés.", es: ["¿Qué tal el finde? —Muy bien, lo pasamos genial.", "¿Qué tal el fin de semana? —Muy bien, lo pasamos genial."] },
+      { consigne: C, fr: "El sábado yo ___ tarde. (levantarse, passé simple)", es: ["me levanté"], v: "levantarse", p: 0, t: "ps" },
+      { consigne: T, fr: "Dimanche, on s'est couchés tôt.", es: ["El domingo nos acostamos temprano."] },
+      { consigne: C, fr: "Anoche Dorian ___ a las diez. (acostarse, passé simple)", es: ["se acostó"], v: "acostarse", d: "ue", p: 2, t: "ps" },
+    ],
+    dire: [
+      { fr: "Bof, un week-end ennuyeux.", es: "Regular, un finde aburrido." },
+      { fr: "Samedi, on s'est bien amusés au parc.", es: "El sábado lo pasamos bien en el parque." },
+      { fr: "Quel week-end amusant !", es: "¡Qué finde tan divertido!" },
+    ],
+  },
+  // ── Unité 13 : les passés simples irréguliers (t: "ps"), seulement ceux déjà vus dans l'unité. ──
+  "U13-L1": {
+    ecrire: [
+      { consigne: T, fr: "L'été dernier, on est allés à la plage et c'était génial.", es: ["El verano pasado fuimos a la playa y fue genial."] },
+      { consigne: C, fr: "Anoche Blanca y yo ___ al cine. (ir, passé simple)", es: ["fuimos"], v: "ir", p: 3, t: "ps" },
+      { consigne: T, fr: "Comment était l'hôtel ?", es: ["¿Cómo fue el hotel?", "¿Qué tal fue el hotel?"] },
+      { consigne: C, fr: "El viaje ___ muy largo. (ser, passé simple)", es: ["fue"], v: "ser", p: 2, t: "ps" },
+    ],
+    dire: [
+      { fr: "D'abord on est allés au parc, et ensuite à la maison.", es: "Primero fuimos al parque y luego a casa." },
+      { fr: "Tu es allé au cinéma samedi ?", es: "¿Fuiste al cine el sábado?" },
+      { fr: "Le voyage a été génial.", es: "El viaje fue genial." },
+    ],
+  },
+  "U13-L2": {
+    ecrire: [
+      { consigne: T, fr: "On a eu un embouteillage et on est restés deux heures sur la route.", es: ["Tuvimos un atasco y estuvimos dos horas en la carretera."] },
+      { consigne: C, fr: "Ayer yo ___ que trabajar hasta tarde. (tener, passé simple)", es: ["tuve"], v: "tener", p: 0, t: "ps" },
+      { consigne: T, fr: "Le train a eu une heure de retard.", es: ["El tren tuvo una hora de retraso."] },
+      { consigne: C, fr: "El sábado nosotros ___ en casa de mi suegro. (estar, passé simple)", es: ["estuvimos"], v: "estar", p: 3, t: "ps" },
+    ],
+    dire: [
+      { fr: "Hier, j'ai été à la maison toute la journée.", es: "Ayer estuve en casa todo el día." },
+      { fr: "Tu as eu un problème avec la voiture ?", es: "¿Tuviste un problema con el coche?" },
+      { fr: "Blanca conduit et moi, je dors.", es: "Blanca conduce y yo duermo." },
+    ],
+  },
+  "U13-L3": {
+    ecrire: [
+      { consigne: T, fr: "Tout à coup il y a eu une coupure de courant, et alors je n'ai pas pu finir le dîner.", es: ["De repente se fue la luz, y entonces no pude terminar la cena.", "De repente se fue la luz y entonces no pude terminar la cena."] },
+      { consigne: C, fr: "Anoche yo ___ la cena. (hacer, passé simple)", es: ["hice"], v: "hacer", p: 0, t: "ps" },
+      { consigne: T, fr: "Qu'est-ce qui s'est passé hier à l'école ?", es: ["¿Qué pasó ayer en el cole?"] },
+      { consigne: C, fr: "Léo ___ en el patio. (caerse, passé simple)", es: ["se cayó"], v: "caerse", p: 2, t: "ps" },
+    ],
+    dire: [
+      { fr: "Dorian a mis la table.", es: "Dorian puso la mesa." },
+      { fr: "Je n'ai pas pu dormir.", es: "No pude dormir." },
+      { fr: "Quelle frayeur !", es: "¡Qué susto!" },
+    ],
+  },
+  "U13-L4": {
+    ecrire: [
+      { consigne: T, fr: "Le père de Blanca est venu manger et il m'a dit que mon espagnol était meilleur.", es: ["El padre de Blanca vino a comer y me dijo que mi español estaba mejor.", "El padre de Blanca vino a comer y me dijo que mi español está mejor."] },
+      { consigne: C, fr: "Léo no ___ comer. (querer, passé simple)", es: ["quiso"], v: "querer", d: "ie", p: 2, t: "ps",
+        expl: "*Querer* au passé simple : **quiso**. *No quiso* = il a refusé. *Querer* : quise, quisiste, quiso, quisimos, quisisteis, quisieron." },
+      { consigne: T, fr: "La maîtresse m'a demandé des nouvelles de Léo.", es: ["La tutora me preguntó por Léo."] },
+      { consigne: C, fr: "Los vecinos ___ a cenar. (venir, passé simple)", es: ["vinieron"], v: "venir", p: 5, t: "ps" },
+    ],
+    dire: [
+      { fr: "Tu m'as dit la vérité ?", es: "¿Me dijiste la verdad?" },
+      { fr: "C'est un mensonge !", es: "¡Es mentira!" },
+      { fr: "Quelle belle surprise !", es: "¡Qué sorpresa tan bonita!" },
+    ],
+  },
+  "U13-L5": {
+    ecrire: [
+      { consigne: T, fr: "Heureusement, à la fin, le voisin m'a rendu les clés et je l'ai remercié.", es: ["Por suerte, al final el vecino me devolvió las llaves y le di las gracias."] },
+      { consigne: C, fr: "Ayer le ___ un libro a Dorian. (dar, passé simple, yo)", es: ["di"], v: "dar", p: 0, t: "ps" },
+      { consigne: T, fr: "J'ai eu un embouteillage ; c'est pour ça que je suis arrivé en retard.", es: ["Tuve un atasco; por eso llegué tarde.", "Tuve un atasco, por eso llegué tarde."] },
+      { consigne: C, fr: "___, fuimos al parque; luego, a casa. (d'abord)", es: ["Primero"], expl: "Pour raconter dans l'ordre : **primero** → luego → después → al final." },
+    ],
+    dire: [
+      { fr: "Finalement, tout s'est bien passé.", es: "Al final todo salió bien." },
+      { fr: "J'ai réessayé et ça a marché.", es: "Lo intenté de nuevo y funcionó." },
+      { fr: "Heureusement, il ne s'est rien passé.", es: "Por suerte, no pasó nada." },
+    ],
+  },
+  "U13-L6": {
+    ecrire: [
+      { consigne: T, fr: "Que c'est drôle ! D'abord Dorian s'est caché au supermarché, et à la fin on l'a retrouvé avec la voisine.", es: ["¡Qué gracioso! Primero Dorian se escondió en el súper, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el supermercado, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el súper y al final lo encontramos con la vecina."] },
+      { consigne: C, fr: "Dorian ___ detrás de la puerta. (esconderse, passé simple)", es: ["se escondió"], v: "esconderse", p: 2, t: "ps" },
+      { consigne: T, fr: "On a beaucoup ri avec les enfants.", es: ["Nos reímos mucho con los niños."] },
+      { consigne: C, fr: "El sábado nosotros ___ a la playa. (ir, passé simple)", es: ["fuimos"], v: "ir", p: 3, t: "ps" },
+    ],
+    dire: [
+      { fr: "Je te raconte une anecdote de l'école.", es: "Te cuento una anécdota del cole." },
+      { fr: "Dorian nous a raconté une histoire très longue.", es: "Dorian nos contó una historia muy larga." },
+      { fr: "L'histoire a été très drôle.", es: "La historia fue muy graciosa." },
+    ],
+  },
+  // ── Unité 14 : l'imparfait (t: "imp"). Les vrais souvenirs de Kevin (Hyères, foot, console, Dragon Ball, grands-mères, le bras à 12 ans). ──
+  "U14-L1": {
+    ecrire: [
+      { consigne: T, fr: "Petit, je jouais toujours au foot.", es: ["De pequeño siempre jugaba al fútbol.", "Cuando era pequeño, siempre jugaba al fútbol.", "De pequeño jugaba siempre al fútbol."] },
+      { consigne: C, fr: "De pequeño, yo ___ a la consola con mis amigos. (jugar, imparfait)", es: ["jugaba"], v: "jugar", p: 0, t: "imp" },
+      { consigne: T, fr: "Tu te souviens de ton enfance ?", es: ["¿Te acuerdas de tu infancia?"] },
+      { consigne: C, fr: "De joven, ___ en París. (trabajar, imparfait, yo)", es: ["trabajaba"], v: "trabajar", p: 0, t: "imp" },
+    ],
+    dire: [
+      { fr: "Quel est ton meilleur souvenir d'enfance ?", es: "¿Cuál es tu mejor recuerdo de pequeño?" },
+      { fr: "Petit, je jouais toujours à la console.", es: "De pequeño siempre jugaba a la consola." },
+      { fr: "Tu jouais dans la rue ?", es: "¿Jugabas en la calle?" },
+    ],
+  },
+  "U14-L2": {
+    ecrire: [
+      { consigne: T, fr: "J'habitais à Hyères et je mangeais à la maison.", es: ["Vivía en Hyères y comía en casa."] },
+      { consigne: C, fr: "Mis abuelas ___ con nosotros. (vivir, imparfait)", es: ["vivían"], v: "vivir", p: 5, t: "imp" },
+      { consigne: T, fr: "Comment s'appelait ta maîtresse ?", es: ["¿Cómo se llamaba tu maestra?"] },
+      { consigne: C, fr: "De pequeño, yo ___ en casa a mediodía. (comer, imparfait)", es: ["comía"], v: "comer", p: 0, t: "imp" },
+    ],
+    dire: [
+      { fr: "Tu mangeais à l'école ou à la maison ?", es: "¿Comías en la escuela o en casa?" },
+      { fr: "Mes grands-mères vivaient avec nous.", es: "Mis abuelas vivían con nosotros." },
+      { fr: "Tu avais des images à collectionner ?", es: "¿Tenías cromos?" },
+    ],
+  },
+  "U14-L3": {
+    ecrire: [
+      { consigne: T, fr: "Quand j'étais petit, j'étais très timide.", es: ["Cuando era pequeño, era muy tímido.", "Cuando era pequeño era muy tímido.", "De pequeño era muy tímido."] },
+      { consigne: C, fr: "De pequeño, yo ___ Dragon Ball. (ver, imparfait)", es: ["veía"], v: "ver", p: 0, t: "imp" },
+      { consigne: T, fr: "Tu portais des lunettes ?", es: ["¿Llevabas gafas?"] },
+      { consigne: C, fr: "De pequeño ___ a jugar al fútbol con mis amigos. (ir, imparfait, yo)", es: ["iba"], v: "ir", p: 0, t: "imp" },
+    ],
+    dire: [
+      { fr: "Tu étais un enfant turbulent ?", es: "¿Eras un niño travieso?" },
+      { fr: "Comment tu étais, petite ? (à Blanca)", es: "¿Cómo eras de pequeña?" },
+      { fr: "Je regardais Dragon Ball tous les jours.", es: "Veía Dragon Ball todos los días." },
+    ],
+  },
+  "U14-L4": {
+    ecrire: [
+      { consigne: T, fr: "À Hyères, il faisait toujours beau.", es: ["En Hyères siempre hacía buen tiempo.", "En Hyères hacía siempre buen tiempo."] },
+      { consigne: C, fr: "En la escuela ___ un patio muy grande. (il y avait)", es: ["había"], expl: "« Il y avait » : **había** (l'imparfait de *hay*), pour décrire le décor." },
+      { consigne: T, fr: "La maison était près de la plage ?", es: ["¿La casa estaba cerca de la playa?"] },
+      { consigne: C, fr: "Ese día ___ frío. (hacer, imparfait)", es: ["hacía"], v: "hacer", p: 2, t: "imp", expl: "Le temps qu'il faisait, c'est le décor : l'imparfait, **hacía** frío." },
+    ],
+    dire: [
+      { fr: "Il y avait un chien dans ta maison ?", es: "¿Había un perro en tu casa?" },
+      { fr: "Il y avait un grand arbre dans le jardin ?", es: "¿Había un árbol grande en el jardín?" },
+      { fr: "Il faisait chaud et on était à la campagne.", es: "Hacía calor y estábamos en el campo." },
+    ],
+  },
+  "U14-L5": {
+    ecrire: [
+      { consigne: T, fr: "Pendant que je jouais dans la rue, je suis tombé.", es: ["Mientras jugaba en la calle, me caí.", "Mientras jugaba en la calle me caí."] },
+      { consigne: C, fr: "Cuando tenía doce años, me ___ daño en el brazo. (hacerse, passé simple)", es: ["hice"], sens: "el brazo = le bras",
+        expl: "L'action qui arrive (une fois) : le passé simple, me **hice** daño. Le décor (*tenía doce años*) : l'imparfait." },
+      { consigne: T, fr: "Il faisait beau et nous jouions dans le jardin.", es: ["Hacía buen tiempo y jugábamos en el jardín."] },
+      { consigne: C, fr: "Mientras Léo ___, Dorian vio la tele. (dormir, imparfait)", es: ["dormía"], v: "dormir", d: "ue", p: 2, t: "imp",
+        expl: "*Mientras* + l'imparfait : ce qui durait, **dormía**." },
+    ],
+    dire: [
+      { fr: "Comment c'est arrivé ?", es: "¿Cómo ocurrió?" },
+      { fr: "Tu es allé à l'hôpital ?", es: "¿Fuiste al hospital?" },
+      { fr: "J'avais douze ans et je me suis fait mal au bras.", es: "Tenía doce años y me hice daño en el brazo." },
+    ],
+  },
+  "U14-L6": {
+    ecrire: [
+      { consigne: T, fr: "Avant je vivais en France ; maintenant je vis à Huesca et je m'y suis déjà habitué.", es: ["Antes vivía en Francia; ahora vivo en Huesca y ya me he acostumbrado.", "Antes vivía en Francia, ahora vivo en Huesca y ya me he acostumbrado."] },
+      { consigne: C, fr: "___ ir al gimnasio. (j'ai l'habitude de)", es: ["Suelo"], expl: "« J'ai l'habitude de » : **suelo** + infinitif (*soler* : o → ue, comme *poder*)." },
+      { consigne: T, fr: "Ma famille me manque.", es: ["Echo de menos a mi familia."] },
+      { consigne: C, fr: "Antes ___ en París; ahora vivo en Huesca. (vivir, imparfait, yo)", es: ["vivía"], v: "vivir", p: 0, t: "imp" },
+    ],
+    dire: [
+      { fr: "Ici, tout est moins cher.", es: "Aquí todo es más barato." },
+      { fr: "À Huesca, c'est facile de sortir prendre un verre.", es: "En Huesca es fácil salir a tomar algo." },
+      { fr: "Avant je ne parlais pas espagnol ; maintenant je le parle un peu.", es: "Antes no hablaba español; ahora lo hablo un poco." },
     ],
   },
 };

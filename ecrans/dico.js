@@ -3,14 +3,14 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=38";
-import { lecon as trouver } from "../position.js?v=38";
-import { PERSONNES, formesSurlignees, conjuguer } from "../controles.js?v=38";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=38";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=38";
-import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=38";
-import { verbeEnCours } from "../progression.js?v=38";
-import { tropEnCours } from "./verbes.js?v=38";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=39";
+import { lecon as trouver } from "../position.js?v=39";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=39";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=39";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=39";
+import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=39";
+import { verbeEnCours } from "../progression.js?v=39";
+import { tropEnCours } from "./verbes.js?v=39";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -225,7 +225,7 @@ function regleCourte(ctx, idLecon) {
 const A_QUI = [["à moi", "me"], ["à toi", "te"], ["à lui, à elle", "le"], ["à nous", "nos"], ["à vous", "os"], ["à eux, à elles", "les"]];
 const surligne = f => esc(f).replace(/\*\*(.+?)\*\*/g, `<span class="term">$1</span>`);
 
-// Tous les temps, sur WordReference (Q86) : l'appli ne connaît que le présent.
+// Tous les temps, sur WordReference (Q86) : l'appli connaît le présent et les 3 passés.
 const lienWR = vb => `<a class="lk wr" href="https://www.wordreference.com/conj/esverbs.aspx?v=${encodeURIComponent(vb.inf)}" target="_blank" rel="noopener">Toutes les conjugaisons (WordReference)${ICONES.sortie}</a>`;
 
 // Le bas de la fiche d'un verbe qu'on peut travailler (formes connues, pas comme gustar).
@@ -251,13 +251,34 @@ function blocVerbe(ctx, vb) {
         <p class="regle">L'appli ne connaît pas encore ses formes : tu les verras avec le prof.</p>${lienWR(vb)}</div>`;
   }
   const quoi = vb.famille === "irr" ? "Verbe irrégulier" : `Verbe en -${vb.g} · ${etiquette(vb) || "régulier"}`;
-  // Comme gustar : la même forme du verbe, avec le petit mot qui dit à qui (me gusta, te gusta…).
-  const formes = vb.gustar ? A_QUI.map(([, pr]) => `**${pr}** ${conjuguer(vb.v, 2, vb.d)}`) : formesSurlignees(vb.v, vb.d);
-  const personnes = vb.gustar ? A_QUI.map(([a]) => a) : PERSONNES;
+  const vu = t => t === "present" || ctx.pos.faites.has(TEMPS[t].lecon);
+  const onglets = ORDRE_TEMPS.map(t => `<button type="button" role="tab" data-temps="${t}" aria-selected="${t === "present"}">${
+    esc(TEMPS[t].nom.replace(/^./, c => c.toUpperCase()))}${vu(t) ? "" : `<small>pas vu · ${TEMPS[t].lecon.split("-")[0]}</small>`}</button>`).join("");
   return `<div class="bloc"><h3>${esc(quoi)}</h3>
-      <dl class="formes">${personnes.map((p, i) => `<dt>${p}</dt><dd lang="es">${surligne(formes[i])}</dd>`).join("")}</dl>
-      ${vb.regles.map(r => `<p class="regle">${md(r.texte)}</p>${lienLecon(ctx, r.lecon, "La règle : ")}`).join("")}
+      <div class="temps" role="tablist" aria-label="Les temps">${onglets}</div>
+      ${ORDRE_TEMPS.map(t => panneauTemps(ctx, vb, t, vu(t))).join("")}
       ${lienWR(vb)}
+    </div>`;
+}
+
+// Les onglets par temps (Q85, revu par Kevin le 23 nov.) : tous s'ouvrent, même les temps pas encore vus,
+// qui disent « pas vu · U12 » sur l'onglet et, dedans, « Pas encore vu : … arrive en U12-L1 ». La fiche s'ouvre sur le présent.
+const QUAND = {
+  pc: "pour aujourd'hui, ce matin, cette semaine : un temps pas encore fini",
+  ps: "pour hier, samedi dernier, l'an dernier : un moment fini",
+  imp: "pour décrire et pour les habitudes : ce que je faisais, comment c'était",
+};
+function panneauTemps(ctx, vb, t, vu) {
+  // Comme gustar : la même forme du verbe, avec le petit mot qui dit à qui (me gusta, te gusta… ; me ha gustado…).
+  const formes = vb.gustar ? A_QUI.map(([, pr]) => `**${pr}** ${conjuguer(vb.v, 2, vb.d, t)}`) : formesSurlignees(vb.v, vb.d, t);
+  const personnes = vb.gustar ? A_QUI.map(([a]) => a) : PERSONNES;
+  const regles = t === "present" || vb.gustar ? (t === "present" ? vb.regles : [REGLES.gustar]) : reglesDetaillees(vb.v, vb.d, t);
+  const T = TEMPS[t], l = trouver(T.lecon);
+  const tete = t === "present" ? "" : `${vu ? "" : `<p class="pas-vu">Pas encore vu : ${t === "imp" ? "l'" : "le "}${esc(T.nom)} arrive en ${id(T.lecon)}${l ? ` · ${esc(l.titre)}` : ""}. Tu peux regarder, le prof l'expliquera.</p>`}
+      <p class="nom-temps">${esc(QUAND[t].replace(/^./, c => c.toUpperCase()))} · <i lang="es">${esc(T.livre)}</i></p>`;
+  return `<div role="tabpanel" data-panneau="${t}"${t === "present" ? "" : " hidden"}>${tete}
+      <dl class="formes">${personnes.map((p, i) => `<dt>${p}</dt><dd lang="es">${surligne(formes[i])}</dd>`).join("")}</dl>
+      ${regles.map(r => `<p class="regle">${md(r.texte)}</p>${r.lecon ? lienLecon(ctx, r.lecon, "La règle : ") : ""}`).join("")}
     </div>`;
 }
 

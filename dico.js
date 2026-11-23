@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=38";
-import { mesMots, apprisEnAvance } from "./progression.js?v=38";
-import { LECONS } from "./position.js?v=38";
+import { irregulierConnu } from "./controles.js?v=39";
+import { mesMots, apprisEnAvance } from "./progression.js?v=39";
+import { LECONS } from "./position.js?v=39";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -119,6 +119,8 @@ export const REGLES = {
 const LECON_IRREGULIER = {
   ser: "U1-L2", estar: "U1-L4", tener: "U2-L1", ir: "U3-L6",
   hacer: "U7-L4", poner: "U7-L4", traer: "U7-L4", dar: "U7-L4", salir: "U7-L5", decir: "U7-L5", venir: "U7-L5", jugar: "U8-L5",
+  // Ajoutés le 23 nov. (unités 9 à 15) : la leçon où arrive la carte du verbe.
+  saber: "U1-L5", enviar: "U9-L2", ver: "U9-L3", recoger: "U10-L1", crecer: "U10-L6", conducir: "U13-L2", caer: "U13-L3", conocer: "U6-L5",
 };
 
 // Ce qui est irrégulier, dit précisément (vérifié forme par forme avec IRREGULIERS, controles.js).
@@ -133,6 +135,14 @@ const CE_QUI_CHANGE = {
   venir: "*Yo* est irrégulier : **vengo**. Ensuite, le e devient ie (*vienes*…), sauf avec nosotros et vosotros.",
   decir: "*Yo* est irrégulier : **digo**. Ensuite, le e devient i (*dices*…), sauf avec nosotros et vosotros.",
   jugar: "Le u devient ue (*juego*…), sauf avec nosotros et vosotros. C'est le seul verbe qui fait ça.",
+  ver: "Seul *yo* est irrégulier : **veo**. Attention : *vosotros veis*, sans accent.",
+  enviar: "Le i prend un accent (*envío, envías*…), sauf avec nosotros et vosotros. Le reste suit la règle des -ar.",
+  recoger: "Seul *yo* change : **recojo** (le g devient j pour garder le son). Le reste suit la règle des -er.",
+  crecer: "Seul *yo* est irrégulier : **crezco**. Le reste suit la règle des -er.",
+  conducir: "Seul *yo* est irrégulier : **conduzco**. Le reste suit la règle des -ir.",
+  caer: "Seul *yo* est irrégulier : **caigo**. Le reste suit la règle des -er.",
+  conocer: "Seul *yo* est irrégulier : **conozco**. Le reste suit la règle des -er.",
+  saber: "Seul *yo* est irrégulier : **sé**. Le reste suit la règle des -er.",
 };
 
 // Ce que l'appli sait d'un verbe du Sheet. « tener … años » → tener ; « comer (= déjeuner) » → comer ;

@@ -3,11 +3,11 @@
 // Pensé pour servir aussi plus tard à la « Course de conjugaison » des jeux (mêmes questions, chronométrées).
 // Seulement le présent pour l'instant : chaque question porte « temps: "present" », pour pouvoir ajouter les autres temps.
 
-import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=38";
-import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=38";
-import { verbesEnCours } from "./progression.js?v=38";
-import { EXERCICES } from "./exercices.js?v=38";
-import { BONUS } from "./bonus.js?v=38";
+import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=39";
+import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=39";
+import { verbesEnCours } from "./progression.js?v=39";
+import { EXERCICES } from "./exercices.js?v=39";
+import { BONUS } from "./bonus.js?v=39";
 
 // ── Les verbes ──
 // Un verbe qu'on peut travailler : l'appli connaît ses 6 formes, et il ne se construit pas comme gustar.
@@ -62,7 +62,8 @@ function phrasesExercices(ctx, x) {
     ...Object.entries(BONUS).flatMap(([l, b]) => (b.phrases || []).map(q => ({ l, q }))),
   ];
   // Pas l'impératif (U8-L1, « ¡___, Léo! ») : il a la forme de él, mais ce n'est pas le présent.
-  return sources.filter(({ l, q }) => ctx.pos.faites.has(l) && !IMPERATIF.has(l) && q.v === x.v && Number.isInteger(q.p)
+  // Pas les phrases au passé (champ t, unités 9 et plus) : l'entraînement ne fait que le présent pour l'instant.
+  return sources.filter(({ l, q }) => ctx.pos.faites.has(l) && !IMPERATIF.has(l) && q.v === x.v && Number.isInteger(q.p) && !q.t
       && q.fr.includes("___") && !/¡\s*___/.test(q.fr))
     .map(({ l, q }) => {
       const texte = q.fr.replace(/\s*\([^)]*\)\s*$/, "");

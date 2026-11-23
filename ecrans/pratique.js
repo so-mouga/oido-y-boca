@@ -7,20 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=38";
-import { lecon as trouver } from "../position.js?v=38";
-import { EXERCICES } from "../exercices.js?v=38";
-import { corriger } from "../corriger.js?v=38";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=38";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe } from "../controles.js?v=38";
-import { BONUS } from "../bonus.js?v=38";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=38";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=38";
-import { vibrer, son } from "../retours.js?v=38";
+import { esc, md, id, ICONES } from "../ui.js?v=39";
+import { lecon as trouver } from "../position.js?v=39";
+import { EXERCICES } from "../exercices.js?v=39";
+import { corriger } from "../corriger.js?v=39";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=39";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=39";
+import { BONUS } from "../bonus.js?v=39";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=39";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=39";
+import { vibrer, son } from "../retours.js?v=39";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=38";
+} from "../enregistrement.js?v=39";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -82,19 +82,23 @@ function tirer(liste, n, cle) {
   return r;
 }
 
+// t (le temps : "pc", "ps", "imp" ; absent = présent) se donne pour toute la réserve, ou phrase par phrase.
 function serieBonus(idLecon) {
   const b = BONUS[idLecon];
   const commun = { bonus: true, lecon: idLecon, nom: b.nom };
   const phrases = tirer(b.phrases, b.tableaux ? 5 : 6, idLecon).map(ph => ({
-    type: "ecrire", ...commun, consigne: b.consigne || "Complète", ...ph,
-    es: ph.es || [conjuguer(ph.v, ph.p, ph.d)],
+    type: "ecrire", ...commun, consigne: b.consigne || "Complète", t: b.t, ...ph,
+    es: ph.es || [conjuguer(ph.v, ph.p, ph.d, ph.t || b.t)],
     sens: [ph.sens && `${ph.v} = ${ph.sens}`, ph.mot].filter(Boolean).join(" · "),
     expl: ph.expl || (ph.v ? undefined : b.regle),
   }));
-  const tableau = b.tableaux ? tirer(b.tableaux, 1, `${idLecon}:tableau`).map(t => ({
-    type: "tableau", ...commun, consigne: "Conjugue tout le verbe", v: t.v, d: t.d,
-    sens: t.sens ? `${t.v} = ${t.sens}` : "", es: sixFormes(t.v, t.d),
-  })) : [];
+  const tableau = b.tableaux ? tirer(b.tableaux, 1, `${idLecon}:tableau`).map(x => {
+    const t = x.t || b.t;
+    return {
+      type: "tableau", ...commun, consigne: `Conjugue tout le verbe${t && t !== "present" ? ` ${t === "imp" ? "à l'" : "au "}${TEMPS[t].nom}` : ""}`,
+      v: x.v, d: x.d, t, sens: x.sens ? `${x.v} = ${x.sens}` : "", es: sixFormes(x.v, x.d, t),
+    };
+  }) : [];
   return { titre: `Entraînement · ${b.nom}`, bonus: idLecon, items: [...phrases, ...tableau] };
 }
 
@@ -199,7 +203,7 @@ function vueEcrire(it, enTete) {
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
       ${it.controle || it.bonus || !ok ? explication(it) : ""}
-      ${it.v && !it.controle ? lesSixFormes(it.v, it.d, it.p) : ""}
+      ${it.v && !it.controle ? lesSixFormes(it.v, it.d, it.p, it.t) : ""}
       ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}/exercice">Revoir la leçon</a>` : ""}
     </div>
     <div class="espace"></div>
@@ -211,17 +215,18 @@ function vueEcrire(it, enTete) {
 // ou, dans les leçons, la règle de la leçon quand elle concerne la phrase.
 function explication(it) {
   if (it.expl) return `<p class="explication">${md(it.expl)}</p>`;
-  if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p, it.d))}</p>`;
+  if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p, it.d, it.t))}</p>`;
   if (it.exemple) return `<p class="explication">Exemple : <span lang="es">${esc(it.exemple)}</span></p>`;
   if (!it.controle && regleConcerne(it)) return `<p class="explication">${md(regleDe(it))}</p>`;
   return "";
 }
 
 // « Les 6 formes » : fermé par défaut, la forme de la phrase surlignée ; terminaisons et voyelle comme dans le Dico.
+// Au passé, le temps est dit dans le titre (« Les 6 formes · passé composé »).
 const surligne = f => esc(f).replace(/\*\*(.+?)\*\*/g, `<span class="term">$1</span>`);
-function lesSixFormes(v, d, p) {
-  const f = formesSurlignees(v, d);
-  return `<details class="six-formes"><summary>Les 6 formes</summary><dl>${PERSONNES.map((per, i) =>
+function lesSixFormes(v, d, p, t) {
+  const f = formesSurlignees(v, d, t);
+  return `<details class="six-formes"><summary>Les 6 formes${t && t !== "present" ? ` · ${TEMPS[t].nom}` : ""}</summary><dl>${PERSONNES.map((per, i) =>
     `<dt>${per}</dt><dd lang="es"${i === p ? ' class="ici"' : ""}>${surligne(f[i])}</dd>`).join("")}</dl></details>`;
 }
 
@@ -249,7 +254,7 @@ function vueTableau(it, enTete) {
     <div class="verdict ${n === 6 ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
       <b>${titre}</b>
       <dl class="formes-tableau">${lignes}</dl>
-      ${n < 6 ? `<p class="explication">${md(regleVerbe(it.v, it.d))}</p>` : ""}
+      ${n < 6 ? `<p class="explication">${md(regleVerbe(it.v, it.d, it.t))}</p>` : ""}
     </div>
     <div class="espace"></div>
     <button class="primaire" data-p="suivant">Suivant</button>`;
@@ -354,11 +359,11 @@ function aRetenir(r) {
   for (const { it, ok, lignes } of r) {
     if (ok) continue;
     if (it.v) {
-      const cle = `${it.v}|${it.d || ""}`;
+      const cle = `${it.v}|${it.d || ""}|${it.t || ""}`;
       const v = verbes.get(cle) || verbes.set(cle, { v: it.v, formes: new Map() }).get(cle);
       const ratees = it.type === "tableau" ? lignes.map((l, p) => l.ok ? null : [p, l.attendu]).filter(Boolean) : [[it.p, it.es[0]]];
       for (const [p, f] of ratees) v.formes.set(p, f);
-      regles.add(reglesVerbe(it.v, it.d)[0]);
+      regles.add(reglesVerbe(it.v, it.d, it.t)[0]);
     } else {
       const ligne = `<span lang="es">${phraseJuste(it)}</span>${it.fr.includes("___") ? "" : ` <small>(${esc(it.fr)})</small>`}`;
       if (!phrases.includes(ligne)) phrases.push(ligne);

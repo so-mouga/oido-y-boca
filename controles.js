@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=38";
+import { md } from "./ui.js?v=39";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -31,12 +31,88 @@ const IRREGULIERS = {
   decir: ["digo", "dices", "dice", "decimos", "decís", "dicen"],
   venir: ["vengo", "vienes", "viene", "venimos", "venís", "vienen"],
   jugar: ["juego", "juegas", "juega", "jugamos", "jugáis", "juegan"],
+  // Ajoutés pour les unités 9 à 15 (23 nov.), vérifiés dans outils/test-temps.mjs et contre-vérifiés avec verbecc.
+  ver: ["veo", "ves", "ve", "vemos", "veis", "ven"],
+  enviar: ["envío", "envías", "envía", "enviamos", "enviáis", "envían"],
+  recoger: ["recojo", "recoges", "recoge", "recogemos", "recogéis", "recogen"],
+  crecer: ["crezco", "creces", "crece", "crecemos", "crecéis", "crecen"],
+  conducir: ["conduzco", "conduces", "conduce", "conducimos", "conducís", "conducen"],
+  caer: ["caigo", "caes", "cae", "caemos", "caéis", "caen"],
+  conocer: ["conozco", "conoces", "conoce", "conocemos", "conocéis", "conocen"],
+  saber: ["sé", "sabes", "sabe", "sabemos", "sabéis", "saben"],
 };
+
+// ── Les temps du passé (unités 9 à 15) ──
+// t : absent ou "present", "pc" (passé composé), "ps" (passé simple), "imp" (imparfait).
+// lecon : la leçon où le livre l'explique. Un temps est « vu » quand cette leçon est faite.
+export const TEMPS = {
+  present: { nom: "présent", lecon: "U1-L1" },
+  pc: { nom: "passé composé", livre: "pretérito perfecto", lecon: "U9-L1", ex: ["he hecho", "j'ai fait"] },
+  ps: { nom: "passé simple", livre: "pretérito indefinido", lecon: "U12-L1", ex: ["hice", "j'ai fait (hier)"] },
+  imp: { nom: "imparfait", livre: "imperfecto", lecon: "U14-L1", ex: ["hacía", "je faisais"] },
+};
+export const ORDRE_TEMPS = ["present", "pc", "ps", "imp"];
+const temps = t => (t && t !== "present" ? t : "present");
+
+// Le passé composé : haber au présent + le participe. Les participes irréguliers, avec la leçon qui les explique.
+const HABER = ["he", "has", "ha", "hemos", "habéis", "han"];
+const PARTICIPES = {
+  hacer: "hecho", decir: "dicho", ver: "visto", poner: "puesto", escribir: "escrito", // U9-L3
+  volver: "vuelto", romper: "roto", abrir: "abierto", morir: "muerto", // U9-L4
+  devolver: "devuelto", suponer: "supuesto", descubrir: "descubierto", resolver: "resuelto",
+};
+const LECON_PARTICIPE = { hacer: "U9-L3", decir: "U9-L3", ver: "U9-L3", poner: "U9-L3", escribir: "U9-L3",
+  volver: "U9-L4", romper: "U9-L4", abrir: "U9-L4", morir: "U9-L4", devolver: "U9-L4" };
+
+// L'imparfait : presque tout est régulier, sauf ser, ir, ver (U14-L3).
+const IMP = {
+  ar: ["aba", "abas", "aba", "ábamos", "abais", "aban"],
+  er: ["ía", "ías", "ía", "íamos", "íais", "ían"],
+  ir: ["ía", "ías", "ía", "íamos", "íais", "ían"],
+};
+const IRR_IMP = {
+  ser: ["era", "eras", "era", "éramos", "erais", "eran"],
+  ir: ["iba", "ibas", "iba", "íbamos", "ibais", "iban"],
+  ver: ["veía", "veías", "veía", "veíamos", "veíais", "veían"],
+};
+
+// Le passé simple (indefinido). Les irréguliers, en entier, avec la leçon qui les explique (unité 13).
+const PS = {
+  ar: ["é", "aste", "ó", "amos", "asteis", "aron"],
+  er: ["í", "iste", "ió", "imos", "isteis", "ieron"],
+  ir: ["í", "iste", "ió", "imos", "isteis", "ieron"],
+};
+const IRR_PS = {
+  ser: ["fui", "fuiste", "fue", "fuimos", "fuisteis", "fueron"],
+  ir: ["fui", "fuiste", "fue", "fuimos", "fuisteis", "fueron"],
+  tener: ["tuve", "tuviste", "tuvo", "tuvimos", "tuvisteis", "tuvieron"],
+  estar: ["estuve", "estuviste", "estuvo", "estuvimos", "estuvisteis", "estuvieron"],
+  hacer: ["hice", "hiciste", "hizo", "hicimos", "hicisteis", "hicieron"],
+  poder: ["pude", "pudiste", "pudo", "pudimos", "pudisteis", "pudieron"],
+  poner: ["puse", "pusiste", "puso", "pusimos", "pusisteis", "pusieron"],
+  venir: ["vine", "viniste", "vino", "vinimos", "vinisteis", "vinieron"],
+  decir: ["dije", "dijiste", "dijo", "dijimos", "dijisteis", "dijeron"],
+  querer: ["quise", "quisiste", "quiso", "quisimos", "quisisteis", "quisieron"],
+  dar: ["di", "diste", "dio", "dimos", "disteis", "dieron"],
+  ver: ["vi", "viste", "vio", "vimos", "visteis", "vieron"],
+  traer: ["traje", "trajiste", "trajo", "trajimos", "trajisteis", "trajeron"],
+  saber: ["supe", "supiste", "supo", "supimos", "supisteis", "supieron"],
+  conducir: ["conduje", "condujiste", "condujo", "condujimos", "condujisteis", "condujeron"],
+};
+const LECON_IRR_PS = { ser: "U13-L1", ir: "U13-L1", tener: "U13-L2", estar: "U13-L2", hacer: "U13-L3", poder: "U13-L3",
+  poner: "U13-L3", venir: "U13-L4", decir: "U13-L4", querer: "U13-L4", dar: "U13-L5" };
+
+// Les formes irrégulières d'un temps (un tableau de 6), ou rien.
+const irregulieres = (inf, t) => ({ present: IRREGULIERS, ps: IRR_PS, imp: IRR_IMP })[t]?.[inf];
+
 // Les verbes qui changent de voyelle (d : "ue", "ie" ou "i") : la dernière voyelle du radical change,
 // sauf avec nosotros et vosotros (contar → cuento… contamos ; vestirse → me visto).
+// Au passé simple, seuls les verbes en -ir changent, et seulement avec él et ellos : o → u, e → i (durmió, pidió, sintió).
 // ⚠ Un verbe irrégulier qui n'est pas dans IRREGULIERS ne doit pas avoir de champ v : il serait calculé comme régulier.
 const AVANT = { ue: "o", ie: "e", i: "e" };
+const APRES_PS = { ue: "u", ie: "i", i: "i" };
 const change = (d, p) => d && p !== 3 && p !== 4;
+const changePs = (g, d, p) => d && g === "ir" && (p === 2 || p === 5);
 
 const decouper = v => {
   const se = v.endsWith("se") && v !== "se";
@@ -54,55 +130,152 @@ function radical(r, d, p, gras = false) {
   return r.slice(0, i) + (gras ? `**${d}**` : d) + r.slice(i + 1);
 }
 
-// La forme conjuguée au présent : conjuguer("contar", 0, "ue") → "cuento" ; conjuguer("lavarse", 3) → "nos lavamos".
-export function conjuguer(v, p, d) {
+// Passé simple régulier : { r, term } (le radical peut changer, la terminaison aussi).
+// Avec yo, -car → -qué, -gar → -gué, -zar → -cé (pour garder le son) ; -ir qui change de voyelle : pidió, durmió ;
+// radical en voyelle (leer, creer, caer) : le i entre deux voyelles devient y (leyó, leyeron) et prend un accent ailleurs (leíste).
+function morceauxPs(g, r, d, p, gras = false) {
+  let rad = r, term = PS[g][p], note = "";
+  if (g === "ar" && p === 0) {
+    const fin = r.slice(-1), neuf = { c: "qu", g: "gu", z: "c" }[fin];
+    if (neuf) { rad = r.slice(0, -1) + neuf; note = "orthographe"; }
+  }
+  if (changePs(g, d, p)) {
+    const i = r.lastIndexOf(AVANT[d]);
+    rad = r.slice(0, i) + (gras ? `**${APRES_PS[d]}**` : APRES_PS[d]) + r.slice(i + 1);
+    note = "voyelle";
+  }
+  if (g !== "ar" && /[aeo]$/.test(r)) {
+    term = ["í", "íste", "yó", "ímos", "ísteis", "yeron"][p];
+    note = note || "voyelle-y";
+  }
+  return { rad, term, note };
+}
+
+// Le participe : { f, irr } (« trabajado », « leído », « hecho »).
+function participe(inf, g, r) {
+  if (PARTICIPES[inf]) return { f: PARTICIPES[inf], irr: true };
+  const term = g === "ar" ? "ado" : /[aeo]$/.test(r) ? "ído" : "ido";
+  return { f: r + term, r, term, irr: false };
+}
+
+// La forme conjuguée : conjuguer("contar", 0, "ue") → "cuento" ; conjuguer("lavarse", 3) → "nos lavamos" ;
+// conjuguer("hacer", 0, undefined, "pc") → "he hecho" ; conjuguer("pedir", 2, "i", "ps") → "pidió".
+export function conjuguer(v, p, d, t) {
+  t = temps(t);
   const { se, inf, g, r } = decouper(v);
-  const f = IRREGULIERS[inf] ? IRREGULIERS[inf][p] : radical(r, d, p) + TERMINAISONS[g][p];
+  const irr = irregulieres(inf, t);
+  let f;
+  if (irr) f = irr[p];
+  else if (t === "present") f = radical(r, d, p) + TERMINAISONS[g][p];
+  else if (t === "pc") f = `${HABER[p]} ${participe(inf, g, r).f}`;
+  else if (t === "imp") f = r + IMP[g][p];
+  else { const m = morceauxPs(g, r, d, p); f = m.rad + m.term; }
   return se ? `${PRONOMS[p]} ${f}` : f;
 }
-export const sixFormes = (v, d) => PERSONNES.map((_, p) => conjuguer(v, p, d));
+export const sixFormes = (v, d, t) => PERSONNES.map((_, p) => conjuguer(v, p, d, t));
 
 // Pour le Dico et « Les 6 formes » des exercices : les 6 formes, terminaison et voyelle entre ** (« me ac**ue**st**o** »).
-// Un irrégulier connu n'a rien de surligné : toute la forme s'apprend.
+// Un irrégulier connu n'a rien de surligné : toute la forme s'apprend. Au passé composé : le participe (trabaj**ado**, **hecho**).
 export const irregulierConnu = inf => !!IRREGULIERS[inf];
-export function formesSurlignees(v, d) {
+export function formesSurlignees(v, d, t) {
+  t = temps(t);
   const { se, inf, g, r } = decouper(v);
+  const irr = irregulieres(inf, t);
   return PERSONNES.map((_, p) => {
-    const f = IRREGULIERS[inf] ? IRREGULIERS[inf][p] : `${radical(r, d, p, true)}**${TERMINAISONS[g][p]}**`;
+    let f;
+    if (irr) f = irr[p];
+    else if (t === "present") f = `${radical(r, d, p, true)}**${TERMINAISONS[g][p]}**`;
+    else if (t === "pc") { const pa = participe(inf, g, r); f = `${HABER[p]} ${pa.irr ? `**${pa.f}**` : `${pa.r}**${pa.term}**`}`; }
+    else if (t === "imp") f = `${r}**${IMP[g][p]}**`;
+    else { const m = morceauxPs(g, r, d, p, true); f = `${m.rad}**${m.term}**`; }
     return se ? `${PRONOMS[p]} ${f}` : f;
   });
 }
 
+const Maj = s => s[0].toUpperCase() + s.slice(1);
+const tirets = t => t.map(x => `‑${x}`).join(", ");
+// Le tiret insécable (‑) garde « -imos » en un seul morceau en fin de ligne.
+
+// Les règles d'un verbe à un temps, de la plus particulière à la plus générale, chacune avec sa leçon (ou null).
+// Le tableau « tout le verbe » les montre toutes ; « À retenir » seulement la première ; le Dico met le lien vers la leçon.
+export function reglesDetaillees(v, d, t) {
+  t = temps(t);
+  const { se, inf, g, r } = decouper(v);
+  const pronoms = se && { texte: "Devant le verbe : me, te, se, nos, os, se.", lecon: "U3-L1" };
+  if (t === "present") {
+    if (IRREGULIERS[inf]) return [{ texte: `*${Maj(inf)}* est irrégulier : ${IRREGULIERS[inf].join(", ")}.`, lecon: null }];
+    return [
+      d && { texte: `Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`, lecon: { ue: "U3-L4", ie: "U3-L5", i: "U6-L2" }[d] },
+      pronoms,
+      { texte: `Les verbes en ‑${g} : on enlève ‑${g}, puis ${tirets(TERMINAISONS[g])}.`, lecon: { ar: "U1-L1", ir: "U1-L3", er: "U1-L5" }[g] },
+    ].filter(Boolean);
+  }
+  if (t === "pc") {
+    const pa = participe(inf, g, r);
+    return [
+      pa.irr && { texte: `Participe irrégulier : **${pa.f}**.`, lecon: LECON_PARTICIPE[inf] || null },
+      !pa.irr && pa.term === "ído" && { texte: `Participe en ‑ído, avec un accent : **${pa.f}**.`, lecon: null },
+      se && { texte: "Me, te, se, nos, os, se se mettent devant *haber* (*me he levantado*).", lecon: "U9-L2" },
+      { texte: `*Haber* au présent (he, has, ha, hemos, habéis, han) + le participe${pa.irr ? "" : " en ‑ado (‑ar) ou ‑ido (‑er, ‑ir)"}.`, lecon: "U9-L1" },
+    ].filter(Boolean);
+  }
+  if (t === "imp") {
+    if (IRR_IMP[inf]) return [{ texte: `*${Maj(inf)}* est un des 3 irréguliers de l'imparfait : ${IRR_IMP[inf].join(", ")}.`, lecon: "U14-L3" }, pronoms].filter(Boolean);
+    return [pronoms, { texte: `Les verbes en ‑${g} à l'imparfait : on enlève ‑${g}, puis ${tirets(IMP[g])}.`, lecon: g === "ar" ? "U14-L1" : "U14-L2" }].filter(Boolean);
+  }
+  // Passé simple
+  if (IRR_PS[inf]) {
+    const meme = inf === "ser" || inf === "ir" ? " (*ser* et *ir* ont les mêmes formes)" : "";
+    return [{ texte: `*${Maj(inf)}* est irrégulier au passé simple${meme} : ${IRR_PS[inf].join(", ")}.`, lecon: LECON_IRR_PS[inf] || null }, pronoms].filter(Boolean);
+  }
+  const yo = morceauxPs(g, r, d, 0), voyelleY = g !== "ar" && /[aeo]$/.test(r);
+  return [
+    changePs(g, d, 2) && { texte: `Avec él et ellos, le ${AVANT[d]} devient ${APRES_PS[d]} (*${conjuguer(inf, 2, d, "ps")}, ${conjuguer(inf, 5, d, "ps")}*).`, lecon: "U12-L5" },
+    yo.note === "orthographe" && { texte: `Avec yo, l'orthographe change pour garder le son : **${yo.rad + yo.term}**.`, lecon: "U12-L4" },
+    voyelleY && { texte: `Entre deux voyelles, le i devient y : *${conjuguer(inf, 2, d, "ps")}, ${conjuguer(inf, 5, d, "ps")}*.`, lecon: null },
+    pronoms,
+    { texte: `Les verbes en ‑${g} au passé simple : on enlève ‑${g}, puis ${tirets(PS[g])}.`, lecon: g === "ar" ? "U12-L1" : "U12-L2" },
+  ].filter(Boolean);
+}
+export const reglesVerbe = (v, d, t) => reglesDetaillees(v, d, t).map(x => x.texte);
+export const regleVerbe = (v, d, t) => reglesVerbe(v, d, t).join(" ");
+
 // « *vivir*, avec *vosotros* : viv + **ís**. Les verbes en -ir : -o, -es, -e, -imos, -ís, -en. »
 // « *contar*, avec *yo* : c**ue**nt + **o**. Le o devient ue, sauf avec nosotros et vosotros. »
 // « *lavarse*, avec *yo* : **me** lav + **o**. Devant le verbe : me, te, se, nos, os, se. »
-export function explicationConjugaison(v, p, d) {
+// « *abrir*, avec *él, ella*, au passé composé : **ha** + **abierto**. Participe irrégulier : abierto. »
+export function explicationConjugaison(v, p, d, t) {
+  t = temps(t);
   const { se, inf, g, r } = decouper(v);
-  const avec = `*${v}*, avec *${PERSONNES[p]}*`;
+  const avec = `*${v}*, avec *${PERSONNES[p]}*${t === "present" ? "" : `, ${t === "imp" ? "à l'" : "au "}${TEMPS[t].nom}`}`;
   const pronom = se ? `**${PRONOMS[p]}** ` : "";
   const devant = se ? " Devant le verbe : me, te, se, nos, os, se." : "";
-  if (IRREGULIERS[inf]) return `${avec} : ${pronom}**${IRREGULIERS[inf][p]}**. *${inf[0].toUpperCase() + inf.slice(1)}* : ${IRREGULIERS[inf].join(", ")}.${devant}`;
-  // Le tiret insécable (‑) garde « -imos » en un seul morceau en fin de ligne.
-  const groupe = ` Les verbes en ‑${g} : ${TERMINAISONS[g].map(t => `‑${t}`).join(", ")}.`;
-  const voyelle = !d ? "" : change(d, p)
-    ? ` Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`
-    : ` Avec ${PERSONNES[p]}, le ${AVANT[d]} ne change pas.`;
-  return `${avec} : ${pronom}${radical(r, d, p, true)} + **${TERMINAISONS[g][p]}**.${voyelle}${devant}${d || se ? "" : groupe}`;
+  if (t === "present") {
+    if (IRREGULIERS[inf]) return `${avec} : ${pronom}**${IRREGULIERS[inf][p]}**. *${Maj(inf)}* : ${IRREGULIERS[inf].join(", ")}.${devant}`;
+    const groupe = ` Les verbes en ‑${g} : ${tirets(TERMINAISONS[g])}.`;
+    const voyelle = !d ? "" : change(d, p)
+      ? ` Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`
+      : ` Avec ${PERSONNES[p]}, le ${AVANT[d]} ne change pas.`;
+    return `${avec} : ${pronom}${radical(r, d, p, true)} + **${TERMINAISONS[g][p]}**.${voyelle}${devant}${d || se ? "" : groupe}`;
+  }
+  if (t === "pc") {
+    const pa = participe(inf, g, r);
+    const quoi = pa.irr ? ` Participe irrégulier : ${pa.f}.` : pa.term === "ído" ? ` Participe en ‑ído, avec un accent.`
+      : g === "ar" ? " Les verbes en ‑ar : participe en ‑ado." : " Les verbes en ‑er et ‑ir : participe en ‑ido.";
+    const ordre = se ? " Me, te, se… se mettent devant *haber*." : "";
+    return `${avec} : **${se ? `${PRONOMS[p]} ` : ""}${HABER[p]}** + ${pa.irr ? `**${pa.f}**` : `${pa.r}**${pa.term}**`}.${quoi}${ordre}`;
+  }
+  const irr = irregulieres(inf, t);
+  if (irr) return `${avec} : ${pronom}**${irr[p]}**. ${reglesDetaillees(v, d, t)[0].texte}`;
+  if (t === "imp") return `${avec} : ${pronom}${r} + **${IMP[g][p]}**. Les verbes en ‑${g} : ${tirets(IMP[g])}.${devant}`;
+  const m = morceauxPs(g, r, d, p, true);
+  const regles = reglesDetaillees(v, d, t).filter(x => !x.texte.startsWith("Devant")).map(x => x.texte);
+  // Avec él, un verbe en -ar : l'accent compte (hablo = je parle, habló = il a parlé).
+  const accent = !m.note && p === 2 && g === "ar" && !IRREGULIERS[inf] && !d
+    ? ` L'accent compte : *${conjuguer(inf, 0, d)}* (je, au présent) ≠ *${conjuguer(inf, 2, d, "ps")}* (il, au passé simple).` : "";
+  const utiles = regles.filter(x => !x.startsWith("Avec yo") || p === 0).filter(x => !x.startsWith("Avec él") || p === 2 || p === 5);
+  return `${avec} : ${pronom}${m.rad} + **${m.term}**. ${utiles.join(" ")}${accent}${devant}`;
 }
-
-// La règle générale d'un verbe, sans personne, de la plus particulière à la plus générale :
-// « Le o devient ue, sauf avec nosotros et vosotros. », « Devant le verbe : me, te… », « Les verbes en -ar : on enlève -ar, puis -o, -as… ».
-// Le tableau « tout le verbe » les montre toutes ; « À retenir » seulement la première (celle de la réserve).
-export function reglesVerbe(v, d) {
-  const { se, inf, g } = decouper(v);
-  if (IRREGULIERS[inf]) return [`*${inf[0].toUpperCase() + inf.slice(1)}* est irrégulier : ${IRREGULIERS[inf].join(", ")}.`];
-  return [
-    d && `Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`,
-    se && "Devant le verbe : me, te, se, nos, os, se.",
-    `Les verbes en ‑${g} : on enlève ‑${g}, puis ${TERMINAISONS[g].map(t => `‑${t}`).join(", ")}.`,
-  ].filter(Boolean);
-}
-export const regleVerbe = (v, d) => reglesVerbe(v, d).join(" ");
 
 const ESTAR_LIEU = "*Estar* : le lieu où l'on se trouve.";
 const EN_LIEU = "« À » ou « dans » + un lieu se dit **en** (pour être ou habiter quelque part).";
@@ -123,12 +296,12 @@ export const CONTROLES = {
           [
             { fr: "Yo ___ desde casa.", v: "trabajar", p: 0, es: ["trabajo"] },
             { fr: "¿Tú ___ inglés?", v: "hablar", p: 1, es: ["hablas"] },
-            { fr: "Mi cuñado ___ en una empresa.", v: "trabajar", p: 2, es: ["trabaja"] },
+            { fr: "Mi vecino ___ en una empresa.", v: "trabajar", p: 2, es: ["trabaja"] },
             { fr: "Vosotros ___ muy rápido.", v: "hablar", p: 4, es: ["habláis"] },
-            { fr: "Mis primos ___ español.", v: "hablar", p: 5, es: ["hablan"] },
+            { fr: "Léo y Dorian ___ español.", v: "hablar", p: 5, es: ["hablan"] },
           ],
           [
-            { fr: "Yo ___ con mis suegros.", v: "comer", p: 0, es: ["como"] },
+            { fr: "Yo ___ con mi suegro.", v: "comer", p: 0, es: ["como"] },
             { fr: "¿Tú ___ español?", v: "aprender", p: 1, es: ["aprendes"] },
             { fr: "Mi hermana ___ en el despacho.", v: "comer", p: 2, es: ["come"] },
             { fr: "Nosotros ___ español.", v: "aprender", p: 3, es: ["aprendemos"] },
@@ -137,22 +310,22 @@ export const CONTROLES = {
           [
             { fr: "Yo ___ en Huesca.", v: "vivir", p: 0, es: ["vivo"] },
             { fr: "¿Dónde ___ tú?", v: "vivir", p: 1, es: ["vives"] },
-            { fr: "Mi cuñada ___ en un pueblo.", v: "vivir", p: 2, es: ["vive"] },
+            { fr: "Mi cuñada ___ en Galicia.", v: "vivir", p: 2, es: ["vive"] },
             { fr: "Vosotros ___ en un piso.", v: "vivir", p: 4, es: ["vivís"] },
-            { fr: "Mis primos ___ en la ciudad.", v: "vivir", p: 5, es: ["viven"] },
+            { fr: "Mis padres ___ en París.", v: "vivir", p: 5, es: ["viven"] },
           ],
           [
             { fr: "Yo ___ francés.", v: "ser", p: 0, es: ["soy"] },
-            { fr: "Nosotros ___ hermanos.", v: "ser", p: 3, es: ["somos"] },
+            { fr: "Blanca y yo ___ pareja.", v: "ser", p: 3, es: ["somos"] },
             { fr: "Vosotros ___ españoles.", v: "ser", p: 4, es: ["sois"] },
-            { fr: "Mis primos ___ franceses.", v: "ser", p: 5, es: ["son"] },
+            { fr: "Mis hermanas ___ francesas.", v: "ser", p: 5, es: ["son"] },
           ],
           [
             { fr: "Yo ___ cansado.", v: "estar", p: 0, es: ["estoy"] },
             { fr: "¿Dónde ___ tú?", v: "estar", p: 1, es: ["estás"] },
             { fr: "Nosotros ___ en casa.", v: "estar", p: 3, es: ["estamos"] },
             { fr: "Vosotros ___ en el despacho.", v: "estar", p: 4, es: ["estáis"] },
-            { fr: "Mis suegros ___ en la boda.", v: "estar", p: 5, es: ["están"] },
+            { fr: "Mis padres ___ en la boda.", v: "estar", p: 5, es: ["están"] },
           ],
         ],
       },
@@ -164,7 +337,7 @@ export const CONTROLES = {
           { fr: "Blanca ___ mi pareja.", es: ["es"], expl: "*Ser* : qui est la personne (la relation)." },
           { fr: "Huesca ___ una ciudad pequeña.", es: ["es"], expl: "*Ser* : dire ce qu'est une chose." },
           { fr: "Yo ___ en mi despacho.", es: ["estoy"], expl: ESTAR_LIEU },
-          { fr: "Mis suegros ___ en el pueblo.", es: ["están"], expl: ESTAR_LIEU },
+          { fr: "Mis padres ___ en París.", es: ["están"], expl: ESTAR_LIEU },
           { fr: "Hoy nosotros ___ cansados.", es: ["estamos"], expl: "*Estar* : un état du moment (la fatigue)." },
           { fr: "¿Dónde ___ Blanca?", es: ["está"], expl: ESTAR_LIEU },
         ]],
@@ -175,7 +348,7 @@ export const CONTROLES = {
           [
             { fr: "J'habite à Huesca.", es: ["Vivo en Huesca."],
               expl: "« À » + une ville se dit **en** pour être ou habiter quelque part : *vivo en Huesca* (pas « a »)." },
-            { fr: "Mes beaux-parents habitent dans un village.", es: ["Mis suegros viven en un pueblo."], expl: EN_LIEU },
+            { fr: "Mes parents habitent à Paris.", es: ["Mis padres viven en París."], expl: EN_LIEU },
             { fr: "Je travaille dans une entreprise française.", es: ["Trabajo en una empresa francesa.", "Trabajo para una empresa francesa."],
               expl: "« Dans » + un lieu se dit **en** (pour être ou habiter quelque part)." },
           ],
@@ -183,7 +356,7 @@ export const CONTROLES = {
             { fr: "Je travaille à la maison depuis un an.",
               es: ["Trabajo en casa desde hace un año.", "Trabajo desde casa desde hace un año.", "Hace un año que trabajo en casa.", "Llevo un año trabajando en casa."],
               expl: "« Depuis » + une durée se dit **desde hace** (pas « durante »)." },
-            { fr: "Mon cousin habite en Espagne depuis un an.", es: ["Mi primo vive en España desde hace un año."],
+            { fr: "Mon voisin habite en Espagne depuis un an.", es: ["Mi vecino vive en España desde hace un año."],
               expl: "« En » + un pays se dit **en**, et « depuis » + une durée se dit **desde hace**." },
           ],
         ],
@@ -201,7 +374,7 @@ export const CONTROLES = {
     ],
     // « Treinta y seis » est une exception : les nombres au-delà de 20 arrivent à l'unité 2.
     modele: "Me llamo Kevin y soy francés. Tengo treinta y seis años. Vivo en Huesca desde hace cinco años, en un piso. "
-      + "Trabajo desde casa, en francés y en inglés. Blanca es mi pareja. Nos casamos en junio. Mis suegros viven en un pueblo. "
+      + "Trabajo desde casa, en francés y en inglés. Blanca es mi pareja. Nos casamos en junio. Tengo tres hermanas. "
       + "Entiendo un poco, pero todavía no hablo mucho. Aprendo español porque Blanca es española.",
   },
 };
