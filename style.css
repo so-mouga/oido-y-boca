@@ -601,3 +601,57 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .sauvegarde summary span { color: var(--marine-soft); text-decoration: underline; text-decoration-color: var(--sun); text-underline-offset: 3px; }
 .sauvegarde details[open] summary span { text-decoration: none; }
 .sauvegarde details > div { margin-top: 8px; }
+
+/* S'entraîner aux verbes : la carte de la page Verbes, les boutons de la fiche, la série (ecrans/verbes.js). */
+.entrainement { display: flex; flex-direction: column; gap: 12px; }
+.encours { background: var(--marine); color: var(--sun-ground); border-radius: 20px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.dico .encours h2 { font-size: 17px; font-weight: 600; color: var(--sun-ground); margin: 0; }
+.encours p { font-size: 14px; color: #C9D3E4; line-height: 1.45; }
+.encours .puces { display: flex; flex-wrap: wrap; gap: 8px; }
+.encours .puces a { background: #2A3F63; color: var(--sun-ground); border-radius: 999px; padding: 6px 13px; font-size: 15px; font-weight: 500; }
+.encours .primaire.soleil { padding: 14px; }
+.encours .limite { color: var(--sun-halo); }
+.limite { font-size: 13px; color: var(--sun-ink); text-align: center; line-height: 1.45; }
+.ensuite h3 { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 2px; }
+.ensuite ul { padding: 0; }
+.ensuite li { list-style: none; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--hair); }
+.ensuite li a { flex: 1; display: flex; align-items: baseline; gap: 10px; padding: 10px 2px; min-width: 0; }
+.ensuite .es { font-weight: 600; }
+.ensuite .fr { color: var(--muted); font-size: 14px; min-width: 0; }
+.ensuite .fr small { display: block; font-size: 12.5px; }
+.ajout-verbe { flex: none; width: 38px; height: 38px; border-radius: 50%; background: var(--sun); color: var(--marine); font-size: 22px; font-weight: 600; line-height: 1; display: grid; place-items: center; }
+.ajout-verbe:active { background: var(--sun-halo); }
+.tous { align-self: stretch; text-align: center; border: 1.5px solid var(--marine-soft); border-radius: 14px; padding: 11px; font-size: 15px; font-weight: 500; color: var(--marine-soft); }
+.lk.wr { display: inline-flex; align-items: center; gap: 6px; }
+.lk.wr .i { width: 15px; height: 15px; }
+.en-cours { font-size: 14px; color: var(--marine-soft); text-align: center; }
+
+.verbes-exo .q-verbe { font-size: 34px; font-weight: 600; text-align: center; letter-spacing: -.01em; margin-top: 18px; overflow-wrap: anywhere; }
+.verbes-exo .q-personne { align-self: center; background: var(--sun-deep); color: var(--marine); border-radius: 999px; padding: 6px 18px; font-size: 18px; font-weight: 600; }
+.verbes-exo .q-sens { text-align: center; font-size: 14px; color: var(--muted); }
+.verbes-exo .q-phrase { text-align: center; margin-top: 18px; }
+.verbes-exo .trou { display: inline-block; width: 80px; border-bottom: 2px solid var(--marine); vertical-align: baseline; margin: 0 2px; }
+.verbes-exo .defile { display: flex; flex-direction: column; gap: 14px; }
+.choix-envers { display: flex; flex-direction: column; align-items: stretch; gap: 10px; }
+.choix-envers button { border: 2px solid var(--hair); background: var(--card); color: var(--marine); border-radius: 16px; padding: 14px; font-size: 17px; font-weight: 500; text-align: center; }
+.choix-envers button:active { border-color: var(--marine); }
+.choix-envers.repondu button { opacity: .55; }
+.choix-envers.repondu .bon { opacity: 1; border-color: var(--sage-ink); background: #DCEBDD; color: var(--sage-ink); }
+.choix-envers.repondu .faux { opacity: 1; border-color: var(--rose-ink); background: var(--rose); color: var(--rose-ink); }
+.tete-tableau { display: flex; align-items: baseline; justify-content: center; gap: 10px; }
+.tete-tableau .q-verbe { margin-top: 6px; }
+.consigne-dire { font-size: 14px; color: var(--marine-soft); text-align: center; }
+.tout-montrer { align-self: flex-end; font-size: 14px; padding: 2px 0; }
+.tab-dire { display: flex; flex-direction: column; gap: 8px; }
+.tab-dire .ligne { display: flex; align-items: center; gap: 12px; }
+.tab-dire .p { width: 92px; flex: none; font-size: 15px; color: var(--marine-soft); }
+.tab-dire .f { flex: 1; min-height: 46px; border-radius: 14px; padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.tab-dire .f.cache { background: var(--sun-deep); color: var(--sun-ink); font-size: 14px; font-weight: 500; }
+.tab-dire .f.vu { background: #fff; border: 1.5px solid var(--hair); color: var(--marine); font-size: 18px; font-weight: 600; animation: arrive .3s var(--ease) both; }
+.tab-dire .f.vu .lecture { color: var(--marine-soft); }
+.exemple-verbe { background: var(--card); border: 1px solid var(--hair); border-radius: 14px; padding: 11px 13px; font-size: 15px; color: var(--marine-soft); line-height: 1.45; }
+.exemple-verbe b { color: var(--marine); }
+.tu-le-sais { background: #DCEBDD; color: var(--sage-ink); border-radius: 16px; padding: 13px 14px; display: flex; flex-direction: column; gap: 9px; font-size: 15px; line-height: 1.4; }
+.tu-le-sais .oui { background: var(--sage-ink); color: #fff; border-radius: 12px; padding: 11px; font-weight: 600; }
+.tu-le-sais small { font-size: 13px; }
+.tu-le-sais.sorti { display: block; }

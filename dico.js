@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=37";
-import { mesMots, apprisEnAvance } from "./progression.js?v=37";
-import { LECONS } from "./position.js?v=37";
+import { irregulierConnu } from "./controles.js?v=38";
+import { mesMots, apprisEnAvance } from "./progression.js?v=38";
+import { LECONS } from "./position.js?v=38";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -121,6 +121,20 @@ const LECON_IRREGULIER = {
   hacer: "U7-L4", poner: "U7-L4", traer: "U7-L4", dar: "U7-L4", salir: "U7-L5", decir: "U7-L5", venir: "U7-L5", jugar: "U8-L5",
 };
 
+// Ce qui est irrégulier, dit précisément (vérifié forme par forme avec IRREGULIERS, controles.js).
+// Les autres (ser, estar, ir) : « ses 6 formes s'apprennent par cœur ».
+const CE_QUI_CHANGE = {
+  hacer: "Seul *yo* est irrégulier : **hago**. Le reste suit la règle des -er.",
+  poner: "Seul *yo* est irrégulier : **pongo**. Le reste suit la règle des -er.",
+  traer: "Seul *yo* est irrégulier : **traigo**. Le reste suit la règle des -er.",
+  salir: "Seul *yo* est irrégulier : **salgo**. Le reste suit la règle des -ir.",
+  dar: "*Yo* est irrégulier : **doy**. Le reste suit la règle des -ar, mais *vosotros dais* n'a pas d'accent.",
+  tener: "*Yo* est irrégulier : **tengo**. Ensuite, le e devient ie (*tienes*…), sauf avec nosotros et vosotros.",
+  venir: "*Yo* est irrégulier : **vengo**. Ensuite, le e devient ie (*vienes*…), sauf avec nosotros et vosotros.",
+  decir: "*Yo* est irrégulier : **digo**. Ensuite, le e devient i (*dices*…), sauf avec nosotros et vosotros.",
+  jugar: "Le u devient ue (*juego*…), sauf avec nosotros et vosotros. C'est le seul verbe qui fait ça.",
+};
+
 // Ce que l'appli sait d'un verbe du Sheet. « tener … años » → tener ; « comer (= déjeuner) » → comer ;
 // « hacerse daño » → hacerse. Renvoie null si le mot n'est pas un verbe qu'on sait lire.
 //   v : l'infinitif à conjuguer (avec -se), inf : sans -se, g : "ar" | "er" | "ir", se, d,
@@ -138,7 +152,7 @@ export function verbeDe(m) {
   const p = PARTICULIERS[inf] || {};
   if (p.irr) {
     const connu = irregulierConnu(inf);
-    const regles = connu ? [{ lecon: LECON_IRREGULIER[inf], texte: "Verbe irrégulier : ses 6 formes s'apprennent par cœur." }] : [];
+    const regles = connu ? [{ lecon: LECON_IRREGULIER[inf], texte: CE_QUI_CHANGE[inf] || "Verbe irrégulier : ses 6 formes s'apprennent par cœur." }] : [];
     if (connu && se) regles.push(REGLES.se);
     return { v, inf, g, se, famille: "irr", formes: connu, regles };
   }

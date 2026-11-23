@@ -1,23 +1,24 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=37";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=37";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=37";
-import { ECOUTES } from "./ecoute.js?v=37";
-import { preparerVoix } from "./voix.js?v=37";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=37";
-import { vibrer } from "./retours.js?v=37";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=37";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=37";
-import { ecranLivre } from "./ecrans/livre.js?v=37";
-import { ecranLecon } from "./ecrans/lecon.js?v=37";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=37";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=37";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=37";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=37";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=37";
-import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=37";
+import { chargerTableau } from "./donnees.js?v=38";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=38";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=38";
+import { ECOUTES } from "./ecoute.js?v=38";
+import { preparerVoix } from "./voix.js?v=38";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=38";
+import { vibrer } from "./retours.js?v=38";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=38";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=38";
+import { ecranLivre } from "./ecrans/livre.js?v=38";
+import { ecranLecon } from "./ecrans/lecon.js?v=38";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=38";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=38";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=38";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=38";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=38";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=38";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=38";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -59,6 +60,7 @@ const ECRANS = {
   bonus: ecranBonus,
   controle: ecranControle,
   dico: ecranDico,
+  verbes: ecranVerbes,
   "mes-mots": ecranMesMots,
   semaine: ecranSemaine,
 };
@@ -100,6 +102,11 @@ app.addEventListener("submit", async e => {
     if (envoiMesMots(ctx, e.target)) afficher();
     return;
   }
+  if (e.target.matches("[data-v-form]")) {
+    e.preventDefault();
+    if (verifierVerbe()) afficher();
+    return;
+  }
   if (!e.target.matches("[data-p-form]")) return;
   e.preventDefault();
   if (await actionPratique(ctx, "verifier")) afficher();
@@ -117,6 +124,12 @@ app.addEventListener("click", async e => {
   if (remplace) {
     e.preventDefault();
     location.replace(remplace.getAttribute("href"));
+    return;
+  }
+  // S'entraîner aux verbes : la série, et « Je l'apprends », « + », « Je le sais » dans le Dico.
+  const verbe = actionVerbes(ctx, e);
+  if (verbe !== null) {
+    if (verbe) afficher(verbe === "suivant" ? "glisse" : false);
     return;
   }
   const action = e.target.closest("[data-p]");

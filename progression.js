@@ -1,12 +1,12 @@
 // Ce que l'appli garde sur le téléphone : la mémoire des mots (révision espacée),
 // les cases cochées du jour, le niveau d'écoute, et pour chaque contrôle blanc le dernier résultat
-// de la partie écrite et le texte de ma présentation, et « Mes mots » (ceux que j'ajoute moi-même).
+// de la partie écrite et le texte de ma présentation, « Mes mots » (ceux que j'ajoute moi-même), et mes verbes en cours.
 // Le Sheet n'est jamais modifié.
 
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
 
-const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {} });
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} } });
 let etat = lire();
 
 function lire() {
@@ -128,6 +128,32 @@ export function apprendreEnAvance(idMot, aujourdhui) {
   sauver();
 }
 
+// « Mes verbes en cours » : les verbes que je travaille en ce moment ({ verbe: date d'ajout }), choisis par moi
+// (« Je l'apprends » sur la fiche, « + » dans « À apprendre ensuite »). « justes » : pour chaque verbe, le nombre de séries
+// de suite où toutes ses questions étaient justes ; à 2, la fin de série propose « Tu le sais ? ». Le verbe est l'infinitif, avec -se.
+const verbes = () => etat.verbes || (etat.verbes = { cours: {}, justes: {} });
+export const verbesEnCours = () => Object.keys(verbes().cours);
+export const verbeEnCours = v => !!verbes().cours[v];
+export function mettreEnCours(v, aujourdhui) {
+  if (verbeEnCours(v)) return;
+  etat.verbes = { ...verbes(), cours: { ...verbes().cours, [v]: aujourdhui } };
+  sauver();
+}
+export function retirerDesCours(v) {
+  const { [v]: _, ...cours } = verbes().cours;
+  const { [v]: __, ...justes } = verbes().justes;
+  etat.verbes = { cours, justes };
+  sauver();
+}
+export const seriesJustes = v => verbes().justes[v] || 0;
+// À la fin d'une série : pour chaque verbe interrogé, true = tout juste (on ajoute 1), false = une erreur (on repart de 0).
+export function noterSerieVerbes(resultats) {
+  const justes = { ...verbes().justes };
+  for (const [v, ok] of Object.entries(resultats)) justes[v] = ok ? (justes[v] || 0) + 1 : 0;
+  etat.verbes = { ...verbes(), justes };
+  sauver();
+}
+
 // Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
 const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
 export function exporter(aujourdhui) {
@@ -157,7 +183,8 @@ export function lireSauvegarde(texte) {
   return { le: d.le || "", etat: { ...VIDE(), mots: d.mots, jours: d.jours, ecoute: d.ecoute,
     ...(objet(d.controles) && { controles: d.controles }), ...(objet(d.presentations) && { presentations: d.presentations }),
     ...(Array.isArray(d.mesMots) && { mesMots: d.mesMots.filter(m => m && m.id && m.es) }),
-    ...(objet(d.avance) && { avance: d.avance }) } };
+    ...(objet(d.avance) && { avance: d.avance }),
+    ...(objet(d.verbes) && { verbes: { cours: objet(d.verbes.cours) ? d.verbes.cours : {}, justes: objet(d.verbes.justes) ? d.verbes.justes : {} } }) } };
 }
 
 // Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).
