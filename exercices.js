@@ -3,10 +3,12 @@
 //
 // ecrire : { consigne, fr, es: [réponses acceptées] }   → tu tapes la réponse, l'appli vérifie.
 //          + v, p pour un verbe à conjuguer (p : 0 = yo … 5 = ellos) : l'explication se calcule toute seule.
+//            + d ("ue", "ie" ou "i") pour un verbe qui change de voyelle (dormir, empezar, vestirse).
+//            ⚠ Jamais de v sur un irrégulier que controles.js ne connaît pas (IRREGULIERS).
 //          + expl (facultatif) : l'explication écrite, quand la règle de la leçon n'aide pas pour cette phrase.
 // dire   : { fr, es }                                    → tu la dis à voix haute, tu compares, tu te notes.
 //
-// Unités prêtes : 1 et 2. Les suivantes s'ajoutent au fil des leçons.
+// Unités prêtes : 1, 2 et 3. Les suivantes s'ajoutent au fil des leçons.
 
 const T = "Traduis";
 const C = "Complète";
@@ -94,7 +96,7 @@ export const EXERCICES = {
   "U2-L1": {
     ecrire: [
       { consigne: T, fr: "Dorian a sept ans.", es: ["Dorian tiene siete años."] },
-      { consigne: C, fr: "Nosotros ___ dos hijos. (tener)", es: ["tenemos"] },
+      { consigne: C, fr: "Nosotros ___ dos hijos. (tener)", es: ["tenemos"], v: "tener", p: 3 },
       { consigne: L, fr: "15", es: ["quince"] },
       { consigne: T, fr: "Quand est ton anniversaire ?", es: ["¿Cuándo es tu cumpleaños?"] },
     ],
@@ -154,6 +156,84 @@ export const EXERCICES = {
       { fr: "Nous nous marions le 19 juin 2027.", es: "Nos casamos el diecinueve de junio de dos mil veintisiete." },
       { fr: "Quelle est la date du mariage ?", es: "¿Cuál es la fecha de la boda?" },
       { fr: "Noël, c'est le 25 décembre.", es: "Navidad es el veinticinco de diciembre." },
+    ],
+  },
+  "U3-L1": {
+    ecrire: [
+      { consigne: T, fr: "Je me lève à sept heures.", es: ["Me levanto a las siete."] },
+      { consigne: C, fr: "Blanca ___ a las siete y media. (levantarse)", es: ["se levanta"], v: "levantarse", p: 2 },
+      { consigne: C, fr: "Léo y Dorian ___ a las ocho. (vestirse)", es: ["se visten"], v: "vestirse", d: "i", p: 5 },
+      { consigne: T, fr: "Je me réveille à sept heures et je me douche.", es: ["Me despierto a las siete y me ducho."] },
+    ],
+    dire: [
+      { fr: "Je me réveille à sept heures moins le quart.", es: "Me despierto a las siete menos cuarto." },
+      { fr: "À quelle heure tu te lèves ?", es: "¿A qué hora te levantas?" },
+      { fr: "Nous prenons le petit-déjeuner à huit heures.", es: "Desayunamos a las ocho." },
+    ],
+  },
+  "U3-L2": {
+    ecrire: [
+      { consigne: T, fr: "Nous déjeunons à deux heures.", es: ["Comemos a las dos."] },
+      { consigne: T, fr: "À la maison, nous dînons à neuf heures.", es: ["En casa cenamos a las nueve."] },
+      { consigne: C, fr: "Léo y Dorian ___ a las cinco y media. (merendar)", es: ["meriendan"], v: "merendar", d: "ie", p: 5 },
+      { consigne: T, fr: "Le dîner est à neuf heures et demie.", es: ["La cena es a las nueve y media."] },
+    ],
+    dire: [
+      { fr: "En Espagne, nous déjeunons à deux heures.", es: "En España comemos a las dos." },
+      { fr: "À quelle heure vous dînez ? (vosotros)", es: "¿A qué hora cenáis?" },
+      { fr: "Le déjeuner, c'est à quelle heure ?", es: "¿A qué hora es la comida?" },
+    ],
+  },
+  "U3-L3": {
+    ecrire: [
+      { consigne: T, fr: "Je me douche avant de prendre le petit-déjeuner.", es: ["Me ducho antes de desayunar."] },
+      { consigne: T, fr: "Je me lève tôt.", es: ["Me levanto temprano."] },
+      { consigne: T, fr: "Le dimanche (tous les dimanches), nous dînons tard.", es: ["Los domingos cenamos tarde."] },
+      { consigne: T, fr: "Après avoir pris le petit-déjeuner, j'emmène Léo à l'école.", es: ["Después de desayunar, llevo a Léo al cole.", "Después de desayunar, llevo a Léo al colegio."] },
+    ],
+    dire: [
+      { fr: "Avant de travailler, je vais à la salle de sport.", es: "Antes de trabajar, voy al gimnasio." },
+      { fr: "Je déjeune, et ensuite je travaille.", es: "Como y luego trabajo." },
+      { fr: "Après avoir dîné, je parle espagnol avec Blanca.", es: "Después de cenar, hablo español con Blanca." },
+    ],
+  },
+  "U3-L4": {
+    ecrire: [
+      { consigne: T, fr: "Je rentre de la salle de sport à une heure et demie.", es: ["Vuelvo del gimnasio a la una y media."] },
+      { consigne: C, fr: "Hoy no ___ ir al gimnasio. (poder, yo)", es: ["puedo"], v: "poder", d: "ue", p: 0 },
+      { consigne: C, fr: "Dorian ___ mucho. (dormir)", es: ["duerme"], v: "dormir", d: "ue", p: 2 },
+      { consigne: C, fr: "Nosotros ___ a las diez. (volver)", es: ["volvemos"], v: "volver", d: "ue", p: 3 },
+    ],
+    dire: [
+      { fr: "Aujourd'hui, je ne peux pas aller à la salle de sport.", es: "Hoy no puedo ir al gimnasio." },
+      { fr: "Le samedi (tous les samedis), je fais les courses avec Blanca.", es: "Los sábados hago la compra con Blanca." },
+      { fr: "Blanca cuisine, et moi, je m'entraîne.", es: "Blanca cocina y yo entreno." },
+    ],
+  },
+  "U3-L5": {
+    ecrire: [
+      { consigne: C, fr: "Yo ___ a trabajar a las nueve y media. (empezar)", es: ["empiezo"], v: "empezar", d: "ie", p: 0 },
+      { consigne: T, fr: "Je ne dîne jamais tard.", es: ["Nunca ceno tarde.", "No ceno nunca tarde."] },
+      { consigne: C, fr: "Léo ___ comer en casa. (preferir)", es: ["prefiere"], v: "preferir", d: "ie", p: 2 },
+      { consigne: T, fr: "D'habitude, je m'entraîne chaque jour.", es: ["Normalmente entreno cada día."] },
+    ],
+    dire: [
+      { fr: "D'habitude je m'entraîne chaque jour, mais parfois je ne peux pas.", es: "Normalmente entreno cada día, pero a veces no puedo." },
+      { fr: "Je ne dîne presque jamais à neuf heures.", es: "Casi nunca ceno a las nueve." },
+      { fr: "Tu veux dîner à la maison ?", es: "¿Quieres cenar en casa?" },
+    ],
+  },
+  "U3-L6": {
+    ecrire: [
+      { consigne: C, fr: "Blanca y yo ___ al gimnasio. (ir)", es: ["vamos"], v: "ir", p: 3 },
+      { consigne: T, fr: "À cinq heures, je vais chercher Léo à l'école.", es: ["A las cinco voy a buscar a Léo al cole.", "A las cinco voy a buscar a Léo al colegio."] },
+      { consigne: C, fr: "Léo y Dorian ___ a las nueve. (acostarse)", es: ["se acuestan"], v: "acostarse", d: "ue", p: 5 },
+      { consigne: T, fr: "J'arrive à la maison à six heures.", es: ["Llego a casa a las seis."] },
+    ],
+    dire: [
+      { fr: "Le dimanche (tous les dimanches), je me repose.", es: "Los domingos descanso." },
+      { fr: "Je me couche à onze heures.", es: "Me acuesto a las once." },
+      { fr: "Raconte ta journée en 4 phrases : le réveil, le travail, le sport, le coucher.", es: "Me despierto a las siete. Trabajo desde casa. Vuelvo del gimnasio a la una y media. Me acuesto a las once." },
     ],
   },
 };

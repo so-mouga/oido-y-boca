@@ -1,20 +1,20 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=29";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=29";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=29";
-import { ECOUTES } from "./ecoute.js?v=29";
-import { preparerVoix } from "./voix.js?v=29";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=29";
-import { vibrer } from "./retours.js?v=29";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=29";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=29";
-import { ecranLivre } from "./ecrans/livre.js?v=29";
-import { ecranLecon } from "./ecrans/lecon.js?v=29";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=29";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=29";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=29";
+import { chargerTableau } from "./donnees.js?v=30";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=30";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=30";
+import { ECOUTES } from "./ecoute.js?v=30";
+import { preparerVoix } from "./voix.js?v=30";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=30";
+import { vibrer } from "./retours.js?v=30";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=30";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=30";
+import { ecranLivre } from "./ecrans/livre.js?v=30";
+import { ecranLecon } from "./ecrans/lecon.js?v=30";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=30";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=30";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=30";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -53,6 +53,7 @@ const ECRANS = {
   guia: ecranGuia,
   pratique: ecranPratique,
   revision: ctx => ecranPratique(ctx, null),
+  bonus: ecranBonus,
   controle: ecranControle,
 };
 

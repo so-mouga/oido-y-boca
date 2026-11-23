@@ -8,9 +8,10 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=29";
+import { md } from "./ui.js?v=30";
 
-const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
+export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
+const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
 const TERMINAISONS = {
   ar: ["o", "as", "a", "amos", "áis", "an"],
   er: ["o", "es", "e", "emos", "éis", "en"],
@@ -19,15 +20,49 @@ const TERMINAISONS = {
 const IRREGULIERS = {
   ser: ["soy", "eres", "es", "somos", "sois", "son"],
   estar: ["estoy", "estás", "está", "estamos", "estáis", "están"],
+  tener: ["tengo", "tienes", "tiene", "tenemos", "tenéis", "tienen"],
+  ir: ["voy", "vas", "va", "vamos", "vais", "van"],
 };
+// Les verbes qui changent de voyelle (d : "ue", "ie" ou "i") : la dernière voyelle du radical change,
+// sauf avec nosotros et vosotros (contar → cuento… contamos ; vestirse → me visto).
+// ⚠ Un verbe irrégulier qui n'est pas dans IRREGULIERS ne doit pas avoir de champ v : il serait calculé comme régulier.
+const AVANT = { ue: "o", ie: "e", i: "e" };
+const change = (d, p) => d && p !== 3 && p !== 4;
+
+const decouper = v => {
+  const se = v.endsWith("se") && v !== "se";
+  const inf = se ? v.slice(0, -2) : v;
+  return { se, inf, g: inf.slice(-2), r: inf.slice(0, -2) };
+};
+function radical(r, d, p, gras = false) {
+  if (!change(d, p)) return r;
+  const i = r.lastIndexOf(AVANT[d]);
+  return r.slice(0, i) + (gras ? `**${d}**` : d) + r.slice(i + 1);
+}
+
+// La forme conjuguée au présent : conjuguer("contar", 0, "ue") → "cuento" ; conjuguer("lavarse", 3) → "nos lavamos".
+export function conjuguer(v, p, d) {
+  const { se, inf, g, r } = decouper(v);
+  const f = IRREGULIERS[inf] ? IRREGULIERS[inf][p] : radical(r, d, p) + TERMINAISONS[g][p];
+  return se ? `${PRONOMS[p]} ${f}` : f;
+}
+export const sixFormes = (v, d) => PERSONNES.map((_, p) => conjuguer(v, p, d));
 
 // « *vivir*, avec *vosotros* : viv + **ís**. Les verbes en -ir : -o, -es, -e, -imos, -ís, -en. »
-export function explicationConjugaison(v, p) {
+// « *contar*, avec *yo* : c**ue**nt + **o**. Le o devient ue, sauf avec nosotros et vosotros. »
+// « *lavarse*, avec *yo* : **me** lav + **o**. Devant le verbe : me, te, se, nos, os, se. »
+export function explicationConjugaison(v, p, d) {
+  const { se, inf, g, r } = decouper(v);
   const avec = `*${v}*, avec *${PERSONNES[p]}*`;
-  if (IRREGULIERS[v]) return `${avec} : **${IRREGULIERS[v][p]}**. *${v[0].toUpperCase() + v.slice(1)}* : ${IRREGULIERS[v].join(", ")}.`;
-  const g = v.slice(-2);
+  const pronom = se ? `**${PRONOMS[p]}** ` : "";
+  const devant = se ? " Devant le verbe : me, te, se, nos, os, se." : "";
+  if (IRREGULIERS[inf]) return `${avec} : ${pronom}**${IRREGULIERS[inf][p]}**. *${inf[0].toUpperCase() + inf.slice(1)}* : ${IRREGULIERS[inf].join(", ")}.${devant}`;
   // Le tiret insécable (‑) garde « -imos » en un seul morceau en fin de ligne.
-  return `${avec} : ${v.slice(0, -2)} + **${TERMINAISONS[g][p]}**. Les verbes en ‑${g} : ${TERMINAISONS[g].map(t => `‑${t}`).join(", ")}.`;
+  const groupe = ` Les verbes en ‑${g} : ${TERMINAISONS[g].map(t => `‑${t}`).join(", ")}.`;
+  const voyelle = !d ? "" : change(d, p)
+    ? ` Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`
+    : ` Avec ${PERSONNES[p]}, le ${AVANT[d]} ne change pas.`;
+  return `${avec} : ${pronom}${radical(r, d, p, true)} + **${TERMINAISONS[g][p]}**.${voyelle}${devant}${d || se ? "" : groupe}`;
 }
 
 const ESTAR_LIEU = "*Estar* : le lieu où l'on se trouve.";

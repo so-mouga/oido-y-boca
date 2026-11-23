@@ -2,12 +2,13 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=29";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=29";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=29";
-import { EXERCICES } from "../exercices.js?v=29";
-import { controlePret, dernierResultat } from "./controle.js?v=29";
-import { motsDus, PAQUET } from "./pratique.js?v=29";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=30";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=30";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=30";
+import { EXERCICES } from "../exercices.js?v=30";
+import { controlePret, dernierResultat } from "./controle.js?v=30";
+import { motsDus, PAQUET } from "./pratique.js?v=30";
+import { BONUS } from "../bonus.js?v=30";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -119,8 +120,9 @@ export function ecranAujourdhui(ctx) {
       ? `${ex.ecrire.length} phrases à écrire, ${ex.dire.length} à dire, ${n} cartes`
       : `les ${n} cartes de la leçon`;
     journee.push({
-      titre: "La leçon du jour", fait: !!r, href: `#/pratique/${der.id}/jour`,
-      detail: r ? (r.sur ? `${r.ok} sur ${r.sur}` : "faite") : id(der.id),
+      // Faite : la ligne ouvre la page de la leçon (la refaire, ou « S'entraîner » si elle a un bonus).
+      titre: "La leçon du jour", fait: !!r, href: r ? `#/lecon/${der.id}` : `#/pratique/${der.id}/jour`,
+      detail: r ? `${r.sur ? `${r.ok} sur ${r.sur}` : "faite"}${BONUS[der.id] ? " · encore 6 si tu veux" : ""}` : id(der.id),
       carte: { titre: `La leçon du jour · ${id(der.id)}`, texte: `${contenu} · environ ${minutes} min.`,
         bouton: "Commencer", href: `#/pratique/${der.id}/jour` },
     });

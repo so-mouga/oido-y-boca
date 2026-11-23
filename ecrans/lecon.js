@@ -1,11 +1,13 @@
-// La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer ».
+// La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer »,
+// et « S'entraîner » (le bonus de grammaire) si la leçon a une réserve dans bonus.js.
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
 // Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=29";
-import { lecon as trouver } from "../position.js?v=29";
-import { EXERCICES } from "../exercices.js?v=29";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=30";
+import { lecon as trouver } from "../position.js?v=30";
+import { EXERCICES } from "../exercices.js?v=30";
+import { BONUS } from "../bonus.js?v=30";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -63,6 +65,7 @@ export function ecranLecon(ctx, idLecon, depuis) {
             : `<p class="sous">Pour l'instant, les cartes des ${mots.length} mots : les exercices de cette unité arrivent bientôt.</p>`}
         </section>
         ${serie ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
+        ${serie || !BONUS[l.id] ? "" : `<a class="secondaire" href="#/bonus/${l.id}/lecon">S'entraîner · 6 phrases</a>`}
         ${l.soir ? `<p class="note-soir">Ce soir avec Blanca : ${esc(l.soir)}</p>` : ""}
       </main>${serie ? "" : barreOnglets("livre")}`,
   };

@@ -2,21 +2,24 @@
 // à écrire, à dire et de cartes. « Tes mots à revoir » (#/revision) : seulement des cartes, par paquets de 20.
 // Seules les cartes mettent à jour la mémoire des mots. « Quitter » ramène là d'où tu viens.
 // Après une erreur dans une leçon : pourquoi c'est la bonne réponse, et un lien vers la leçon (pas en révision).
+// Le bonus (#/bonus/U1-L1/jour ou …/lecon) : « Encore 6 pour t'entraîner », proposé à la fin d'une leçon
+// qui a une réserve dans bonus.js. Facultatif : rien n'est coché, aucune carte, la révision n'est pas touchée.
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=29";
-import { lecon as trouver } from "../position.js?v=29";
-import { EXERCICES } from "../exercices.js?v=29";
-import { corriger } from "../corriger.js?v=29";
-import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=29";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=29";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=29";
-import { vibrer, son } from "../retours.js?v=29";
+import { esc, md, id, ICONES } from "../ui.js?v=30";
+import { lecon as trouver } from "../position.js?v=30";
+import { EXERCICES } from "../exercices.js?v=30";
+import { corriger } from "../corriger.js?v=30";
+import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=30";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=30";
+import { BONUS } from "../bonus.js?v=30";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=30";
+import { vibrer, son } from "../retours.js?v=30";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=29";
+} from "../enregistrement.js?v=30";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -57,6 +60,38 @@ function serieControle(ctx, idUnite) {
   const c = CONTROLES[idUnite];
   const mots = Object.entries(ctx.motsParLecon).filter(([l]) => l.startsWith(`${idUnite}-`)).flatMap(([, m]) => m);
   return { titre: `Contrôle blanc · unité ${idUnite.slice(1)}`, retour: `#/controle/${idUnite}`, controle: idUnite, items: tirerEcrit(c, mots) };
+}
+
+// Le bonus : 5 phrases et 1 tableau « tout le verbe » (ou 6 phrases sans tableau), tirés au hasard.
+// « Encore 6 » prend d'abord les phrases pas encore tirées depuis l'ouverture de l'appli.
+const melanger = t => {
+  const r = [...t];
+  for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; }
+  return r;
+};
+const dejaTires = {};
+function tirer(liste, n, cle) {
+  const vus = dejaTires[cle] ||= new Set();
+  const r = melanger(liste.filter(x => !vus.has(x))).slice(0, n);
+  if (r.length < n) { vus.clear(); r.push(...melanger(liste.filter(x => !r.includes(x))).slice(0, n - r.length)); }
+  r.forEach(x => vus.add(x));
+  return r;
+}
+
+function serieBonus(idLecon) {
+  const b = BONUS[idLecon];
+  const commun = { bonus: true, lecon: idLecon, nom: b.nom };
+  const phrases = tirer(b.phrases, b.tableaux ? 5 : 6, idLecon).map(ph => ({
+    type: "ecrire", ...commun, consigne: b.consigne || "Complète", ...ph,
+    es: ph.es || [conjuguer(ph.v, ph.p, ph.d)],
+    sens: ph.sens ? `${ph.v} = ${ph.sens}` : ph.mot,
+    expl: ph.expl || (ph.v ? undefined : b.regle),
+  }));
+  const tableau = b.tableaux ? tirer(b.tableaux, 1, `${idLecon}:tableau`).map(t => ({
+    type: "tableau", ...commun, consigne: "Conjugue tout le verbe", v: t.v, d: t.d,
+    sens: t.sens ? `${t.v} = ${t.sens}` : "", es: sixFormes(t.v, t.d),
+  })) : [];
+  return { titre: `Entraînement · ${b.nom}`, bonus: idLecon, items: [...phrases, ...tableau] };
 }
 
 function nouvelleSerie(ctx, cle, construire) {
@@ -131,9 +166,12 @@ function boutonIndice(it) {
 // Pendant la question, le champ et les boutons restent collés en bas (juste au-dessus du clavier quand il est ouvert) ;
 // le haut (barre, phrase, indice) défile s'il manque de place.
 function vueEcrire(it, enTete) {
-  const consigne = sorte(`À écrire · ${it.consigne.toLowerCase()}`);
+  const consigne = it.bonus
+    ? `${sorte(`Entraînement · ${esc(it.nom)}`)}<p class="consigne">${esc(it.consigne)}</p>`
+    : sorte(`À écrire · ${it.consigne.toLowerCase()}`);
+  const enonce = `<p class="enonce">${esc(it.fr)}</p>${it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : ""}`;
   if (s.phase === "question") {
-    return `<div class="defile">${enTete}${consigne}<p class="enonce">${esc(it.fr)}</p>${zoneIndice(it)}</div>
+    return `<div class="defile">${enTete}${consigne}${enonce}${zoneIndice(it)}</div>
       <form class="saisie" data-p-form>
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
@@ -149,14 +187,15 @@ function vueEcrire(it, enTete) {
   const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
   const tape = s.saisie && r.tape ? `<p class="tape">${surligne(r.tape, "faux")}</p>` : s.saisie ? `<p class="tape">${esc(s.saisie)}</p>` : "";
   const bonne = r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu);
-  return `${enTete}${consigne}<p class="enonce">${esc(it.fr)}</p>
+  return `${enTete}${consigne}${enonce}
     ${tape}
     <div class="verdict ${ok ? "ok" : r.niveau === "passe" ? "ko passe" : "ko"}" role="status">
       <b>${titre}</b>
       <div class="bonne">${ecouter(r.attendu)}<p lang="es">${bonne}</p></div>
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
-      ${it.controle || !ok ? explication(it) : ""}
+      ${it.controle || it.bonus || !ok ? explication(it) : ""}
+      ${it.v && !it.controle ? lesSixFormes(it.v, it.d, it.p) : ""}
       ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}/exercice">Revoir la leçon</a>` : ""}
     </div>
     <div class="espace"></div>
@@ -168,10 +207,47 @@ function vueEcrire(it, enTete) {
 // ou, dans les leçons, la règle de la leçon quand elle concerne la phrase.
 function explication(it) {
   if (it.expl) return `<p class="explication">${md(it.expl)}</p>`;
-  if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p))}</p>`;
+  if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p, it.d))}</p>`;
   if (it.exemple) return `<p class="explication">Exemple : <span lang="es">${esc(it.exemple)}</span></p>`;
   if (!it.controle && regleConcerne(it)) return `<p class="explication">${md(regleDe(it))}</p>`;
   return "";
+}
+
+// « Les 6 formes » : fermé par défaut, la forme de la phrase surlignée.
+function lesSixFormes(v, d, p) {
+  const f = sixFormes(v, d);
+  return `<details class="six-formes"><summary>Les 6 formes</summary><dl>${PERSONNES.map((per, i) =>
+    `<dt>${per}</dt><dd lang="es"${i === p ? ' class="ici"' : ""}>${esc(f[i])}</dd>`).join("")}</dl></details>`;
+}
+
+// Le tableau « tout le verbe » : les 6 personnes d'un coup, vérifiées en une fois.
+function vueTableau(it, enTete) {
+  const tete = `${enTete}${sorte(`Entraînement · ${esc(it.nom)}`)}<p class="consigne">${esc(it.consigne)}</p>
+    <p class="enonce" lang="es">${esc(it.v)}</p>${it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : ""}`;
+  if (s.phase === "question") {
+    return `${tete}
+      <form class="tableau" data-p-form>
+        <div class="grille">${PERSONNES.map((per, i) => `<label for="forme${i}">${per}</label>
+          <input id="forme${i}" data-forme lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+            enterkeyhint="${i < 5 ? "next" : "done"}" value="${esc(s.formes?.[i] || "")}">`).join("")}</div>
+        <button class="primaire" type="submit">Vérifier</button>
+        <div class="aides"><button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </form>`;
+  }
+  const r = s.resultat;
+  const n = r.lignes.filter(l => l.ok).length;
+  const titre = r.passe ? "La réponse" : n === 6 ? "Juste" : `Pas encore : ${n} sur 6`;
+  const lignes = r.lignes.map((l, i) => `<dt>${PERSONNES[i]}</dt><dd lang="es">${l.ok
+    ? `${esc(l.attendu)}${l.accents ? ` <small>(accent)</small>` : ""}`
+    : `${l.saisie ? `<s>${esc(l.saisie)}</s> ` : ""}<b>${esc(l.attendu)}</b>`}</dd>`).join("");
+  return `${tete}
+    <div class="verdict ${n === 6 ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
+      <b>${titre}</b>
+      <dl class="formes-tableau">${lignes}</dl>
+      ${n < 6 ? `<p class="explication">${md(explicationConjugaison(it.v, r.lignes.findIndex(l => !l.ok), it.d))}</p>` : ""}
+    </div>
+    <div class="espace"></div>
+    <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 function vueDire(it) {
@@ -247,6 +323,42 @@ function vueFinControle() {
     <a class="secondaire" href="${s.retour}">Revenir au contrôle</a>`;
 }
 
+// La fin du bonus : le score et les formes ratées. Rien n'est gardé.
+function vueFinBonus() {
+  const r = s.resultats;
+  const retenir = r.filter(x => !x.ok).flatMap(({ it, lignes }) => {
+    if (it.type === "tableau") return lignes.map((l, p) => l.ok ? null : `<i lang="es">${esc(it.v)}</i>, ${PERSONNES[p]} → <b lang="es">${esc(l.attendu)}</b>`).filter(Boolean);
+    if (it.v) return [`<i lang="es">${esc(it.v)}</i>, ${PERSONNES[it.p]} → <b lang="es">${esc(it.es[0])}</b>`];
+    return [`<span lang="es">${phraseJuste(it)}</span>${it.fr.includes("___") ? "" : ` <small>(${esc(it.fr)})</small>`}`];
+  });
+  const nom = s.items[0].nom;
+  return `<div class="fin">
+      <h1>Bien entraîné</h1>
+      <p class="sous">Entraînement · ${esc(nom)} · ${r.length} phrases</p>
+      <ul class="bilan"><li><b>Justes</b><span>${r.filter(x => x.ok).length} sur ${r.length}</span></li></ul>
+      ${retenir.length ? `<section aria-labelledby="t-retenir"><h2 id="t-retenir">À retenir</h2><ul class="a-retenir">${retenir.map(t => `<li>${t}</li>`).join("")}</ul></section>` : ""}
+      <p class="sous">Tu peux recommencer : ce ne seront pas tout à fait les mêmes phrases.</p>
+    </div>
+    <div class="espace"></div>
+    <button class="primaire" data-p="encore">Encore 6</button>
+    ${s.retour === "#/" ? versAujourdhui("secondaire") : `<a class="secondaire" href="${s.retour}" data-remplace>Revenir à la leçon</a>`}`;
+}
+
+// Le bloc « Encore 6 » sous le bilan d'une leçon qui a une réserve de bonus.
+function blocBonus() {
+  const b = BONUS[s.lecon];
+  if (!b) return "";
+  const ex = b.phrases[0];
+  const exemple = ex.v && !ex.fr.includes("(") ? `${ex.fr} (${ex.v})` : ex.fr;
+  const jour = s.retour === "#/";
+  return `<div class="bonus">
+      <b>Encore 6 pour t'entraîner ?</b>
+      <p>${esc(b.desc)} ${jour ? "Facultatif : ta leçon est déjà faite." : "Facultatif."}</p>
+      <p class="ex">Ex. : <span lang="es">${esc(exemple)}</span></p>
+      <a class="secondaire" href="#/bonus/${s.lecon}/${jour ? "jour" : "lecon"}" data-remplace>Je m'entraîne · 6 phrases</a>
+    </div>`;
+}
+
 // Les boutons de fin remplacent la série dans l'historique (data-remplace) : le retour d'Android ne la relance pas.
 const versAujourdhui = cls => `<a class="${cls}" href="#/" data-remplace>Revenir à aujourd'hui</a>`;
 
@@ -275,6 +387,7 @@ function vueFinPaquet(ctx) {
 function vueFin(ctx) {
   if (s.controle) return vueFinControle();
   if (s.revision) return vueFinPaquet(ctx);
+  if (s.bonus) return vueFinBonus();
   const n = s.notes;
   const justes = n.ecrire.filter(Boolean).length;
   const aide = k => n.aide[k] ? `, ${n.aide[k]} avec indice` : "";
@@ -290,6 +403,7 @@ function vueFin(ctx) {
         ${ligne("Cartes", n.carte, `${oui(n.carte)} sur ${n.carte.length} trouvées${aide("carte")}`)}
       </ul>
       ${n.carte.some(x => x < 3) ? `<p class="sous">Les mots ratés reviendront dès demain dans « Tes mots à revoir ».</p>` : ""}
+      ${blocBonus()}
     </div>
     <div class="espace"></div>
     ${depuisLecon ? `<a class="primaire" href="${s.retour}" data-remplace>Revenir à la leçon</a>${versAujourdhui("secondaire")}` : versAujourdhui("primaire")}`;
@@ -301,6 +415,13 @@ export function ecranPratique(ctx, idLecon, depuis) {
   return lecon
     ? ecranSerie(ctx, `lecon:${lecon}`, () => serieLecon(ctx, lecon), retour, "Cette leçon n'a pas encore de mots dans le tableau.")
     : ecranSerie(ctx, `revision:${ctx.jour}`, () => serieRevision(ctx), retour, "Rien à revoir aujourd'hui : tes mots sont frais.");
+}
+
+export function ecranBonus(ctx, idLecon, depuis) {
+  const lecon = decodeURIComponent(idLecon || "");
+  const retour = depuis === "jour" ? "#/" : `#/lecon/${lecon}`;
+  if (!BONUS[lecon]) return { onglet: null, html: `<main class="colonne vide"><h1>Pas d'entraînement</h1><a class="lien" href="${retour}">Revenir</a></main>` };
+  return ecranSerie(ctx, `bonus:${lecon}`, () => serieBonus(lecon), retour);
 }
 
 export function ecranEcritControle(ctx, idUnite) {
@@ -339,7 +460,8 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
   const it = s.items[s.i];
   const enTete = `${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}`;
   const question = it.type === "ecrire" && s.phase === "question";
-  const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
+  const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : it.type === "tableau" ? vueTableau(it, enTete)
+    : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
   return {
     onglet: null,
     apres: () => {
@@ -360,6 +482,15 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         const b = document.querySelector(".carte .ecoute");
         if (b) { const tout = b.dataset.dire; b.dataset.dire = it.mot.es; lancerLecture(b); b.dataset.dire = tout; }
       }
+      // Le tableau : « Entrée » passe à la personne suivante ; à la dernière, elle vérifie.
+      if (it.type === "tableau" && s.phase === "question") {
+        const champs = [...document.querySelectorAll("[data-forme]")];
+        champs.forEach((c, i) => c.addEventListener("keydown", e => {
+          if (e.key === "Enter" && i < 5) { e.preventDefault(); champs[i + 1].focus(); }
+        }));
+        const i = s.i;
+        setTimeout(() => { if (s?.i === i && s.phase === "question") champs[0]?.focus({ preventScroll: true }); }, 400);
+      }
       s.vientDeTourner = false;
     },
     html: `<main class="colonne exo${question ? " ecrire-q" : ""}">${vue}</main>`,
@@ -372,7 +503,7 @@ function suivant() {
   effacerEnregistrement();
   arreterLecture();
   s.depuis = s.i;
-  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.astuce = ""; s.indice = 0; s.dit = false;
+  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.formes = null; s.astuce = ""; s.indice = 0; s.dit = false;
 }
 
 // Renvoie "suivant" quand on passe à un autre exercice (l'écran change, avec la transition),
@@ -382,6 +513,21 @@ export async function actionPratique(ctx, action, el) {
   const it = s.items[s.i];
   switch (action) {
     case "verifier": {
+      if (it.type === "tableau") {
+        const formes = [...document.querySelectorAll("[data-forme]")].map(c => c.value.trim());
+        if (formes.every(f => !f)) return false;
+        s.formes = formes;
+        const lignes = it.es.map((attendu, p) => {
+          const r = formes[p] ? corriger(formes[p], [attendu]) : { niveau: "faux" };
+          return { attendu, saisie: formes[p], ok: r.niveau === "juste" || r.niveau === "accents", accents: r.niveau === "accents" };
+        });
+        const ok = lignes.every(l => l.ok);
+        s.resultat = { lignes };
+        s.notes.ecrire.push(ok); s.resultats.push({ it, ok, lignes });
+        s.phase = "reponse";
+        vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
+        return true;
+      }
       s.saisie = document.getElementById("reponse")?.value.trim() || "";
       if (!s.saisie) return false;
       s.resultat = corriger(s.saisie, it.es);
@@ -394,6 +540,12 @@ export async function actionPratique(ctx, action, el) {
       return true;
     }
     case "sais-pas":
+      if (it.type === "tableau") {
+        const lignes = it.es.map(attendu => ({ attendu, saisie: "", ok: false }));
+        s.resultat = { lignes, passe: true };
+        s.notes.ecrire.push(false); s.resultats.push({ it, ok: false, lignes }); s.phase = "reponse";
+        return true;
+      }
       s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0] };
       s.notes.ecrire.push(false); s.resultats.push({ it, ok: false, saisie: "" }); s.phase = "reponse";
       return true;
@@ -427,6 +579,9 @@ export async function actionPratique(ctx, action, el) {
     }
     case "suivant":
       suivant();
+      return "suivant";
+    case "encore": // « Encore 6 » : un autre tirage du bonus
+      { const retour = s.retour; nouvelleSerie(ctx, s.cle, () => serieBonus(s.bonus)); s.retour = retour; }
       return "suivant";
     case "continuer": // un autre paquet de « Tes mots à revoir »
       nouvelleSerie(ctx, s.cle, () => serieRevision(ctx));

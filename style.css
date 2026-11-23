@@ -453,3 +453,33 @@ textarea.texte:focus { border-color: var(--marine); box-shadow: 0 2px 10px rgba(
 .enreg .pt { width: 12px; height: 12px; border-radius: 50%; background: var(--sun-ink); }
 .enreg.on .pt { border-radius: 3px; background: var(--marine); }
 .blanca-ce-soir { padding: 13px 15px; font-size: 14px; }
+
+/* Le bonus de grammaire : le bloc « Encore 6 » en fin de leçon, le sens du mot nouveau, les 6 formes, le tableau. */
+.bonus { background: var(--sun-deep); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 9px; margin-top: 6px; }
+.bonus b { font-size: 17px; font-weight: 600; line-height: 1.25; }
+.bonus p { font-size: 14px; color: var(--marine-soft); line-height: 1.45; }
+.bonus .ex { font-style: italic; }
+.bonus .secondaire { background: var(--card); border: 1.5px solid var(--hair); border-radius: 14px; color: var(--marine); margin-top: 4px; }
+/* Le même bouton sur la page d'une leçon, sous « Commencer ». */
+.secondaire[href^="#/bonus"] { background: var(--card); border: 1.5px solid var(--hair); border-radius: 16px; color: var(--marine); padding: 14px; }
+.exo .consigne { font-size: 14px; color: var(--muted); font-style: normal; margin-bottom: -12px; }
+.sens { align-self: flex-start; font-size: 14px; color: var(--marine-soft); background: var(--card); border: 1px solid var(--hair); border-radius: 999px; padding: 5px 12px; }
+.six-formes summary { cursor: pointer; font-size: 14px; font-weight: 600; padding: 4px 0; list-style-position: inside; }
+.six-formes dl, .formes-tableau { display: grid; grid-template-columns: auto 1fr; gap: 3px 14px; font-size: 14px; color: var(--marine); }
+.six-formes dl { background: #fff; border-radius: 12px; padding: 8px 12px; margin-top: 6px; }
+.six-formes dt, .formes-tableau dt { color: var(--muted); }
+.six-formes dd, .formes-tableau dd { margin: 0; }
+.six-formes .ici { font-weight: 600; background: var(--sun-halo); border-radius: 5px; padding: 0 4px; justify-self: start; }
+.formes-tableau b { font-size: 14px; }
+.formes-tableau s { opacity: .7; }
+.tableau { display: flex; flex-direction: column; gap: 12px; }
+.tableau .grille { display: grid; grid-template-columns: 96px 1fr; gap: 8px 10px; align-items: center; }
+.tableau label { font-size: 15px; color: var(--marine-soft); }
+.tableau input {
+  font: inherit; font-size: 17px; color: var(--marine); background: #fff; border: 2px solid var(--hair);
+  border-radius: 12px; padding: 9px 12px; outline: none; min-width: 0; transition: border-color .2s var(--ease);
+}
+.tableau input:focus { border-color: var(--marine-soft); }
+.fin h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+.a-retenir li { padding: 8px 0; border-top: 1px solid var(--hair); font-size: 15px; }
+.a-retenir small { color: var(--muted); }
