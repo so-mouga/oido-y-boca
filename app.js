@@ -1,25 +1,25 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=40";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=40";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=40";
-import { ECOUTES } from "./ecoute.js?v=40";
-import { preparerVoix } from "./voix.js?v=40";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=40";
-import { vibrer } from "./retours.js?v=40";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=40";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=40";
-import { ecranLivre } from "./ecrans/livre.js?v=40";
-import { ecranLecon } from "./ecrans/lecon.js?v=40";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=40";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=40";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=40";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=40";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=40";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=40";
-import { ecranLectures } from "./ecrans/lectures.js?v=40";
-import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=40";
+import { chargerTableau } from "./donnees.js?v=41";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=41";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=41";
+import { ECOUTES } from "./ecoute.js?v=41";
+import { preparerVoix } from "./voix.js?v=41";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=41";
+import { vibrer } from "./retours.js?v=41";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=41";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=41";
+import { ecranLivre } from "./ecrans/livre.js?v=41";
+import { ecranLecon } from "./ecrans/lecon.js?v=41";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=41";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=41";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=41";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=41";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=41";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=41";
+import { ecranLectures } from "./ecrans/lectures.js?v=41";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=41";
 
 const app = document.getElementById("app");
 let ctx = null;

@@ -17,10 +17,10 @@ const memoire = {};
 globalThis.localStorage = { getItem: k => memoire[k] ?? null, setItem: (k, v) => { memoire[k] = String(v); } };
 
 const { lireCsv, versMots } = await import(path.join(tmp, "donnees.js"));
-const V = await import(path.join(tmp, "verbes.js?v=40"));
-const { conjuguer, PERSONNES } = await import(path.join(tmp, "controles.js?v=40"));
-const P = await import(path.join(tmp, "progression.js?v=40"));
-const { LECONS } = await import(path.join(tmp, "position.js?v=40"));
+const V = await import(path.join(tmp, "verbes.js?v=41"));
+const { conjuguer, PERSONNES } = await import(path.join(tmp, "controles.js?v=41"));
+const P = await import(path.join(tmp, "progression.js?v=41"));
+const { LECONS } = await import(path.join(tmp, "position.js?v=41"));
 
 const csv = process.argv[2];
 if (!csv) { console.error("Donne le CSV du vocabulaire."); process.exit(1); }

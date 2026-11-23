@@ -9,7 +9,7 @@
 //          + expl (facultatif) : l'explication écrite, quand la règle de la leçon n'aide pas pour cette phrase.
 // dire   : { fr, es }                                    → tu la dis à voix haute, tu compares, tu te notes.
 //
-// Unités prêtes : 1 à 14, et Noël. Les suivantes s'ajoutent au fil des leçons.
+// Unités prêtes : 1 à 15, et Noël. Les suivantes s'ajoutent au fil des leçons.
 
 const T = "Traduis";
 const C = "Complète";
@@ -1132,6 +1132,75 @@ export const EXERCICES = {
       { fr: "Ici, tout est moins cher.", es: "Aquí todo es más barato." },
       { fr: "À Huesca, c'est facile de sortir prendre un verre.", es: "En Huesca es fácil salir a tomar algo." },
       { fr: "Avant je ne parlais pas espagnol ; maintenant je le parle un peu.", es: "Antes no hablaba español; ahora lo hablo un poco." },
+    ],
+  },
+  // ── Unité 15 : la vraie histoire de Kevin et Blanca (en ligne, Paris, Huesca, la demande à Valence), les 3 passés. ──
+  "U15-L1": {
+    ecrire: [
+      { consigne: T, fr: "On s'est rencontrés sur internet.", es: ["Nos conocimos por internet.", "Nos conocimos en internet."] },
+      { consigne: C, fr: "Blanca y yo nos ___ por internet. (conocer, passé simple)", es: ["conocimos"], v: "conocer", p: 3, t: "ps",
+        expl: "*Conocer* au passé simple = se rencontrer pour la première fois : nos **conocimos**." },
+      { consigne: T, fr: "La première fois, elle est venue me voir à Paris.", es: ["La primera vez, vino a verme a París.", "La primera vez, ella vino a verme a París.", "La primera vez vino a verme a París.", "La primera vez, vino a París a verme."] },
+      { consigne: C, fr: "Yo ___ a Blanca en París. (conocer, passé simple)", es: ["conocí"], v: "conocer", p: 0, t: "ps",
+        expl: "*Conocer* au passé simple = rencontrer pour la première fois : **conocí** a Blanca." },
+    ],
+    dire: [
+      { fr: "Où vous vous êtes rencontrés ?", es: "¿Dónde os conocisteis?" },
+      { fr: "Au début, on parlait anglais.", es: "Primero hablábamos en inglés." },
+      { fr: "Je suis allé la chercher au métro avec deux bières.", es: "Fui a buscarla al metro con dos cervezas." },
+    ],
+  },
+  "U15-L2": {
+    ecrire: [
+      { consigne: T, fr: "On parlait anglais, mais elle parlait aussi français.", es: ["Hablábamos en inglés, pero ella también hablaba francés.", "Hablábamos inglés, pero ella también hablaba francés."] },
+      { consigne: C, fr: "Cuando nos conocimos, yo ___ en París. (vivir, imparfait)", es: ["vivía"], v: "vivir", p: 0, t: "imp" },
+      { consigne: T, fr: "C'était un coup de foudre ?", es: ["¿Fue un flechazo?"] },
+      { consigne: C, fr: "Yo ___ dos cervezas al metro. (llevar, passé simple)", es: ["llevé"], v: "llevar", p: 0, t: "ps", sens: "la cerveza = la bière" },
+    ],
+    dire: [
+      { fr: "Elle a un très beau sourire.", es: "Tiene una sonrisa muy bonita." },
+      { fr: "Quand es-tu tombé amoureux d'elle ?", es: "¿Cuándo te enamoraste de ella?" },
+      { fr: "Je ne parlais pas espagnol.", es: "No hablaba español." },
+    ],
+  },
+  "U15-L3": {
+    ecrire: [
+      { consigne: T, fr: "Il y a environ quatre ans, j'ai déménagé à Huesca.", es: ["Hace unos cuatro años me mudé a Huesca.", "Hace cuatro años me mudé a Huesca.", "Me mudé a Huesca hace unos cuatro años."] },
+      { consigne: C, fr: "Hace unos cuatro años que ___ en Huesca. (vivir, yo)", es: ["vivo"], v: "vivir", p: 0,
+        expl: "*Hace* + durée + *que* (ça fait… que) : le présent, **vivo**." },
+      { consigne: T, fr: "J'ai cherché un travail depuis la maison.", es: ["Busqué un trabajo desde casa."] },
+      { consigne: C, fr: "Me ___ a Huesca por Blanca y por Léo. (mudarse, passé simple)", es: ["mudé"], v: "mudar", p: 0, t: "ps" },
+    ],
+    dire: [
+      { fr: "Le déménagement s'est bien passé ?", es: "¿Qué tal fue la mudanza?" },
+      { fr: "Ça fait environ quatre ans que je vis à Huesca.", es: "Hace unos cuatro años que vivo en Huesca." },
+      { fr: "Vous parliez quelle langue au début ?", es: "¿En qué idioma hablabais al principio?" },
+    ],
+  },
+  "U15-L4": {
+    ecrire: [
+      { consigne: T, fr: "Je l'ai demandée en mariage à Valence, et elle m'a dit oui.", es: ["Le pedí matrimonio en Valencia y me dijo que sí.", "Le pedí matrimonio en Valencia, y me dijo que sí."] },
+      { consigne: C, fr: "Ella me ___ que sí. (decir, passé simple)", es: ["dijo"], v: "decir", p: 2, t: "ps" },
+      { consigne: T, fr: "J'ai caché des caméras pour filmer le moment.", es: ["Escondí unas cámaras para grabar el momento.", "Escondí cámaras para grabar el momento."], sens: "la cámara = la caméra · grabar = filmer" },
+      { consigne: C, fr: "La tutora me preguntó ___ Léo comía bien. (si)", es: ["si"], expl: "Rapporter une question : me preguntó **si**… (sans accent : *si* = si)." },
+    ],
+    dire: [
+      { fr: "Elle a été émue ?", es: "¿Se emocionó?" },
+      { fr: "Il y avait des lumières sur le balcon.", es: "Había luces en el balcón." },
+      { fr: "Où as-tu acheté la bague ?", es: "¿Dónde compraste el anillo?" },
+    ],
+  },
+  "U15-L5": {
+    ecrire: [
+      { consigne: T, fr: "Au début, je ne parlais pas espagnol, mais avec le temps j'ai appris.", es: ["Al principio no hablaba español, pero con el tiempo he aprendido.", "Al principio no hablaba español, pero con el tiempo aprendí."] },
+      { consigne: C, fr: "Este año ___ la boda. (preparar, nosotros, passé composé)", es: ["hemos preparado"], v: "preparar", p: 3, t: "pc" },
+      { consigne: T, fr: "On s'est rencontrés sur internet, et elle est venue me voir à Paris.", es: ["Nos conocimos por internet y vino a verme a París.", "Nos conocimos por internet, y vino a verme a París.", "Nos conocimos en internet y vino a verme a París."] },
+      { consigne: C, fr: "Al principio ___ en inglés. (hablar, nosotros, imparfait)", es: ["hablábamos"], v: "hablar", p: 3, t: "imp" },
+    ],
+    dire: [
+      { fr: "Je suis très heureux.", es: "Estoy muy feliz." },
+      { fr: "Pour le mariage, pas de pression : je suis tranquille.", es: "Para la boda, nada de presión: estoy tranquilo." },
+      { fr: "Le 19 juin, c'est notre mariage.", es: "El 19 de junio es nuestra boda." },
     ],
   },
 };

@@ -31,6 +31,7 @@ const CHOIX = (mot, t, f) => t === "pc"
 const IMP = "Complète à l'imparfait";
 const DECOR = f => `Ce qui durait, le décor : l'imparfait, **${f}**.`;
 const ACTION = f => `L'action qui arrive : le passé simple, **${f}**.`;
+const HACE = "*Hace* + durée + passé simple = il y a (*hace cuatro años me mudé*) ; *hace* + durée + *que* + présent = ça fait… que (*hace cuatro años que vivo aquí*).";
 const USTED = f => `Avec *usted*, le verbe se conjugue comme avec *él, ella* : **${f}**.`;
 
 export const BONUS = {
@@ -1273,6 +1274,85 @@ export const BONUS = {
       { fr: "Nosotros ___ comer a las dos. (soler)", v: "soler", d: "ue", p: 3 },
       { fr: "De pequeño, yo ___ jugar al fútbol. (soler, imparfait)", v: "soler", d: "ue", p: 0, t: "imp" },
       { fr: "Ya ___ a cenar tarde. (acostumbrarse, passé composé, yo)", v: "acostumbrarse", p: 0, t: "pc" },
+    ],
+  },
+  // ── Unité 15 : la vraie histoire de Kevin et Blanca ──
+  "U15-L1": {
+    nom: "conocer, nos conocimos", desc: "Conocer au passé simple (rencontrer), dans d'autres phrases.", consigne: PS, t: "ps",
+    phrases: [
+      { fr: "Blanca y yo nos ___ en París. (conocer)", v: "conocer", p: 3 },
+      { fr: "¿Dónde os ___? (conocer)", v: "conocer", p: 4 },
+      { fr: "¿Cuándo ___ tú a Blanca? (conocer)", v: "conocer", p: 1 },
+      { fr: "¿Dónde se ___ tus padres? (conocer)", v: "conocer", p: 5 },
+      { fr: "Ayer Dorian ___ a un compañero nuevo. (conocer)", v: "conocer", p: 2 },
+      { fr: "Mis vecinos se ___ por casualidad. (conocer)", v: "conocer", p: 5 },
+      { fr: "¿Quién os ___? (presentar)", v: "presentar", p: 2 },
+      { fr: "La primera vez que la ___, fue en el metro. (ver, yo)", v: "ver", p: 0 },
+      { fr: "Ella ___ a París a verme. (venir)", v: "venir", p: 2 },
+      { fr: "Yo ___ a buscarla al metro. (ir)", v: "ir", p: 0 },
+    ],
+    tableaux: [{ v: "conocer", sens: "connaître, rencontrer" }],
+  },
+  "U15-L2": {
+    nom: "imparfait ou passé simple", desc: "Ce qui durait (imparfait), ce qui est arrivé (passé simple), dans d'autres phrases.",
+    consigne: "Imparfait ou passé simple ?",
+    phrases: [
+      { fr: "Cuando nos conocimos, yo ___ en París. (vivir)", v: "vivir", p: 0, t: "imp", expl: DECOR("vivía") },
+      { fr: "Blanca ___ a París a verme. (venir)", v: "venir", p: 2, t: "ps", expl: ACTION("vino") },
+      { fr: "Al principio, nosotros ___ en inglés. (hablar)", v: "hablar", p: 3, t: "imp", expl: DECOR("hablábamos") },
+      { fr: "Yo no ___ que ella hablaba francés. (saber)", v: "saber", p: 0, t: "imp", expl: DECOR("sabía") },
+      { fr: "Ese día ___ dos cervezas al metro. (llevar, yo)", v: "llevar", p: 0, t: "ps", mot: "la cerveza = la bière", expl: ACTION("llevé") },
+      { fr: "Yo no ___ español. (hablar)", v: "hablar", p: 0, t: "imp", expl: DECOR("hablaba") },
+      { fr: "Ella ___ francés muy bien. (hablar)", v: "hablar", p: 2, t: "imp", expl: DECOR("hablaba") },
+      { fr: "Después de cinco meses, ___ a Léo. (esperar, nosotros)", v: "esperar", p: 3, t: "imp", mot: "esperar = attendre", expl: DECOR("esperábamos") },
+      { fr: "¿Tú te ___ enseguida? (enamorarse)", v: "enamorar", p: 1, t: "ps", expl: ACTION("te enamoraste") },
+      { fr: "Ese día nosotros ___ mucho. (hablar)", v: "hablar", p: 3, t: "ps", expl: ACTION("hablamos") + " (*ese día* : un moment fini)." },
+    ],
+  },
+  "U15-L3": {
+    nom: "hace, hace… que", desc: "Il y a (hace + passé simple) et ça fait… que (hace… que + présent).", consigne: "Complète", regle: HACE,
+    phrases: [
+      { fr: "___ cuatro años me mudé a Huesca. (il y a)", es: ["Hace"] },
+      { fr: "Hace unos cuatro años ___ un trabajo desde casa. (buscar, yo)", v: "buscar", p: 0, t: "ps", expl: HACE },
+      { fr: "Hace unos cuatro años que ___ desde casa. (trabajar, yo)", v: "trabajar", p: 0, expl: HACE },
+      { fr: "Hace dos años los vecinos ___ a este piso. (mudarse)", v: "mudarse", p: 5, t: "ps", expl: HACE },
+      { fr: "Hace dos años que los vecinos ___ aquí. (vivir)", v: "vivir", p: 5, expl: HACE },
+      { fr: "¿Cuándo os ___ juntos? (mudarse)", v: "mudar", p: 4, t: "ps" },
+      { fr: "¿___ un piso o lo comprasteis? (alquilar, vosotros)", v: "alquilar", p: 4, t: "ps" },
+      { fr: "Hace un mes mis vecinos ___ un piso nuevo. (alquilar)", v: "alquilar", p: 5, t: "ps", expl: HACE },
+      { fr: "¿Cuánto tiempo hace que ___ español? (aprender, tú)", v: "aprender", p: 1, expl: HACE },
+      { fr: "Hace un año que mi amigo ___ piso con dos chicos. (compartir)", v: "compartir", p: 2, expl: HACE },
+    ],
+  },
+  "U15-L4": {
+    nom: "me dijo que, me preguntó si", desc: "Rapporter ce qu'on a dit, dans d'autres phrases.", consigne: "Complète",
+    regle: "Rapporter ce qu'on a dit : **me dijo que…** ; une question : **me preguntó si…**",
+    phrases: [
+      { fr: "Blanca me dijo ___ sí. (que)", es: ["que"] },
+      { fr: "La tutora me preguntó ___ Léo dormía bien. (si)", es: ["si"] },
+      { fr: "Dorian me ___ que tenía hambre. (decir, passé simple)", v: "decir", p: 2, t: "ps" },
+      { fr: "Mi suegro me ___ si quería una caña. (preguntar, passé simple)", v: "preguntar", p: 2, t: "ps" },
+      { fr: "El médico me dijo ___ Léo estaba bien. (que)", es: ["que"] },
+      { fr: "Me preguntaron ___ hablaba español. (si)", es: ["si"] },
+      { fr: "Le ___ matrimonio en Valencia. (pedir, passé simple, yo)", v: "pedir", d: "i", p: 0, t: "ps" },
+      { fr: "Ella ___ enseguida. (aceptar, passé simple)", v: "aceptar", p: 2, t: "ps" },
+      { fr: "¿Te ___? (emocionarse, passé simple, tú)", v: "emocionar", p: 1, t: "ps" },
+      { fr: "Me dijo que ___ muy feliz. (estar, imparfait)", v: "estar", p: 2, t: "imp", expl: "Dans un récit au passé : me dijo que **estaba** (l'imparfait)." },
+    ],
+  },
+  "U15-L5": {
+    nom: "les 3 passés", desc: "Passé composé, passé simple ou imparfait : votre histoire, dans d'autres phrases.", consigne: "Quel passé ?",
+    phrases: [
+      { fr: "Este año ___ mucho español. (aprender, yo)", v: "aprender", p: 0, t: "pc", expl: CHOIX("Este año", "pc", "he aprendido") },
+      { fr: "Hace unos cuatro años ___ a Huesca. (mudarse, yo)", v: "mudarse", p: 0, t: "ps", expl: CHOIX("Hace unos cuatro años", "ps", "me mudé") },
+      { fr: "Al principio no ___ español. (hablar, yo)", v: "hablar", p: 0, t: "imp", expl: DECOR("hablaba") },
+      { fr: "En mayo le ___ matrimonio. (pedir, yo)", v: "pedir", d: "i", p: 0, t: "ps", expl: CHOIX("En mayo", "ps", "pedí") },
+      { fr: "Esta semana ___ mucho de la boda. (hablar, nosotros)", v: "hablar", p: 3, t: "pc", expl: CHOIX("Esta semana", "pc", "hemos hablado") },
+      { fr: "Cuando la conocí, yo ___ en París. (vivir)", v: "vivir", p: 0, t: "imp", expl: DECOR("vivía") },
+      { fr: "Blanca ___ a verme a París. (venir)", v: "venir", p: 2, t: "ps", expl: ACTION("vino") },
+      { fr: "Con el tiempo ___ a hablar con mi suegro. (aprender, yo)", v: "aprender", p: 0, t: "pc", expl: "*Con el tiempo*, jusqu'à aujourd'hui : le passé composé, **he aprendido**." },
+      { fr: "Ese día ___ luces en el balcón. (il y avait)", es: ["había"], expl: "Le décor : **había** (il y avait)." },
+      { fr: "Ella me ___ que sí. (decir)", v: "decir", p: 2, t: "ps", expl: ACTION("dijo") },
     ],
   },
 };

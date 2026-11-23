@@ -5,11 +5,11 @@
 // - #/semaine : « Ton écoute de la semaine », les mots depuis le dernier envoi et « Copier pour le prof ».
 // Un mot ajouté va dans « Tes mots à revoir » dès le lendemain, toujours appris : si je n'en veux plus, je le supprime.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=40";
-import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=40";
-import { memeMot, motVu } from "../dico.js?v=40";
-import { lecon as trouverLecon } from "../position.js?v=40";
-import { vibrer } from "../retours.js?v=40";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=41";
+import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=41";
+import { memeMot, motVu } from "../dico.js?v=41";
+import { lecon as trouverLecon } from "../position.js?v=41";
+import { vibrer } from "../retours.js?v=41";
 
 const svg = corps => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const CRAYON = svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>');

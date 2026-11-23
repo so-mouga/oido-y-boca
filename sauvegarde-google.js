@@ -2,8 +2,8 @@
 // L'appli envoie la progression quand elle s'ouvre et quand on la quitte, seulement si elle a changé.
 // Le lien du script (adresse + « #clé ») est collé une fois et gardé sur le téléphone : jamais dans le code.
 
-import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu } from "./progression.js?v=40";
-import { dateCourte } from "./ui.js?v=40";
+import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu } from "./progression.js?v=41";
+import { dateCourte } from "./ui.js?v=41";
 
 const CLE_LIEN = "oyb.google";           // { url, cle }
 const CLE_ENVOI = "oyb.google.envoi";    // { empreinte, echec } : le dernier envoi réussi, et s'il a raté depuis

@@ -7,20 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=40";
-import { lecon as trouver } from "../position.js?v=40";
-import { EXERCICES } from "../exercices.js?v=40";
-import { corriger } from "../corriger.js?v=40";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=40";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=40";
-import { BONUS } from "../bonus.js?v=40";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=40";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=40";
-import { vibrer, son } from "../retours.js?v=40";
+import { esc, md, id, ICONES } from "../ui.js?v=41";
+import { lecon as trouver } from "../position.js?v=41";
+import { EXERCICES } from "../exercices.js?v=41";
+import { corriger } from "../corriger.js?v=41";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=41";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=41";
+import { BONUS } from "../bonus.js?v=41";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=41";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=41";
+import { vibrer, son } from "../retours.js?v=41";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=40";
+} from "../enregistrement.js?v=41";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
