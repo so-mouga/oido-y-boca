@@ -668,3 +668,78 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .bloc .pas-vu { background: var(--sun-deep); color: var(--sun-ink); border-radius: 12px; padding: 8px 10px; font-size: 13.5px; line-height: 1.4; }
 .bloc .nom-temps { font-size: 13.5px; color: var(--marine-soft); }
 .bloc .nom-temps i { color: var(--muted); }
+
+/* Les lectures (ecrans/lectures.js) */
+.lx-entree { display: flex; align-items: center; gap: 13px; background: var(--card); border: 1px solid var(--hair); border-radius: 20px; padding: 14px 15px; }
+.lx-entree:active { background: var(--sun-deep); }
+.lx-ic { width: 40px; height: 40px; border-radius: 12px; background: var(--sun); color: var(--marine); display: grid; place-items: center; flex: none; }
+.lx-ic .i { width: 20px; height: 20px; }
+.lx-txt { flex: 1; min-width: 0; }
+.lx-txt b { display: block; font-weight: 500; font-size: 15px; line-height: 1.3; }
+.lx-entree .lx-txt b { font-size: 16px; font-weight: 600; }
+.lx-txt > span { display: block; font-size: 12.5px; color: var(--muted); }
+.lx-entree > .i, .lx-texte > .i, .lx-niveau > .i { width: 18px; height: 18px; color: var(--marine-soft); }
+.lectures { padding-right: 22px; }
+.lectures h1 { font-size: 30px; line-height: 1.1; }
+.lectures h1 + .sous { margin-top: 6px; }
+.lectures section > h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
+.lx-ton { background: var(--card); border: 1px solid var(--hair); border-radius: 20px; padding: 14px 15px 4px; }
+.lx-ton .k { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--sun-ink); }
+.lectures .lx-ton h2 { font-size: 17px; font-weight: 600; color: var(--marine); margin: 2px 0 6px; }
+.lx-textes li + li .lx-texte, .lx-ton .lx-texte { border-top: 1px solid var(--hair); }
+.lx-texte { display: flex; align-items: center; gap: 11px; padding: 11px 0; min-height: 48px; }
+.lx-texte .pt { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--marine-soft); flex: none; display: grid; place-items: center; }
+.lx-texte.lu .pt { background: var(--sage-ink); border-color: var(--sage-ink); }
+.lx-texte.lu .pt::after { content: ""; width: 8px; height: 4px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) translate(1px, -1px); }
+.lx-score { font-size: 13px; font-weight: 500; color: var(--sage-ink); font-variant-numeric: tabular-nums; }
+.lx-niveaux > li { border-top: 1px solid var(--hair); }
+.lx-niveau { display: flex; align-items: center; gap: 12px; padding: 11px 0; }
+.lx-niveau .num { width: 32px; height: 32px; border-radius: 9px; flex: none; display: grid; place-items: center; font-size: 13px; font-weight: 600; background: var(--sun-deep); color: var(--marine-soft); }
+.lx-niveau em { font-style: normal; color: var(--sun-ink); }
+.lx-niveaux .ouvert > .lx-niveau > .i { transform: rotate(90deg); }
+.lx-niveaux .lx-textes { margin: 0 0 8px 44px; }
+
+/* Un texte */
+.lx-page { gap: 22px; }
+.lx-sorte { display: flex; align-items: center; gap: 7px; font-size: 12.5px; font-weight: 500; color: var(--marine-soft); margin-bottom: 6px; }
+.lx-sorte::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--sun); flex: none; }
+.lx-page h1 { font-size: 26px; line-height: 1.15; }
+.lx-lire { position: relative; font-size: 18px; line-height: 1.7; }
+.lx-lire p + p { margin-top: 10px; }
+.lx-mot { cursor: pointer; border-radius: 5px; -webkit-tap-highlight-color: transparent; }
+.lx-mot.nouveau { text-decoration: underline dotted var(--marine-soft); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.lx-ph.lit { background: var(--sun-deep); border-radius: 6px; box-shadow: 0 0 0 2px var(--sun-deep); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.lx-mot.touche { background: var(--sun); box-shadow: 0 0 0 2px var(--sun); }
+.lx-msg { background: #EFE3C4; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.lx-msg .de { font-size: 12px; font-weight: 600; color: var(--sage-ink); }
+.lx-msg .bulle { background: #fff; border-radius: 4px 16px 16px 16px; padding: 10px 13px; }
+.lx-dialogue p { padding-left: 14px; text-indent: -14px; }
+.lx-breve .lieu { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 15px; }
+.lx-trad { position: absolute; z-index: 2; max-width: min(300px, 100%); background: var(--marine); color: var(--sun-ground); border-radius: 14px; padding: 10px 13px; font-size: 15px; line-height: 1.35; box-shadow: 0 8px 22px rgba(19, 41, 75, .25); display: flex; flex-direction: column; gap: 8px; }
+.lx-trad[hidden] { display: none; }
+.lx-trad b { font-weight: 600; }
+.lx-ecouter { display: inline-flex; align-items: center; gap: 8px; color: var(--sun-halo); font-size: 13.5px; font-weight: 500; align-self: flex-start; }
+.lx-ecouter .ecoute { width: 28px; height: 28px; background: var(--sun); }
+.lx-ecouter .ecoute .i { width: 12px; height: 12px; }
+.lx-ecouter.on .ecoute { box-shadow: 0 0 0 4px rgba(249, 218, 140, .35); }
+.lx-ecouter.on .lecture .i { display: none; }
+.lx-ecouter.on .lecture .barres { display: flex; }
+
+/* Les questions */
+.lx-questions { display: flex; flex-direction: column; gap: 18px; border-top: 1px solid var(--hair); padding-top: 18px; }
+.lx-questions > h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin: 0; }
+.lx-q { display: flex; flex-direction: column; gap: 7px; }
+.lx-q .es { font-size: 16px; font-weight: 500; line-height: 1.35; }
+.lx-q .fr { font-size: 13.5px; color: var(--muted); font-style: italic; }
+.lx-voirfr { align-self: flex-start; font-size: 12.5px; color: var(--marine-soft); text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 2px 0; }
+.lx-choix { display: flex; flex-direction: column; gap: 7px; }
+.lx-choix button { text-align: left; background: var(--card); border: 1.5px solid var(--hair); border-radius: 14px; padding: 11px 13px; font-size: 15px; color: var(--marine); }
+.lx-choix button:disabled { cursor: default; }
+.lx-choix button.juste { background: #DCEBDD; border-color: var(--sage-ink); color: var(--sage-ink); font-weight: 500; }
+.lx-choix button.faux { background: var(--rose); border-color: var(--rose-ink); color: var(--rose-ink); text-decoration: line-through; }
+.lx-fin { display: flex; flex-direction: column; gap: 10px; }
+.lx-fin[hidden] { display: none; }
+.lx-res { background: #DCEBDD; color: var(--sage-ink); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 3px; }
+.lx-res.bof { background: var(--sun-deep); color: var(--sun-ink); }
+.lx-res b { font-size: 18px; font-weight: 600; }
+.lx-res span { font-size: 13.5px; }

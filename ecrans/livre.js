@@ -1,10 +1,11 @@
 // « Le livre » : les 4 parties, les unités, les leçons. Le prof débloque en écrivant dans « Suivi » ;
 // ici on n'ouvre que les leçons faites. Une unité à la fois est dépliée (#/livre/U3).
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=39";
-import { PARTIES } from "../livre.js?v=39";
-import { etatLecon, uniteCourante, LECONS } from "../position.js?v=39";
-import { controlePret } from "./controle.js?v=39";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=40";
+import { PARTIES } from "../livre.js?v=40";
+import { etatLecon, uniteCourante, LECONS } from "../position.js?v=40";
+import { controlePret } from "./controle.js?v=40";
+import { carteLectures } from "./lectures.js?v=40";
 
 function ligneLecon(l, pos) {
   const etat = etatLecon(l.id, pos);
@@ -53,6 +54,7 @@ export function ecranLivre(ctx, cible) {
     apres: () => ouverte && cible && document.getElementById(`u-${ouverte}`)?.scrollIntoView({ block: "start" }),
     html: `<main class="colonne livre">
         <header class="haut"><h1>Le livre</h1><span class="sous">${pos.nbFaites} leçon${pos.nbFaites > 1 ? "s" : ""} sur ${LECONS.length}</span></header>
+        ${carteLectures(ctx)}
         ${PARTIES.map(p => `<section class="partie" aria-label="Partie ${p.n}">
             <h2>Partie ${p.n} · ${titre(p.titre)}</h2>
             <ul>${p.unites.map(u => unite({ ...u, partie: p.n }, pos, u.id === ouverte, courante)).join("")}</ul>
