@@ -1,10 +1,10 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=23";
-import { UNITES, uniteCourante } from "../position.js?v=23";
-import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=23";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=23";
-import { controlePret, dernierResultat } from "./controle.js?v=23";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=24";
+import { UNITES, uniteCourante } from "../position.js?v=24";
+import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=24";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=24";
+import { controlePret, dernierResultat } from "./controle.js?v=24";
 
 function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "", cls = "" }) {
   const caseHtml = auto

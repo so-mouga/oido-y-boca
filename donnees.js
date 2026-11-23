@@ -35,9 +35,15 @@ function versObjets(lignes, noms) {
   return reste.map(l => Object.fromEntries(Object.entries(index).map(([cle, i]) => [cle, i >= 0 && l[i] ? l[i].trim() : ""])));
 }
 
-// Accepte « 2026-11-23 », « 23/11/2026 » et « 23/11/2026 12:00:00 ». Renvoie une date ISO (jour seulement) ou "".
+// Accepte « 2026-11-23 », « 23/11/2026 », « 23/11/2026 12:00:00 », et le nombre que Google Sheets
+// envoie pour une cellule au format date (46349 = 23 nov. 2026, en jours depuis le 30 déc. 1899).
+// Renvoie une date ISO (jour seulement) ou "".
 export function lireDate(texte) {
   const t = (texte || "").trim();
+  if (/^\d{5}(\.\d+)?$/.test(t)) {
+    const d = new Date(Date.UTC(1899, 11, 30) + Math.floor(Number(t)) * 86400000);
+    return d.toISOString().slice(0, 10);
+  }
   let m = t.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
   if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
   m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
