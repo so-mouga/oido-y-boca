@@ -107,16 +107,29 @@ html.glisse::view-transition-new(root) { animation: entreDroite .4s var(--ease) 
 .onglet.on { color: var(--marine); font-weight: 600; }
 .onglet.on::before { background: var(--sun); }
 
-/* Aujourd'hui */
-.accueil { flex: 1; display: flex; }
+/* Aujourd'hui : la carte « À faire maintenant », puis « Ta journée », un suivi sans case à cocher. */
+.accueil { padding-right: 22px; }
 .marque { font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .marque i { width: 11px; height: 11px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 0 3px var(--sun-halo); }
 .tete { display: block; }
 .tete h1 { font-size: 30px; line-height: 1.1; }
 .tete .sous { margin-top: 6px; }
-.tete .unite { font-size: 14px; color: var(--marine-soft); margin-top: 2px; }
 .cle { background: var(--sun-deep); border-radius: 16px; padding: 13px 15px; font-size: 16px; line-height: 1.4; font-weight: 500; }
 .cle span { display: block; font-size: 12px; font-weight: 400; color: var(--sun-ink); margin-bottom: 3px; }
+
+.action { background: var(--marine); color: var(--sun-ground); border-radius: 22px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+.action .k { font-size: 12px; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--sun-halo); }
+.action h2 { font-size: 21px; font-weight: 600; line-height: 1.2; color: inherit; margin: 0; }
+.action .d { font-size: 14px; line-height: 1.45; color: #C9D3E4; }
+.action .btn { background: var(--sun); color: var(--marine); border-radius: 16px; padding: 14px; text-align: center; font-weight: 600; font-size: 16px; margin-top: 2px; }
+.action .btn:active { background: var(--sun-halo); }
+.action .liens { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 14px; }
+.action .lien { color: var(--sun-ground); padding: 4px 0; }
+.action.attente { background: var(--sun-deep); color: var(--marine); }
+.action.attente .k { color: var(--sun-ink); }
+.action.attente .d { color: var(--marine-soft); }
+.action.fini { background: #DCEBDD; color: var(--sage-ink); }
+.action.fini .k, .action.fini .d { color: var(--sage-ink); }
 
 section h2 { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 4px; }
 .taches { display: flex; flex-direction: column; }
@@ -134,25 +147,15 @@ button.case::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 
 .aller b { display: block; font-weight: 500; font-size: 15px; }
 .aller .txt > span { display: block; font-size: 13px; color: var(--muted); overflow-wrap: anywhere; }
 .aller .i { color: var(--marine-soft); width: 18px; height: 18px; }
-.tache.faite .aller b { color: var(--marine-soft); }
-.tache.neutre .case { border-style: dashed; border-color: var(--fog); }
-.tache.neutre .aller b { color: var(--muted); font-weight: 400; }
-.mini { flex: none; font-size: 12px; color: var(--marine-soft); background: var(--sun-deep); border-radius: 999px; padding: 6px 10px; }
+/* Le point de chaque ligne : ✓ vert = fait, jaune = maintenant, rond vide = à venir. */
+.pt { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--fog); flex: none; display: grid; place-items: center; color: #fff; }
+.pt .i { width: 14px; height: 14px; stroke-width: 3; }
+.pt.ok { background: var(--sage-ink); border-color: var(--sage-ink); }
+.pt.ici { background: var(--sun); border-color: var(--sun); box-shadow: 0 0 0 4px var(--sun-halo); }
+.tache.faite .aller b { color: var(--muted); }
+.tache.ici .aller b { font-weight: 600; }
+.mini { flex: none; font-size: 13px; font-weight: 500; color: var(--marine); background: var(--sun-deep); border-radius: 999px; padding: 8px 12px; }
 .id { white-space: nowrap; }
-
-/* la tranche du livre */
-.tranche {
-  width: 48px; flex: none; display: flex; flex-direction: column; gap: 3px;
-  padding: calc(env(safe-area-inset-top, 0px) + 20px) 0 16px;
-}
-.tranche .p { font-size: 10px; color: var(--muted); text-align: right; padding: 6px 8px 1px 0; font-weight: 500; letter-spacing: .04em; }
-.tab {
-  height: 21px; border-radius: 7px 0 0 7px; background: var(--sun-deep); font-size: 11px; font-weight: 500; color: var(--marine-soft);
-  display: flex; align-items: center; padding-left: 9px; font-variant-numeric: tabular-nums;
-}
-.tab.fini { background: var(--marine); color: var(--sun-ground); }
-.tab.now { background: var(--sun); color: var(--marine); font-weight: 600; margin-left: -8px; }
-.tab.fog { background: transparent; color: var(--fog); border: 1px solid var(--hair); border-right: 0; }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
@@ -382,6 +385,13 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .bilan li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: 1px solid var(--hair); font-size: 15px; }
 .bilan b { font-weight: 500; }
 .bilan span { color: var(--marine-soft); }
+/* La fin d'un paquet de « Tes mots à revoir » */
+.reste { background: var(--sun-deep); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.reste b { font-size: 17px; font-weight: 600; }
+.reste p { font-size: 14px; color: var(--marine-soft); }
+/* Sous une carte retournée de la révision : la leçon d'où vient le mot. */
+.carte .origine { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; border-top: 1px solid var(--hair); padding-top: 12px; font-size: 13px; color: var(--muted); text-align: left; }
+.carte .origine .lien { font-size: 14px; padding: 4px 0; }
 
 /* Ma progression : sauvegarder ou restaurer, discret en bas d'Aujourd'hui. */
 .sauvegarde { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--hair); display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
@@ -394,7 +404,6 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .lecon.controle.ouvert .losange { border-color: var(--sun-ink); }
 .lecon.controle.ouvert.reussi { color: var(--sage-ink); }
 .lecon.controle.ouvert.rate { color: var(--rose-ink); }
-.tache.ctl .case { border-color: var(--sun-ink); transform: rotate(45deg) scale(.8); border-radius: 4px; }
 .controle-page h1 { font-size: 30px; line-height: 1.1; }
 .controle-page h1 + .sous { margin-top: 6px; }
 .carte-claire h2 { font-size: 13px; font-weight: 500; color: var(--muted); }

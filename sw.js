@@ -1,5 +1,5 @@
 // Le service worker : garde l'appli sur le téléphone pour qu'elle s'ouvre sans réseau.
-// Son numéro de version vient de son adresse (« sw.js?v=25 », écrite dans index.html) :
+// Son numéro de version vient de son adresse (« sw.js?v=26 », écrite dans index.html) :
 // passer les imports à la version suivante change cette adresse, le navigateur installe
 // le nouveau service worker, qui remplace l'ancien et efface son cache. Rien à vider à la main.
 // Le Google Sheet n'est pas concerné : donnees.js garde déjà sa propre copie.

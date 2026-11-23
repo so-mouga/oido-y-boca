@@ -4,7 +4,6 @@
 
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
-const PLAFOND_REVISION = 2;                   // leçons à réviser par jour, au plus
 
 const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {} });
 let etat = lire();
@@ -36,26 +35,19 @@ export function noterMot(idMot, note, aujourdhui) {
   sauver();
 }
 
-// Un mot est « à revoir » s'il n'a jamais été travaillé ici, ou si son intervalle est passé.
-export function aRevoir(idMot, aujourdhui) {
-  const f = etat.mots[idMot];
-  if (!f || !f.vu) return true;
-  return jours(f.vu, aujourdhui) >= INTERVALLES[f.boite];
+// Les mots à revoir aujourd'hui, du plus en retard au moins en retard : ceux dont l'intervalle est passé.
+// Un mot jamais travaillé ici compte depuis le jour de sa leçon (dateLecon). Un mot déjà vu aujourd'hui,
+// même raté, attend demain : sinon « il te reste N mots » ne finirait jamais.
+export function motsARevoir(mots, aujourdhui, dateLecon) {
+  return mots.map(m => {
+    const f = etat.mots[m.id];
+    if (f?.vu === aujourdhui) return null;
+    const retard = jours(f?.vu || dateLecon(m.lecon) || aujourdhui, aujourdhui) - INTERVALLES[f?.boite ?? 0];
+    return retard >= 0 ? { m, retard } : null;
+  }).filter(Boolean).sort((a, b) => b.retard - a.retard).map(x => x.m);
 }
 
-// Les leçons à réviser aujourd'hui : parmi les leçons faites (sauf la dernière, fraîche du matin),
-// celles qui ont le plus de mots à revoir. Au plus 2.
-export function leconsARevoir(idsFaites, derniereId, motsParLecon, aujourdhui) {
-  return idsFaites
-    .filter(id => id !== derniereId)
-    .map(id => ({ id, du: (motsParLecon[id] || []).filter(m => aRevoir(m.id, aujourdhui)).length }))
-    .filter(x => x.du > 0)
-    .sort((a, b) => b.du - a.du)
-    .slice(0, PLAFOND_REVISION)
-    .map(x => x.id);
-}
-
-// Les cases du jour (révision, écoute, soir). La case « prof » vient de « Suivi », pas d'ici.
+// Les cases du jour : écoute, soir, « revision » (le nombre de mots revus), « exos:ID » ({ ok, sur }). La case « prof » vient de « Suivi », pas d'ici.
 export function cases(aujourdhui) { return etat.jours[aujourdhui] || {}; }
 // Une case cochée un autre jour de la même semaine (du lundi au dimanche) que « aujourdhui » ?
 export function cocheCetteSemaine(aujourdhui, cle) {

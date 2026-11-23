@@ -1,35 +1,35 @@
-// Pratiquer une leçon (#/pratique/U1-L3) ou réviser (#/revision) : une série d'exercices
-// à écrire, à dire et de cartes. Seules les cartes mettent à jour la mémoire des mots.
+// Pratiquer une leçon (#/pratique/U1-L3, ou #/pratique/U1-L3/jour depuis Aujourd'hui) : une série d'exercices
+// à écrire, à dire et de cartes. « Tes mots à revoir » (#/revision) : seulement des cartes, par paquets de 20.
+// Seules les cartes mettent à jour la mémoire des mots. « Quitter » ramène là d'où tu viens.
 // Après une erreur dans une leçon : pourquoi c'est la bonne réponse, et un lien vers la leçon (pas en révision).
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, ICONES } from "../ui.js?v=25";
-import { lecon as trouver } from "../position.js?v=25";
-import { EXERCICES } from "../exercices.js?v=25";
-import { corriger } from "../corriger.js?v=25";
-import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=25";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=25";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=25";
-import { vibrer, son } from "../retours.js?v=25";
+import { esc, md, id, ICONES } from "../ui.js?v=26";
+import { lecon as trouver } from "../position.js?v=26";
+import { EXERCICES } from "../exercices.js?v=26";
+import { corriger } from "../corriger.js?v=26";
+import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=26";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=26";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=26";
+import { vibrer, son } from "../retours.js?v=26";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=25";
+} from "../enregistrement.js?v=26";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
 let s = null; // la série en cours
 
-const hasard = t => t[Math.floor(Math.random() * t.length)];
 const cartes = mots => mots.map(m => ({ type: "carte", mot: m }));
 
 function serieLecon(ctx, idLecon) {
   const l = trouver(idLecon);
   const ex = EXERCICES[idLecon] || { ecrire: [], dire: [] };
   return {
-    titre: l ? `${l.id} · ${l.titre}` : idLecon, retour: `#/lecon/${idLecon}`, revision: false,
+    titre: l ? `${l.id} · ${l.titre}` : idLecon, lecon: idLecon, revision: false,
     sansExercices: !EXERCICES[idLecon],
     items: [
       ...ex.ecrire.map(e => ({ type: "ecrire", lecon: idLecon, ...e })),
@@ -39,18 +39,17 @@ function serieLecon(ctx, idLecon) {
   };
 }
 
-// La révision : pour chaque leçon à revoir, une phrase à écrire, une à dire, et les cartes des mots à revoir.
-function serieRevision(ctx) {
+// « Tes mots à revoir » : tous les mots dus, toutes leçons confondues, sauf ceux de la leçon faite aujourd'hui
+// (ils sont dans la leçon du jour). Les plus en retard d'abord.
+export const PAQUET = 20;
+export function motsDus(ctx) {
   const { pos, motsParLecon, jour } = ctx;
-  const ids = pos.derniere ? leconsARevoir([...pos.faites], pos.derniere.id, motsParLecon, jour) : [];
-  const items = ids.flatMap(i => {
-    const ex = EXERCICES[i];
-    return [
-      ...(ex ? [{ type: "ecrire", lecon: i, ...hasard(ex.ecrire) }, { type: "dire", lecon: i, ...hasard(ex.dire) }] : []),
-      ...cartes(motsParLecon[i] || []),
-    ];
-  });
-  return { titre: `Révision · ${ids.join(" · ")}`, retour: "#/", revision: true, items };
+  const mots = [...pos.faites].filter(l => pos.dateFaite[l] !== jour).flatMap(l => motsParLecon[l] || []);
+  return motsARevoir(mots, jour, l => pos.dateFaite[l]);
+}
+
+function serieRevision(ctx) {
+  return { titre: "Tes mots à revoir", revision: true, items: cartes(motsDus(ctx).slice(0, PAQUET)) };
 }
 
 // La partie écrite du contrôle blanc : les questions tirées au hasard, thème après thème.
@@ -202,7 +201,10 @@ function vueDire(it) {
 
 function vueCarte(it) {
   const m = it.mot;
-  const tete = sorte("Carte · du français à l'espagnol");
+  const tete = sorte(s.revision ? "Tes mots à revoir · carte" : "Carte · du français à l'espagnol");
+  // En révision, la leçon d'où vient le mot. « Revoir la leçon » s'ouvre par-dessus la série, qui reprend au retour.
+  const l = s.revision && trouver(m.lecon);
+  const origine = l ? `<div class="origine"><span>${id(l.id)} · ${esc(l.titre)}</span><a class="lien" href="#/lecon/${l.id}/revision">Revoir la leçon</a></div>` : "";
   if (s.phase === "question") {
     return `${tete}<div class="carte"><p class="fr-seul">${esc(m.fr)}</p><p class="sous">Dis-le en espagnol, puis retourne la carte.</p></div>
       ${zoneIndice(it)}
@@ -213,6 +215,7 @@ function vueCarte(it) {
       <p class="es" lang="es">${esc(m.es)}</p>
       ${ecouter(m.ex ? `${m.es}. ${m.ex}` : m.es, "grand")}
       ${m.ex ? `<p class="exemple" lang="es">${esc(m.ex)}</p>` : ""}
+      ${origine}
     </div>
     <div class="espace"></div>
     ${notes("Tu l'avais trouvé avant de retourner la carte ?", false)}`;
@@ -244,13 +247,40 @@ function vueFinControle() {
     <a class="secondaire" href="${s.retour}">Revenir au contrôle</a>`;
 }
 
-function vueFin() {
+// Les boutons de fin remplacent la série dans l'historique (data-remplace) : le retour d'Android ne la relance pas.
+const versAujourdhui = cls => `<a class="${cls}" href="#/" data-remplace>Revenir à aujourd'hui</a>`;
+
+// La fin d'un paquet de « Tes mots à revoir » : pas de plafond, un autre paquet si tu veux.
+function vueFinPaquet(ctx) {
+  const n = s.notes.carte;
+  const reste = motsDus(ctx).length;
+  const mots = k => k ? `${k} mot${k > 1 ? "s" : ""}` : "aucun";
+  return `<div class="fin">
+      <h1>Paquet terminé</h1>
+      <p class="sous">Tes mots à revoir</p>
+      <ul class="bilan">
+        <li><b>Trouvés</b><span>${n.filter(x => x === 3).length} sur ${n.length}</span></li>
+        <li><b>À revoir bientôt</b><span>${mots(n.filter(x => x < 3).length)}</span></li>
+      </ul>
+      ${reste ? `<div class="reste">
+          <b>Il te reste ${mots(reste)} à revoir</b>
+          <p>Encore un paquet si tu as envie. Sinon, ils t'attendent demain.</p>
+          <button class="primaire" data-p="continuer">Continuer · ${mots(Math.min(reste, PAQUET))}</button>
+        </div>` : `<p class="sous">C'est tout : tes autres mots sont frais.</p>`}
+    </div>
+    <div class="espace"></div>
+    ${versAujourdhui(reste ? "secondaire" : "primaire")}`;
+}
+
+function vueFin(ctx) {
   if (s.controle) return vueFinControle();
+  if (s.revision) return vueFinPaquet(ctx);
   const n = s.notes;
   const justes = n.ecrire.filter(Boolean).length;
   const aide = k => n.aide[k] ? `, ${n.aide[k]} avec indice` : "";
   const ligne = (label, t, texte) => t.length ? `<li><b>${label}</b><span>${texte}</span></li>` : "";
   const oui = t => t.filter(x => x === 3).length;
+  const depuisLecon = s.retour !== "#/";
   return `<div class="fin">
       <h1>Terminé</h1>
       <p class="sous">${esc(s.titre)}</p>
@@ -259,42 +289,51 @@ function vueFin() {
         ${ligne("À dire", n.dire, `${oui(n.dire)} sur ${n.dire.length} du premier coup${aide("dire")}`)}
         ${ligne("Cartes", n.carte, `${oui(n.carte)} sur ${n.carte.length} trouvées${aide("carte")}`)}
       </ul>
-      ${n.carte.some(x => x < 3) ? `<p class="sous">Les mots ratés reviendront plus vite dans tes révisions.</p>` : ""}
+      ${n.carte.some(x => x < 3) ? `<p class="sous">Les mots ratés reviendront dès demain dans « Tes mots à revoir ».</p>` : ""}
     </div>
     <div class="espace"></div>
-    <a class="primaire" href="#/">Revenir à aujourd'hui</a>
-    ${s.revision ? "" : `<a class="secondaire" href="${s.retour}">Revenir à la leçon</a>`}`;
+    ${depuisLecon ? `<a class="primaire" href="${s.retour}" data-remplace>Revenir à la leçon</a>${versAujourdhui("secondaire")}` : versAujourdhui("primaire")}`;
 }
 
-export function ecranPratique(ctx, idLecon) {
-  const cle = idLecon ? `lecon:${idLecon}` : `revision:${ctx.jour}`;
-  const id = idLecon ? decodeURIComponent(idLecon) : null;
-  return ecranSerie(ctx, cle, () => id ? serieLecon(ctx, id) : serieRevision(ctx), idLecon);
+export function ecranPratique(ctx, idLecon, depuis) {
+  const lecon = idLecon ? decodeURIComponent(idLecon) : null;
+  const retour = !lecon || depuis === "jour" ? "#/" : `#/lecon/${lecon}`;
+  return lecon
+    ? ecranSerie(ctx, `lecon:${lecon}`, () => serieLecon(ctx, lecon), retour, "Cette leçon n'a pas encore de mots dans le tableau.")
+    : ecranSerie(ctx, `revision:${ctx.jour}`, () => serieRevision(ctx), retour, "Rien à revoir aujourd'hui : tes mots sont frais.");
 }
 
 export function ecranEcritControle(ctx, idUnite) {
   return ecranSerie(ctx, `controle:${idUnite}`, () => serieControle(ctx, idUnite));
 }
 
-function ecranSerie(ctx, cle, construire, idLecon) {
+// retour : là d'où tu viens (pour « Quitter » et la fin). Une série reprise garde sa place mais prend le nouveau retour.
+function ecranSerie(ctx, cle, construire, retour, vide = "") {
   if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, construire);
+  if (retour) s.retour = retour;
 
   if (!s.items.length) {
+    const titre = s.revision ? "Rien à revoir" : "Rien à pratiquer";
     s = null;
-    return { onglet: null, html: `<main class="colonne vide"><h1>Rien à pratiquer</h1>
-        <p class="sous">${idLecon ? "Cette leçon n'a pas encore de mots dans le tableau." : "Rien à réviser aujourd'hui : tout est frais."}</p>
-        <a class="lien" href="${idLecon ? `#/lecon/${idLecon}` : "#/"}">Revenir</a></main>` };
+    return { onglet: null, html: `<main class="colonne vide"><h1>${titre}</h1>
+        <p class="sous">${vide}</p>
+        <a class="lien" href="${retour}">Revenir</a></main>` };
   }
 
   if (s.i >= s.items.length) {
     if (!s.fini) {
       s.fini = true;
       son("fin");
-      if (s.revision) cocher(ctx.jour, "revision", true);
-      if (s.cle.startsWith("lecon:")) cocher(ctx.jour, `exos:${decodeURIComponent(s.cle.slice(6))}`, true);
+      // « Tes mots à revoir » : le nombre de mots revus aujourd'hui. La leçon du jour : les réussites du premier coup.
+      if (s.revision) cocher(ctx.jour, "revision", (Number(cases(ctx.jour).revision) || 0) + s.items.length);
+      if (s.lecon) {
+        const n = s.notes;
+        const ok = n.ecrire.filter(Boolean).length + [...n.dire, ...n.carte].filter(x => x === 3).length;
+        cocher(ctx.jour, `exos:${s.lecon}`, { ok, sur: s.items.length });
+      }
       if (s.controle) noterControle(s.controle, ctx.jour, Math.round((s.resultats.filter(x => x.ok).length / s.resultats.length) * 100));
     }
-    return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
+    return { onglet: null, html: `<main class="colonne exo">${vueFin(ctx)}</main>` };
   }
 
   const it = s.items[s.i];
@@ -388,6 +427,10 @@ export async function actionPratique(ctx, action, el) {
     }
     case "suivant":
       suivant();
+      return "suivant";
+    case "continuer": // un autre paquet de « Tes mots à revoir »
+      nouvelleSerie(ctx, s.cle, () => serieRevision(ctx));
+      s.retour = "#/";
       return "suivant";
   }
   return false;

@@ -1,34 +1,58 @@
-// L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
+// L'accueil « Aujourd'hui » : en haut, la seule chose à faire maintenant (un bouton) ;
+// dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
+// Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=25";
-import { UNITES, uniteCourante } from "../position.js?v=25";
-import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=25";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=25";
-import { controlePret, dernierResultat } from "./controle.js?v=25";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=26";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=26";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=26";
+import { EXERCICES } from "../exercices.js?v=26";
+import { controlePret, dernierResultat } from "./controle.js?v=26";
+import { motsDus, PAQUET } from "./pratique.js?v=26";
 
-// neutre : rien à faire aujourd'hui (une case vide en pointillés, jamais cochée, pour ne pas faire croire que c'est fait).
-function ligne({ cle, coche, auto, neutre, titre, detail, href, externe, extra = "", cls = "" }) {
-  if (neutre) cls = `${cls} neutre`.trim();
-  const caseHtml = neutre ? `<span class="case" aria-hidden="true"></span>` : auto
-    ? `<span class="case${coche ? " on" : ""}" aria-label="${coche ? "fait" : "pas encore fait"}">${coche ? ICONES.coche : ""}</span>`
-    : `<button class="case${coche ? " on" : ""}" data-cocher="${cle}" aria-pressed="${coche}" aria-label="Cocher : ${esc(titre)}">${coche ? ICONES.coche : ""}</button>`;
-  const corps = `<span class="txt"><b>${esc(titre)}</b><span>${detail}</span></span>`;
-  const lien = href
-    ? `<a class="aller" href="${href}"${externe ? ' target="_blank" rel="noopener"' : ""}>${corps}${externe ? ICONES.sortie : ICONES.chevron}</a>`
+const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
+const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
+
+// Une ligne de « Ta journée ». t : { titre, detail, fait, href, externe, cle (bouton « C'est fait ») }.
+function ligne(t, ici) {
+  const etat = t.fait ? "fait" : ici ? "maintenant" : "à venir";
+  const point = `<span class="pt${t.fait ? " ok" : ici ? " ici" : ""}" role="img" aria-label="${etat}">${t.fait ? ICONES.coche : ""}</span>`;
+  const detail = ici && !t.fait ? `${t.detail} · maintenant` : t.detail;
+  const corps = `<span class="txt"><b>${esc(t.titre)}</b><span>${detail}</span></span>`;
+  const lien = t.href
+    ? `<a class="aller" href="${t.href}"${t.externe ? ' target="_blank" rel="noopener"' : ""}>${corps}${t.externe ? ICONES.sortie : ICONES.chevron}</a>`
     : `<span class="aller">${corps}</span>`;
-  return `<li class="tache${coche ? " faite" : ""}${cls ? ` ${cls}` : ""}">${caseHtml}${lien}${extra}</li>`;
+  const bouton = t.cle && !t.fait ? `<button class="mini" data-cocher="${t.cle}">C'est fait</button>` : "";
+  return `<li class="tache${t.fait ? " faite" : ""}${ici ? " ici" : ""}">${point}${lien}${bouton}</li>`;
 }
 
-// La tranche du livre : 25 onglets d'unité, groupés par partie.
-function tranche(pos) {
-  const courante = uniteCourante(pos);
-  const parPartie = [1, 2, 3, 4].map(n => UNITES.filter(u => u.partie === n && u.n));
-  return `<nav class="tranche" aria-label="Les 25 unités du livre">${parPartie.map((us, i) =>
-    `<span class="p">P${i + 1}</span>${us.map(u => {
-      const finie = u.lecons.every(l => pos.faites.has(l.id)) && (!u.controle || pos.controleReussi(u.id));
-      const etat = u.id === courante.id ? "now" : finie ? "fini" : u.lecons.some(l => pos.faites.has(l.id)) ? "" : "fog";
-      return `<a class="tab ${etat}" href="#/livre/${u.id}" aria-label="Unité ${u.n} : ${titre(u.titre)}">${u.n}</a>`;
-    }).join("")}`).join("")}</nav>`;
+// La carte du haut. a : la chose à faire maintenant ({ carte: { titre, texte, bouton, href | cle, extra } }),
+// ou rien : en attente du soir, ou tout est fait.
+function carte(a, { attenteSoir, controle }) {
+  if (a) {
+    const c = a.carte;
+    const bouton = c.href
+      ? `<a class="btn" href="${c.href}">${c.bouton}</a>`
+      : `<button class="btn" data-cocher="${c.cle}">${c.bouton}</button>`;
+    return `<section class="action" aria-labelledby="t-action">
+        <span class="k">À faire maintenant</span>
+        <h2 id="t-action">${c.titre}</h2>
+        <p class="d">${c.texte}</p>
+        ${c.extra || ""}
+        ${bouton}
+      </section>`;
+  }
+  if (attenteSoir) {
+    return `<section class="action attente" aria-labelledby="t-action">
+        <span class="k">Plus rien pour l'instant</span>
+        <h2 id="t-action">À ce soir</h2>
+        <p class="d">Ce soir avec Blanca, à partir de ${HEURE_SOIR} h.</p>
+      </section>`;
+  }
+  return `<section class="action fini" aria-labelledby="t-action">
+      <span class="k">C'est tout pour aujourd'hui</span>
+      <h2 id="t-action">Bien joué</h2>
+      <p class="d">${controle ? "Le contrôle blanc t'attend quand tu veux, avant le vrai contrôle avec le prof." : "Tu as tout fait. À demain !"}</p>
+    </section>`;
 }
 
 // En bas, discret : sauvegarder la progression dans un fichier, ou la reprendre depuis un fichier.
@@ -57,64 +81,111 @@ export function ecranAujourdhui(ctx) {
   const c = cases(jour);
   const der = pos.derniere;
   const pro = pos.prochaine;
+  const leconDuJour = der && pos.dateFaite[der.id] === jour ? der : null;
+  const finUnite = pro?.type === "contrôle" && der?.unite.id === pro.unite.id ? ` · fin de l'unité&nbsp;${pro.unite.n}` : "";
 
-  let tete;
-  if (der) {
-    const quand = pos.dateFaite[der.id] === jour ? "faite aujourd'hui avec le prof" : "ta dernière leçon";
-    tete = `<a class="tete" href="#/lecon/${der.id}">
+  const tete = der
+    ? `<a class="tete" href="#/lecon/${der.id}">
         <h1>${esc(der.titre)}</h1>
-        <p class="sous">${id(der.id)} · ${quand}</p>
-        <p class="unite">Unité ${der.unite.n ?? "Noël"} · ${titre(der.unite.titre)}</p>
-      </a>
-      <div class="cle"><span>La phrase clé</span>${md(der.phrase)}</div>`;
-  } else {
-    tete = `<div class="tete">
+        <p class="sous">${id(der.id)} · ${leconDuJour ? "faite ce matin avec le prof" : "ta dernière leçon"}${finUnite}</p>
+      </a>`
+    : `<div class="tete">
         <h1>Bienvenue</h1>
-        <p class="sous">Ta première leçon se fait avec le prof : ${pro ? `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}` : ""}.</p>
-        <p class="unite">Ensuite, tu la retrouves ici pour la refaire et la pratiquer.</p>
+        <p class="sous">Ta première leçon se fait avec le prof${pro ? ` : ${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}` : ""}.
+          Ensuite, tu la retrouves ici pour la refaire et la pratiquer.</p>
       </div>`;
+
+  // Ta journée, dans l'ordre. Seules les lignes avec « carte » peuvent monter dans la carte du haut.
+  const journee = [];
+
+  // 1. La leçon avec le prof : cochée toute seule grâce à « Suivi ». Cachée le week-end s'il n'y en a pas eu.
+  const semaine = [1, 2, 3, 4, 5].includes(new Date(jour + "T12:00:00").getDay());
+  if (pos.seanceDuJour || semaine) {
+    journee.push({
+      titre: "Leçon avec le prof", fait: pos.seanceDuJour,
+      detail: pos.seanceDuJour ? (leconDuJour ? `${id(der.id)}, ce matin` : "séance notée aujourd'hui")
+        : !pro ? "le livre est terminé" : pro.type === "contrôle" ? `contrôle de l'unité ${pro.unite.n}`
+        : `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}`,
+    });
   }
 
-  const prof = pos.seanceDuJour
-    ? { coche: true, detail: der ? `${id(der.id)} faite aujourd'hui` : "séance notée aujourd'hui" }
-    : { coche: false, detail: !pro ? "Le livre est terminé" : pro.type === "contrôle"
-        ? `Contrôle de l'unité ${pro.unite.n}` : `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}` };
-
-  const taches = [ligne({ cle: "prof", auto: true, titre: "Leçon avec le prof", ...prof })];
-
-  // Juste après la séance : refaire la leçon du jour pendant que c'est frais. Se coche à la fin de la série.
-  if (der && pos.dateFaite[der.id] === jour) {
-    const cleExos = `exos:${der.id}`;
-    taches.push(ligne({ cle: cleExos, coche: !!c[cleExos], titre: `Exercices de ${der.id}`,
-      detail: "refaire la leçon du jour, pendant que c'est frais", href: `#/pratique/${der.id}` }));
+  // 2. La leçon du jour : les exercices de la leçon du matin. Cochée toute seule à la fin de la série.
+  if (leconDuJour) {
+    const r = c[`exos:${der.id}`];
+    const ex = EXERCICES[der.id];
+    const n = (motsParLecon[der.id] || []).length;
+    const minutes = ex ? Math.round((ex.ecrire.length + ex.dire.length) * 0.6 + n * 0.25) : Math.max(1, Math.round(n * 0.25));
+    const contenu = ex
+      ? `${ex.ecrire.length} phrases à écrire, ${ex.dire.length} à dire, ${n} cartes`
+      : `les ${n} cartes de la leçon`;
+    journee.push({
+      titre: "La leçon du jour", fait: !!r, href: `#/pratique/${der.id}/jour`,
+      detail: r ? (r.sur ? `${r.ok} sur ${r.sur}` : "faite") : id(der.id),
+      carte: { titre: `La leçon du jour · ${id(der.id)}`, texte: `${contenu} · environ ${minutes} min.`,
+        bouton: "Commencer", href: `#/pratique/${der.id}/jour` },
+    });
   }
 
-  // Le contrôle approche : les leçons de l'unité sont faites, le prochain pas est le contrôle.
-  if (pro?.type === "contrôle" && controlePret(pro.unite, pos)) {
-    const r = dernierResultat(pro.unite.id);
-    taches.push(ligne({ cle: "controle", auto: true, cls: "ctl", titre: "Préparer le contrôle",
-      detail: r ? `Partie écrite ${esc(r)}` : "Contrôle blanc : l'écrit, puis ta présentation", href: `#/controle/${pro.unite.id}` }));
-  }
-
+  // 3. Tes mots à revoir : faite dès qu'un paquet est fini, ou s'il n'y a rien à revoir.
   if (der) {
-    const aReviser = leconsARevoir([...pos.faites], der.id, motsParLecon, jour);
-    taches.push(aReviser.length
-      ? ligne({ cle: "revision", coche: c.revision, titre: "Révision", detail: aReviser.map(id).join(" · "), href: "#/revision" })
-      : ligne({ cle: "revision", neutre: true, titre: "Révision", detail: "rien à revoir aujourd'hui : elle revient quand une leçon commence à s'oublier" }));
+    const dus = motsDus(ctx).length;
+    const revus = Number(c.revision) || 0;
+    journee.push({
+      titre: "Tes mots à revoir", fait: revus > 0 || dus === 0, href: dus ? "#/revision" : null,
+      detail: revus ? `${mots(revus)} revus${dus ? ` · encore ${dus} si tu veux` : ""}`
+        : dus ? mots(dus) : "rien à revoir aujourd'hui",
+      carte: { titre: "Tes mots à revoir",
+        texte: dus > PAQUET ? `${dus} mots en attente. Un paquet de ${PAQUET} cartes, en commençant par les plus oubliés.`
+          : `${mots(dus)} en attente, en commençant par les plus oubliés.`,
+        bouton: "Commencer", href: "#/revision" },
+    });
   }
 
+  // 4. L'écoute : elle se fait dans une autre appli. La ligne l'ouvre, le bouton dit que c'est fait.
   const e = ECOUTES[niveauEcoute()];
-  const plusDur = niveauEcoute() < ECOUTES.length - 1 ? `<button class="mini" data-trop-facile>Trop facile ?</button>` : "";
-  taches.push(ligne({ cle: "ecoute", coche: c.ecoute, titre: `Écoute · ${MINUTES_ECOUTE} min`, detail: `${esc(e.nom)}, ${esc(e.niveau)}`, href: e.lien, externe: true, extra: plusDur }));
+  const plusDur = niveauEcoute() < ECOUTES.length - 1 ? `<button class="lien" data-trop-facile>Trop facile ?</button>` : "";
+  journee.push({
+    titre: `Écouter ${MINUTES_ECOUTE} min`, fait: !!c.ecoute, cle: "ecoute", href: e.lien, externe: true,
+    detail: c.ecoute ? "fait" : `${esc(e.nom)}, ${esc(e.niveau)}`,
+    carte: { titre: `Écouter ${MINUTES_ECOUTE} min`, texte: `${esc(e.nom)}, ${esc(e.niveau)}. Quand c'est fait, touche « C'est fait ».`,
+      extra: `<p class="liens"><a class="lien" href="${e.lien}" target="_blank" rel="noopener">Ouvrir ${esc(e.nom)}</a>${plusDur}</p>`,
+      bouton: "C'est fait", cle: "ecoute" },
+  });
 
-  if (der && soir[der.id]) {
-    taches.push(ligne({ cle: "soir", coche: c.soir, titre: "Ce soir avec Blanca", detail: esc(soir[der.id].kevin.split(";")[0]), href: "#/soir" }));
-  }
-  // Une fois par semaine, le jour de ton choix : la ligne reste tant qu'elle n'est pas cochée,
+  // Une fois par semaine, le jour de ton choix : la ligne reste tant qu'elle n'est pas faite,
   // disparaît le reste de la semaine une fois faite, et revient le lundi.
   if (!cocheCetteSemaine(jour, "dimanche")) {
-    taches.push(ligne({ cle: "dimanche", coche: c.dimanche, titre: "Ton écoute de la semaine", detail: "envoie-la au prof (le lien ou le texte)" }));
+    journee.push({
+      titre: "Ton écoute de la semaine", fait: !!c.dimanche, cle: "dimanche",
+      detail: c.dimanche ? "envoyée" : "envoie-la au prof (le lien ou le texte)",
+      carte: { titre: "Ton écoute de la semaine", texte: "Envoie-la au prof : le lien ou le texte.", bouton: "C'est fait", cle: "dimanche" },
+    });
   }
+
+  // 5. Ce soir avec Blanca : toujours dans la liste, dans la carte seulement à partir de 18 h.
+  const leSoir = new Date().getHours() >= HEURE_SOIR;
+  if (der) {
+    const aUtiliser = (soir[der.id]?.kevin || der.soir || "").split(";")[0].trim();
+    journee.push({
+      titre: "Ce soir avec Blanca", fait: !!c.soir, cle: "soir", href: "#/soir",
+      detail: c.soir ? "fait" : leSoir && aUtiliser ? esc(aUtiliser) : `à partir de ${HEURE_SOIR} h`,
+      carte: leSoir ? { titre: "Ce soir avec Blanca", texte: aUtiliser ? `À utiliser : ${esc(aUtiliser)}.` : "Ta fiche du soir est prête.",
+        bouton: "Ouvrir la fiche du soir", href: "#/soir" } : null,
+    });
+  }
+
+  // Le contrôle blanc, quand les leçons de l'unité sont faites : une ligne de plus, à faire quand tu veux.
+  const controle = pro?.type === "contrôle" && controlePret(pro.unite, pos);
+  if (controle) {
+    const r = dernierResultat(pro.unite.id);
+    journee.push({
+      titre: `Contrôle blanc · unité ${pro.unite.n}`, href: `#/controle/${pro.unite.id}`,
+      detail: r ? `partie écrite ${esc(r)}` : "l'écrit, puis ta présentation",
+    });
+  }
+
+  const maintenant = journee.find(t => t.carte && !t.fait);
+  const attenteSoir = !maintenant && der && !c.soir && !leSoir;
 
   const bandeau = apercu
     ? `<p class="bandeau">Aperçu : leçons jusqu'à ${esc(apercu)} faites pour l'exemple. Rien n'est enregistré.</p>`
@@ -122,18 +193,16 @@ export function ecranAujourdhui(ctx) {
 
   return {
     onglet: "jour",
-    html: `<div class="accueil">
-        <main class="colonne">
-          <p class="marque"><i></i>Oído y Boca</p>
-          ${bandeau}
-          ${tete}
-          <section aria-labelledby="t-jour">
-            <h2 id="t-jour">Aujourd'hui</h2>
-            <ul class="taches">${taches.join("")}</ul>
-          </section>
-          ${blocSauvegarde()}
-        </main>
-        ${tranche(pos)}
-      </div>${barreOnglets("jour")}`,
+    html: `<main class="colonne accueil">
+        <p class="marque"><i></i>Oído y Boca</p>
+        ${bandeau}
+        ${tete}
+        ${carte(maintenant, { attenteSoir, controle })}
+        <section aria-labelledby="t-jour">
+          <h2 id="t-jour">Ta journée</h2>
+          <ul class="taches journee">${journee.map(t => ligne(t, t === maintenant)).join("")}</ul>
+        </section>
+        ${blocSauvegarde()}
+      </main>${barreOnglets("jour")}`,
   };
 }

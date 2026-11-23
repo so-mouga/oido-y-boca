@@ -1,21 +1,26 @@
 // La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer ».
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
+// Ouverte depuis une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) : pas de « Commencer », qui remplacerait
+// la série en cours, et le lien du haut te remet sur la même carte.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=25";
-import { lecon as trouver } from "../position.js?v=25";
-import { EXERCICES } from "../exercices.js?v=25";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=26";
+import { lecon as trouver } from "../position.js?v=26";
+import { EXERCICES } from "../exercices.js?v=26";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
 
-export function ecranLecon(ctx, idLecon) {
+export function ecranLecon(ctx, idLecon, depuis) {
   const l = trouver(decodeURIComponent(idLecon || ""));
   const { pos, motsParLecon } = ctx;
   if (!l) return { onglet: "livre", html: `<main class="colonne vide"><h1>Leçon introuvable</h1><a class="lien" href="#/livre">Revenir au livre</a></main>${barreOnglets("livre")}` };
 
   const u = l.unite;
   const rang = u.lecons.findIndex(x => x.id === l.id) + 1;
-  const retour = `<header class="nav-haut"><a class="retour" href="#/livre/${u.id}">${ICONES.retour}Le livre</a><span class="sous">Unité ${u.n ?? "Noël"} · leçon ${rang} sur ${u.lecons.length}</span></header>`;
+  const lien = depuis === "revision"
+    ? `<a class="retour" href="#/revision" data-arriere>${ICONES.retour}Reprendre tes mots</a>`
+    : `<a class="retour" href="#/livre/${u.id}">${ICONES.retour}Le livre</a>`;
+  const retour = `<header class="nav-haut">${lien}<span class="sous">Unité ${u.n ?? "Noël"} · leçon ${rang} sur ${u.lecons.length}</span></header>`;
 
   if (!pos.faites.has(l.id)) {
     return {
@@ -55,7 +60,7 @@ export function ecranLecon(ctx, idLecon) {
           ${ex ? `<div class="compteurs"><span><b>${ex.ecrire.length}</b>à écrire</span><span><b>${ex.dire.length}</b>à dire</span><span><b>${mots.length}</b>cartes</span></div>`
             : `<p class="sous">Pour l'instant, les cartes des ${mots.length} mots : les exercices de cette unité arrivent bientôt.</p>`}
         </section>
-        <a class="primaire" href="#/pratique/${l.id}">Commencer</a>
+        ${depuis === "revision" ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
         ${l.soir ? `<p class="note-soir">Ce soir avec Blanca : ${esc(l.soir)}</p>` : ""}
       </main>${barreOnglets("livre")}`,
   };

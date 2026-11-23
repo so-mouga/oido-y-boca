@@ -1,20 +1,20 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=25";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=25";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=25";
-import { ECOUTES } from "./ecoute.js?v=25";
-import { preparerVoix } from "./voix.js?v=25";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=25";
-import { vibrer } from "./retours.js?v=25";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=25";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=25";
-import { ecranLivre } from "./ecrans/livre.js?v=25";
-import { ecranLecon } from "./ecrans/lecon.js?v=25";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=25";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=25";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=25";
+import { chargerTableau } from "./donnees.js?v=26";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=26";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=26";
+import { ECOUTES } from "./ecoute.js?v=26";
+import { preparerVoix } from "./voix.js?v=26";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=26";
+import { vibrer } from "./retours.js?v=26";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=26";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=26";
+import { ecranLivre } from "./ecrans/livre.js?v=26";
+import { ecranLecon } from "./ecrans/lecon.js?v=26";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=26";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=26";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=26";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -94,6 +94,19 @@ app.addEventListener("submit", async e => {
 });
 
 app.addEventListener("click", async e => {
+  // « Reprendre tes mots » : revenir en arrière dans l'historique, pour retrouver la série à la même carte.
+  if (e.target.closest("[data-arriere]") && history.length > 1) {
+    e.preventDefault();
+    history.back();
+    return;
+  }
+  // Les boutons de fin de série remplacent la série dans l'historique : le retour d'Android ne la relance pas.
+  const remplace = e.target.closest("a[data-remplace]");
+  if (remplace) {
+    e.preventDefault();
+    location.replace(remplace.getAttribute("href"));
+    return;
+  }
   const action = e.target.closest("[data-p]");
   if (action) {
     const r = await actionPratique(ctx, action.dataset.p, action);
