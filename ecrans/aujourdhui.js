@@ -2,15 +2,15 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=34";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=34";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=34";
-import { EXERCICES } from "../exercices.js?v=34";
-import { controlePret, dernierResultat } from "./controle.js?v=34";
-import { motsDus, PAQUET } from "./pratique.js?v=34";
-import { BONUS } from "../bonus.js?v=34";
-import { motsDeLaSemaine } from "./mesmots.js?v=34";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=34";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=35";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=35";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=35";
+import { EXERCICES } from "../exercices.js?v=35";
+import { controlePret, dernierResultat } from "./controle.js?v=35";
+import { motsDus, PAQUET } from "./pratique.js?v=35";
+import { BONUS } from "../bonus.js?v=35";
+import { motsDeLaSemaine } from "./mesmots.js?v=35";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=35";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -69,11 +69,14 @@ function blocSauvegarde() {
     ? `<button class="lien" data-google="restaurer">Restaurer depuis Google</button>
       <button class="lien" data-google="brancher">Changer le lien Google</button>`
     : `<button class="lien" data-google="brancher">Brancher la sauvegarde Google</button>`;
-  return `<section class="sauvegarde" aria-label="Ma progression">
-      <p>Ma progression · ${etat}</p>
-      <div>${google}
+  const liens = `<div>${google}
       <button class="lien" data-sauvegarder>Sauvegarder dans un fichier</button>
-      <button class="lien" data-restaurer>Restaurer depuis un fichier</button></div>
+      <button class="lien" data-restaurer>Restaurer depuis un fichier</button></div>`;
+  // Une fois Google branché, tout est automatique : les liens ne servent qu'en cas de souci, on les replie.
+  return `<section class="sauvegarde" aria-label="Ma progression">
+      ${googleBranche()
+        ? `<details><summary>Ma progression · ${etat} · <span>Options</span></summary>${liens}</details>`
+        : `<p>Ma progression · ${etat}</p>${liens}`}
       <input type="file" accept=".json,application/json" data-fichier hidden>
     </section>`;
 }

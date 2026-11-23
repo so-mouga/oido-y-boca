@@ -596,3 +596,8 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 /* « Les 6 formes » des exercices : terminaison et voyelle surlignées, comme dans le Dico. */
 .six-formes .term { font-weight: 600; color: var(--sun-ink); background: var(--sun-halo); border-radius: 4px; padding: 0 2px; }
 .six-formes .ici .term { background: #fff; }
+.sauvegarde summary { list-style: none; cursor: pointer; }
+.sauvegarde summary::-webkit-details-marker { display: none; }
+.sauvegarde summary span { color: var(--marine-soft); text-decoration: underline; text-decoration-color: var(--sun); text-underline-offset: 3px; }
+.sauvegarde details[open] summary span { text-decoration: none; }
+.sauvegarde details > div { margin-top: 8px; }
