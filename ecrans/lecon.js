@@ -3,9 +3,9 @@
 // Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=27";
-import { lecon as trouver } from "../position.js?v=27";
-import { EXERCICES } from "../exercices.js?v=27";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=28";
+import { lecon as trouver } from "../position.js?v=28";
+import { EXERCICES } from "../exercices.js?v=28";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -37,7 +37,8 @@ export function ecranLecon(ctx, idLecon, depuis) {
   const mots = motsParLecon[l.id] || [];
   const ex = EXERCICES[l.id];
   return {
-    onglet: "livre",
+    // Ouverte depuis une série : pas de barre du bas, la seule sortie est « Reprendre… » (ou le retour d'Android).
+    onglet: serie ? null : "livre",
     html: `<main class="colonne lecon-page">
         ${retour}
         <div>
@@ -63,6 +64,6 @@ export function ecranLecon(ctx, idLecon, depuis) {
         </section>
         ${serie ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
         ${l.soir ? `<p class="note-soir">Ce soir avec Blanca : ${esc(l.soir)}</p>` : ""}
-      </main>${barreOnglets("livre")}`,
+      </main>${serie ? "" : barreOnglets("livre")}`,
   };
 }

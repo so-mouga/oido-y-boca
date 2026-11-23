@@ -1,20 +1,20 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=27";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=27";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=27";
-import { ECOUTES } from "./ecoute.js?v=27";
-import { preparerVoix } from "./voix.js?v=27";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=27";
-import { vibrer } from "./retours.js?v=27";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=27";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=27";
-import { ecranLivre } from "./ecrans/livre.js?v=27";
-import { ecranLecon } from "./ecrans/lecon.js?v=27";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=27";
-import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=27";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=27";
+import { chargerTableau } from "./donnees.js?v=28";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=28";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=28";
+import { ECOUTES } from "./ecoute.js?v=28";
+import { preparerVoix } from "./voix.js?v=28";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=28";
+import { vibrer } from "./retours.js?v=28";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=28";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=28";
+import { ecranLivre } from "./ecrans/livre.js?v=28";
+import { ecranLecon } from "./ecrans/lecon.js?v=28";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=28";
+import { ecranPratique, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=28";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=28";
 
 const app = document.getElementById("app");
 let ctx = null;

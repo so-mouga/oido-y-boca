@@ -5,18 +5,18 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=27";
-import { lecon as trouver } from "../position.js?v=27";
-import { EXERCICES } from "../exercices.js?v=27";
-import { corriger } from "../corriger.js?v=27";
-import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=27";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=27";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=27";
-import { vibrer, son } from "../retours.js?v=27";
+import { esc, md, id, ICONES } from "../ui.js?v=28";
+import { lecon as trouver } from "../position.js?v=28";
+import { EXERCICES } from "../exercices.js?v=28";
+import { corriger } from "../corriger.js?v=28";
+import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=28";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=28";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=28";
+import { vibrer, son } from "../retours.js?v=28";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=27";
+} from "../enregistrement.js?v=28";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
