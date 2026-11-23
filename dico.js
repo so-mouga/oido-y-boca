@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=35";
-import { mesMots, apprisEnAvance } from "./progression.js?v=35";
-import { LECONS } from "./position.js?v=35";
+import { irregulierConnu } from "./controles.js?v=36";
+import { mesMots, apprisEnAvance } from "./progression.js?v=36";
+import { LECONS } from "./position.js?v=36";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -65,7 +65,8 @@ export function chercher(mots, texte, ordre = () => 0) {
 
 // ── Les verbes ──
 // Le Sheet ne dit pas si un verbe est régulier. Les deux listes ci-dessous le disent pour les 160 verbes du Sheet,
-// vérifiés un par un le 23 nov. 2026, plus les 13 verbes de grammaire ajoutés le même jour (Q63) (sans -se : « levantarse » → levantar).
+// vérifiés un par un le 23 nov. 2026, plus les 13 verbes de grammaire ajoutés le même jour (Q63) (sans -se : « levantarse » → levantar),
+// plus les 21 verbes des mots fréquents ajoutés le même jour (Q69).
 // Un verbe qui n'est dans aucune des deux (ajouté au Sheet plus tard) n'a pas de formes : l'appli n'invente rien.
 // Pour lui donner ses formes, le vérifier puis l'ajouter à l'une des deux listes.
 const REGULIERS = new Set(`abrir aceptar aclarar acompañar acostumbrar adaptar adelgazar ahorrar alegrar alquilar apagar aprender
@@ -74,16 +75,19 @@ const REGULIERS = new Set(`abrir aceptar aclarar acompañar acostumbrar adaptar 
   enamorar ensayar enterar entrenar equivocar esconder escribir esperar estirar explicar felicitar firmar flipar ganar grabar
   gritar hablar invitar jubilar lavar leer levantar ligar llamar llegar llevar llorar mejorar mezclar mirar molestar mudar necesitar
   ocurrir odiar olvidar opinar organizar pasar pasear pegar pelar pelear pillar portar preguntar preocupar preparar presentar
-  prometer quedar quitar rellenar reservar respetar respirar retrasar romper subir terminar tirar tocar trabajar viajar vivir vomitar`.split(/\s+/));
+  prometer quedar quitar rellenar reservar respetar respirar retrasar romper subir terminar tirar tocar trabajar viajar vivir vomitar
+  comprar deber enseñar entrar escuchar funcionar intentar pagar parar recibir usar`.split(/\s+/));
 // d = la voyelle qui change (o → ue, e → ie, e → i), gustar = se construit comme gustar, irr = irrégulier.
 const PARTICULIERS = {
   // o → ue
   acostar: { d: "ue" }, acordar: { d: "ue" }, aprobar: { d: "ue" }, colgar: { d: "ue" }, contar: { d: "ue" },
   devolver: { d: "ue" }, encontrar: { d: "ue" }, soler: { d: "ue" },
   poder: { d: "ue" }, volver: { d: "ue" }, dormir: { d: "ue" }, // ajoutés au Sheet le 23 nov. (Q63)
+  probar: { d: "ue" }, recordar: { d: "ue" }, // mots fréquents (Q69)
   // e → ie
   atender: { d: "ie" }, despertar: { d: "ie" }, fregar: { d: "ie" }, hervir: { d: "ie" }, merendar: { d: "ie" },
   pensar: { d: "ie" }, perder: { d: "ie" }, querer: { d: "ie" }, empezar: { d: "ie" }, preferir: { d: "ie" }, sentar: { d: "ie" }, sentir: { d: "ie" },
+  cerrar: { d: "ie" }, // mot fréquent (Q69)
   // e → i
   pedir: { d: "i" }, servir: { d: "i" }, vestir: { d: "i" },
   // Comme gustar (« me gusta, te gusta… ») : on ne montre que la forme qui sert, avec me, te, le, nos, os, les.
@@ -95,6 +99,9 @@ const PARTICULIERS = {
   jugar: { irr: true }, enviar: { irr: true }, reenviar: { irr: true }, confiar: { irr: true },
   conocer: { irr: true }, agradecer: { irr: true }, convencer: { irr: true }, recoger: { irr: true }, acoger: { irr: true },
   caer: { irr: true }, "reír": { irr: true }, "freír": { irr: true }, conseguir: { irr: true },
+  // mots fréquents (Q69) : sé, digo, vengo, crezco, conduzco, supongo, sigo
+  saber: { irr: true }, decir: { irr: true }, venir: { irr: true }, crecer: { irr: true },
+  conducir: { irr: true }, suponer: { irr: true }, seguir: { irr: true },
 };
 
 // Où le livre explique chaque règle (vérifié dans PROGRAMME.md).

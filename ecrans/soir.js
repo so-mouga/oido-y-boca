@@ -1,9 +1,9 @@
 // Le soir : « Ce soir » pour moi (en français), puis « Para Blanca » (en espagnol, fond bleu nuit)
 // et son guide. La fiche est celle de la dernière leçon faite (onglet « Soir » du tableau).
 
-import { esc, id, ICONES, barreOnglets } from "../ui.js?v=35";
-import { cases } from "../progression.js?v=35";
-import { GUIDE_HTML } from "../guide.js?v=35";
+import { esc, id, ICONES, barreOnglets } from "../ui.js?v=36";
+import { cases } from "../progression.js?v=36";
+import { GUIDE_HTML } from "../guide.js?v=36";
 
 function fiche(ctx) {
   const l = ctx.pos.derniere;
