@@ -1,13 +1,15 @@
 // L'accueil « Aujourd'hui » : ma dernière leçon, la liste du jour, et le livre sur le bord droit.
 
-import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=24";
-import { UNITES, uniteCourante } from "../position.js?v=24";
-import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=24";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=24";
-import { controlePret, dernierResultat } from "./controle.js?v=24";
+import { esc, md, id, titre, dateCourte, ICONES, barreOnglets } from "../ui.js?v=25";
+import { UNITES, uniteCourante } from "../position.js?v=25";
+import { cases, cocheCetteSemaine, leconsARevoir, niveauEcoute, derniereSauvegarde } from "../progression.js?v=25";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=25";
+import { controlePret, dernierResultat } from "./controle.js?v=25";
 
-function ligne({ cle, coche, auto, titre, detail, href, externe, extra = "", cls = "" }) {
-  const caseHtml = auto
+// neutre : rien à faire aujourd'hui (une case vide en pointillés, jamais cochée, pour ne pas faire croire que c'est fait).
+function ligne({ cle, coche, auto, neutre, titre, detail, href, externe, extra = "", cls = "" }) {
+  if (neutre) cls = `${cls} neutre`.trim();
+  const caseHtml = neutre ? `<span class="case" aria-hidden="true"></span>` : auto
     ? `<span class="case${coche ? " on" : ""}" aria-label="${coche ? "fait" : "pas encore fait"}">${coche ? ICONES.coche : ""}</span>`
     : `<button class="case${coche ? " on" : ""}" data-cocher="${cle}" aria-pressed="${coche}" aria-label="Cocher : ${esc(titre)}">${coche ? ICONES.coche : ""}</button>`;
   const corps = `<span class="txt"><b>${esc(titre)}</b><span>${detail}</span></span>`;
@@ -80,6 +82,13 @@ export function ecranAujourdhui(ctx) {
 
   const taches = [ligne({ cle: "prof", auto: true, titre: "Leçon avec le prof", ...prof })];
 
+  // Juste après la séance : refaire la leçon du jour pendant que c'est frais. Se coche à la fin de la série.
+  if (der && pos.dateFaite[der.id] === jour) {
+    const cleExos = `exos:${der.id}`;
+    taches.push(ligne({ cle: cleExos, coche: !!c[cleExos], titre: `Exercices de ${der.id}`,
+      detail: "refaire la leçon du jour, pendant que c'est frais", href: `#/pratique/${der.id}` }));
+  }
+
   // Le contrôle approche : les leçons de l'unité sont faites, le prochain pas est le contrôle.
   if (pro?.type === "contrôle" && controlePret(pro.unite, pos)) {
     const r = dernierResultat(pro.unite.id);
@@ -91,7 +100,7 @@ export function ecranAujourdhui(ctx) {
     const aReviser = leconsARevoir([...pos.faites], der.id, motsParLecon, jour);
     taches.push(aReviser.length
       ? ligne({ cle: "revision", coche: c.revision, titre: "Révision", detail: aReviser.map(id).join(" · "), href: "#/revision" })
-      : ligne({ cle: "revision", coche: true, auto: true, titre: "Révision", detail: "Rien à revoir aujourd'hui" }));
+      : ligne({ cle: "revision", neutre: true, titre: "Révision", detail: "rien à revoir aujourd'hui : elle revient quand une leçon commence à s'oublier" }));
   }
 
   const e = ECOUTES[niveauEcoute()];

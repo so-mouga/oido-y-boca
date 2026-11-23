@@ -4,18 +4,18 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, ICONES } from "../ui.js?v=24";
-import { lecon as trouver } from "../position.js?v=24";
-import { EXERCICES } from "../exercices.js?v=24";
-import { corriger } from "../corriger.js?v=24";
-import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=24";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=24";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=24";
-import { vibrer, son } from "../retours.js?v=24";
+import { esc, md, ICONES } from "../ui.js?v=25";
+import { lecon as trouver } from "../position.js?v=25";
+import { EXERCICES } from "../exercices.js?v=25";
+import { corriger } from "../corriger.js?v=25";
+import { noterMot, leconsARevoir, cocher, noterControle } from "../progression.js?v=25";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=25";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=25";
+import { vibrer, son } from "../retours.js?v=25";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=24";
+} from "../enregistrement.js?v=25";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -291,6 +291,7 @@ function ecranSerie(ctx, cle, construire, idLecon) {
       s.fini = true;
       son("fin");
       if (s.revision) cocher(ctx.jour, "revision", true);
+      if (s.cle.startsWith("lecon:")) cocher(ctx.jour, `exos:${decodeURIComponent(s.cle.slice(6))}`, true);
       if (s.controle) noterControle(s.controle, ctx.jour, Math.round((s.resultats.filter(x => x.ok).length / s.resultats.length) * 100));
     }
     return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
