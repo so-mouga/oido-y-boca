@@ -2,12 +2,12 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=28";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=28";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=28";
-import { EXERCICES } from "../exercices.js?v=28";
-import { controlePret, dernierResultat } from "./controle.js?v=28";
-import { motsDus, PAQUET } from "./pratique.js?v=28";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=29";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=29";
+import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=29";
+import { EXERCICES } from "../exercices.js?v=29";
+import { controlePret, dernierResultat } from "./controle.js?v=29";
+import { motsDus, PAQUET } from "./pratique.js?v=29";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -147,7 +147,7 @@ export function ecranAujourdhui(ctx) {
   journee.push({
     titre: `Écouter ${MINUTES_ECOUTE} min`, fait: !!c.ecoute, cle: "ecoute", href: e.lien, externe: true,
     detail: c.ecoute ? "fait" : `${esc(e.nom)}, ${esc(e.niveau)}`,
-    carte: { titre: `Écouter ${MINUTES_ECOUTE} min`, texte: `${esc(e.nom)}, ${esc(e.niveau)}. Quand c'est fait, touche « C'est fait ».`,
+    carte: { titre: `Écouter ${MINUTES_ECOUTE} min`, texte: `${esc(e.nom)}, ${esc(e.niveau)}.${e.consigne ? ` ${esc(e.consigne)}` : ""} Quand c'est fait, touche « C'est fait ».`,
       extra: `<p class="liens"><a class="lien" href="${e.lien}" target="_blank" rel="noopener">Ouvrir ${esc(e.nom)}</a>${plusDur}</p>`,
       bouton: "C'est fait", cle: "ecoute" },
   });

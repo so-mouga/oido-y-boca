@@ -3,9 +3,9 @@
 // Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=28";
-import { lecon as trouver } from "../position.js?v=28";
-import { EXERCICES } from "../exercices.js?v=28";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=29";
+import { lecon as trouver } from "../position.js?v=29";
+import { EXERCICES } from "../exercices.js?v=29";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
