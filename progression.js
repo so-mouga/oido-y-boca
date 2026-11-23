@@ -131,9 +131,17 @@ export function apprendreEnAvance(idMot, aujourdhui) {
 // Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
 const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
 export function exporter(aujourdhui) {
-  if (!apercu) try { localStorage.setItem(CLE_SAUVEGARDE, aujourdhui); } catch { /* sans importance */ }
+  noterSauvegarde(aujourdhui);
+  return donneesSauvegarde(aujourdhui);
+}
+// Les deux moitiés d'« exporter », pour la sauvegarde Google qui ne note la date qu'une fois l'envoi réussi.
+export function donneesSauvegarde(aujourdhui) {
   return JSON.stringify({ appli: "oido-y-boca", le: aujourdhui, ...etat }, null, 1);
 }
+export function noterSauvegarde(aujourdhui) {
+  if (!apercu) try { localStorage.setItem(CLE_SAUVEGARDE, aujourdhui); } catch { /* sans importance */ }
+}
+export const enApercu = () => apercu;
 export function derniereSauvegarde() {
   try { return localStorage.getItem(CLE_SAUVEGARDE) || ""; } catch { return ""; }
 }

@@ -1,22 +1,23 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=33";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=33";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=33";
-import { ECOUTES } from "./ecoute.js?v=33";
-import { preparerVoix } from "./voix.js?v=33";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=33";
-import { vibrer } from "./retours.js?v=33";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=33";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=33";
-import { ecranLivre } from "./ecrans/livre.js?v=33";
-import { ecranLecon } from "./ecrans/lecon.js?v=33";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=33";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=33";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=33";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=33";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=33";
+import { chargerTableau } from "./donnees.js?v=34";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=34";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=34";
+import { ECOUTES } from "./ecoute.js?v=34";
+import { preparerVoix } from "./voix.js?v=34";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=34";
+import { vibrer } from "./retours.js?v=34";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=34";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=34";
+import { ecranLivre } from "./ecrans/livre.js?v=34";
+import { ecranLecon } from "./ecrans/lecon.js?v=34";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=34";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=34";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=34";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=34";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=34";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=34";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -151,6 +152,11 @@ app.addEventListener("click", async e => {
     basculerLecture(son);
     return;
   }
+  const google = e.target.closest("[data-google]");
+  if (google) {
+    if (await actionGoogle(ctx, google.dataset.google)) { vibrer(); afficher(); }
+    return;
+  }
   if (e.target.closest("[data-sauvegarder]")) {
     telecharger(`oido-y-boca-${ctx.jour}.json`, exporter(ctx.jour));
     afficher();
@@ -222,6 +228,9 @@ async function demarrer() {
   try {
     ctx = contexte(await chargerTableau());
     afficher();
+    // La sauvegarde Google : à l'ouverture, puis chaque fois qu'on quitte l'appli (si quelque chose a changé).
+    surveillerGoogle(() => ctx?.jour);
+    envoyerGoogle(ctx.jour).then(ok => { if (ok && app.dataset.ecran === "jour") afficher(); });
   } catch (err) {
     console.error(err);
     app.innerHTML = `<main class="colonne vide"><h1>Le tableau ne répond pas</h1>

@@ -2,14 +2,15 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=33";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=33";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=33";
-import { EXERCICES } from "../exercices.js?v=33";
-import { controlePret, dernierResultat } from "./controle.js?v=33";
-import { motsDus, PAQUET } from "./pratique.js?v=33";
-import { BONUS } from "../bonus.js?v=33";
-import { motsDeLaSemaine } from "./mesmots.js?v=33";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=34";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=34";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=34";
+import { EXERCICES } from "../exercices.js?v=34";
+import { controlePret, dernierResultat } from "./controle.js?v=34";
+import { motsDus, PAQUET } from "./pratique.js?v=34";
+import { BONUS } from "../bonus.js?v=34";
+import { motsDeLaSemaine } from "./mesmots.js?v=34";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=34";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -57,12 +58,21 @@ function carte(a, { attenteSoir, controle }) {
     </section>`;
 }
 
-// En bas, discret : sauvegarder la progression dans un fichier, ou la reprendre depuis un fichier.
+// En bas, discret : la sauvegarde Google (automatique une fois branchée), et le fichier en secours.
 function blocSauvegarde() {
   const le = derniereSauvegarde();
+  const date = le ? `sauvegardée le ${esc(dateCourte(le))}` : "jamais sauvegardée";
+  const etat = !googleBranche() ? date
+    : envoiRate() ? `${date} · l'envoi à Google a échoué, l'appli réessaiera`
+    : `${date} · automatique sur Google`;
+  const google = googleBranche()
+    ? `<button class="lien" data-google="restaurer">Restaurer depuis Google</button>
+      <button class="lien" data-google="brancher">Changer le lien Google</button>`
+    : `<button class="lien" data-google="brancher">Brancher la sauvegarde Google</button>`;
   return `<section class="sauvegarde" aria-label="Ma progression">
-      <p>Ma progression${le ? ` · sauvegardée le ${esc(dateCourte(le))}` : " · jamais sauvegardée"}</p>
-      <div><button class="lien" data-sauvegarder>Sauvegarder</button>
+      <p>Ma progression · ${etat}</p>
+      <div>${google}
+      <button class="lien" data-sauvegarder>Sauvegarder dans un fichier</button>
       <button class="lien" data-restaurer>Restaurer depuis un fichier</button></div>
       <input type="file" accept=".json,application/json" data-fichier hidden>
     </section>`;
