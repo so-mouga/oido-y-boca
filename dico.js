@@ -2,10 +2,12 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=31";
+import { irregulierConnu } from "./controles.js?v=32";
+import { mesMots, apprisEnAvance } from "./progression.js?v=32";
+import { LECONS } from "./position.js?v=32";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
-// « Mes mots » (chantier 3) : ses mots viendront du téléphone, pas du Sheet ; la ligne reste cachée tant qu'elle est vide.
+// « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
 export const SORTES = [
   { cle: "verbes", nom: "Verbes", tag: "verbe", cats: ["verbe"] },
   { cle: "noms", nom: "Noms", tag: "nom", cats: ["nom"] },
@@ -15,10 +17,32 @@ export const SORTES = [
   { cle: "mes-mots", nom: "Mes mots", tag: "à toi", cats: [] },
 ];
 // Une catégorie inconnue (une nouvelle valeur dans le Sheet) va dans « Expressions » plutôt que de disparaître.
-export const sorteDe = m => SORTES.find(s => s.cats.includes((m.categorie || "").trim().toLowerCase())) || SORTES[3];
+export const sorteDe = m => m.moi ? SORTES[5] : SORTES.find(s => s.cats.includes((m.categorie || "").trim().toLowerCase())) || SORTES[3];
 
-// Les mots du Dico : ceux des leçons faites, dans l'ordre du Sheet (celui du livre).
-export const motsDuDico = ctx => ctx.mots.filter(m => ctx.pos.faites.has(m.lecon));
+// Mes mots, sous la même forme que ceux du Sheet (moi: true, sans leçon), du plus récent au plus ancien.
+export const motsAMoi = () => mesMots().map(m => ({ ...m, moi: true, ex: m.ex || "" })).reverse();
+
+// Un mot du livre « vu » : sa leçon est faite, ou je l'ai appris en avance.
+export const motVu = (ctx, m) => ctx.pos.faites.has(m.lecon) || !!apprisEnAvance(m.id);
+
+// Les mots du Dico : ceux des leçons faites et ceux appris en avance, dans l'ordre du Sheet (celui du livre), puis mes mots.
+export const motsDuDico = ctx => [...ctx.mots.filter(m => motVu(ctx, m)), ...motsAMoi()];
+
+// Les mots des leçons à venir (pas encore vus), de la leçon la plus proche à la plus lointaine.
+const RANG = Object.fromEntries(LECONS.map((l, i) => [l.id, i]));
+export const rangLecon = idLecon => RANG[idLecon] ?? 1e6;
+export const motsAVenir = ctx => ctx.mots.filter(m => !motVu(ctx, m))
+  .map((m, i) => ({ m, i })).sort((a, b) => rangLecon(a.m.lecon) - rangLecon(b.m.lecon) || a.i - b.i).map(x => x.m);
+
+// Pour « Ajouter un mot » : les formes d'un mot à comparer, sans accents, majuscules, ni article
+// (« barato / barata » → barato, barata ; « el piso » → piso ; « comer (= déjeuner) » → comer).
+const ARTICLE = /^(el|la|los|las|un|una|unos|unas) /;
+export const formesAComparer = es => (es || "").replace(/\([^)]*\)/g, " ").split("/")
+  .map(f => normaliser(f).replace(ARTICLE, "")).filter(Boolean);
+export const memeMot = (a, b) => { const fa = formesAComparer(a); return formesAComparer(b).some(f => fa.includes(f)); };
+
+// D'où vient un de mes mots : « entendu le 24 nov. » (après l'écoute) ou « ajouté le 24 nov. » (depuis le Dico).
+export const origineMonMot = m => `${m.via === "ecoute" ? "entendu" : "ajouté"} le ${new Date(m.le + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}`;
 
 // La recherche ne tient compte ni des accents, ni des majuscules, ni de ¿ ¡ ? ! … : « etre » trouve « être ».
 export const normaliser = s => (s || "").normalize("NFD").replace(/[̀-ͯ]/g, "")

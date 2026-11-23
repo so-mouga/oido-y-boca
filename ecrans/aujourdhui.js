@@ -2,13 +2,14 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=31";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=31";
-import { ECOUTES, MINUTES_ECOUTE } from "../ecoute.js?v=31";
-import { EXERCICES } from "../exercices.js?v=31";
-import { controlePret, dernierResultat } from "./controle.js?v=31";
-import { motsDus, PAQUET } from "./pratique.js?v=31";
-import { BONUS } from "../bonus.js?v=31";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=32";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=32";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=32";
+import { EXERCICES } from "../exercices.js?v=32";
+import { controlePret, dernierResultat } from "./controle.js?v=32";
+import { motsDus, PAQUET } from "./pratique.js?v=32";
+import { BONUS } from "../bonus.js?v=32";
+import { motsDeLaSemaine } from "./mesmots.js?v=32";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -149,18 +150,22 @@ export function ecranAujourdhui(ctx) {
   journee.push({
     titre: `Écouter ${MINUTES_ECOUTE} min`, fait: !!c.ecoute, cle: "ecoute", href: e.lien, externe: true,
     detail: c.ecoute ? "fait" : `${esc(e.nom)}, ${esc(e.niveau)}`,
-    carte: { titre: `Écouter ${MINUTES_ECOUTE} min`, texte: `${esc(e.nom)}, ${esc(e.niveau)}.${e.consigne ? ` ${esc(e.consigne)}` : ""} Quand c'est fait, touche « C'est fait ».`,
+    carte: { titre: `Écouter ${MINUTES_ECOUTE} min`, texte: `${esc(e.nom)}, ${esc(e.niveau)}.${e.consigne ? ` ${esc(e.consigne)}` : ""} ${esc(SANS_TARRETER)}`,
       extra: `<p class="liens"><a class="lien" href="${e.lien}" target="_blank" rel="noopener">Ouvrir ${esc(e.nom)}</a>${plusDur}</p>`,
       bouton: "C'est fait", cle: "ecoute" },
   });
 
   // Une fois par semaine, le jour de ton choix : la ligne reste tant qu'elle n'est pas faite,
   // disparaît le reste de la semaine une fois faite, et revient le lundi.
+  // Elle ouvre l'écran de la semaine : tes mots, « Copier pour le prof », « C'est fait ».
   if (!cocheCetteSemaine(jour, "dimanche")) {
+    const n = motsDeLaSemaine(jour).length;
     journee.push({
-      titre: "Ton écoute de la semaine", fait: !!c.dimanche, cle: "dimanche",
-      detail: c.dimanche ? "envoyée" : "envoie-la au prof (le lien ou le texte)",
-      carte: { titre: "Ton écoute de la semaine", texte: "Envoie-la au prof : le lien ou le texte.", bouton: "C'est fait", cle: "dimanche" },
+      titre: "Ton écoute de la semaine", fait: !!c.dimanche, href: "#/semaine",
+      detail: c.dimanche ? "envoyée" : `le lien d'une vidéo${n ? ` et ${mots(n)}` : ""}, pour le prof`,
+      carte: { titre: "Ton écoute de la semaine",
+        texte: `Envoie au prof le lien d'une vidéo de la semaine${n ? `, avec tes ${mots(n)}` : ""}.`,
+        bouton: "Préparer l'envoi", href: "#/semaine" },
     });
   }
 

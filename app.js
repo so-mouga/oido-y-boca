@@ -1,21 +1,22 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=31";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=31";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=31";
-import { ECOUTES } from "./ecoute.js?v=31";
-import { preparerVoix } from "./voix.js?v=31";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=31";
-import { vibrer } from "./retours.js?v=31";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=31";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=31";
-import { ecranLivre } from "./ecrans/livre.js?v=31";
-import { ecranLecon } from "./ecrans/lecon.js?v=31";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=31";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=31";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=31";
-import { ecranDico, majRecherche } from "./ecrans/dico.js?v=31";
+import { chargerTableau } from "./donnees.js?v=32";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=32";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=32";
+import { ECOUTES } from "./ecoute.js?v=32";
+import { preparerVoix } from "./voix.js?v=32";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=32";
+import { vibrer } from "./retours.js?v=32";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=32";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=32";
+import { ecranLivre } from "./ecrans/livre.js?v=32";
+import { ecranLecon } from "./ecrans/lecon.js?v=32";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=32";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=32";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=32";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=32";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=32";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -57,6 +58,8 @@ const ECRANS = {
   bonus: ecranBonus,
   controle: ecranControle,
   dico: ecranDico,
+  "mes-mots": ecranMesMots,
+  semaine: ecranSemaine,
 };
 
 function bientot(nom, onglet) {
@@ -91,6 +94,11 @@ function dessiner() {
 }
 
 app.addEventListener("submit", async e => {
+  if (e.target.matches("[data-mm-form]")) {
+    e.preventDefault();
+    if (envoiMesMots(ctx, e.target)) afficher();
+    return;
+  }
   if (!e.target.matches("[data-p-form]")) return;
   e.preventDefault();
   if (await actionPratique(ctx, "verifier")) afficher();
@@ -122,12 +130,20 @@ app.addEventListener("click", async e => {
     if (r) afficher(r === "suivant" ? "glisse" : false);
     return;
   }
+  const mm = await actionMesMots(ctx, e);
+  if (mm !== null) {
+    if (mm) afficher();
+    return;
+  }
   const caseCochee = e.target.closest("[data-cocher]");
   if (caseCochee) {
     const cle = caseCochee.dataset.cocher;
-    cocher(ctx.jour, cle, !cases(ctx.jour)[cle]);
+    const oui = !cases(ctx.jour)[cle];
+    cocher(ctx.jour, cle, oui);
     vibrer();
-    afficher();
+    // L'écoute faite : « Tu as gardé des mots ? »
+    if (cle === "ecoute" && oui) location.hash = "#/mes-mots/ecoute";
+    else afficher();
     return;
   }
   const son = e.target.closest("[data-dire], [data-voix]");
@@ -153,6 +169,7 @@ app.addEventListener("click", async e => {
 // La recherche du Dico : chaque lettre met à jour la liste, sans redessiner l'écran (le clavier reste ouvert).
 app.addEventListener("input", e => {
   if (e.target.matches("[data-cherche]")) majRecherche(ctx, e.target.value);
+  if (e.target.matches("[data-cherche-page]")) majRecherchePage(ctx, e.target.dataset.cherchePage, e.target.value);
 });
 
 window.addEventListener("hashchange", () => afficher(true));

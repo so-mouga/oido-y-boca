@@ -1,11 +1,12 @@
 // Ce que l'appli garde sur le téléphone : la mémoire des mots (révision espacée),
 // les cases cochées du jour, le niveau d'écoute, et pour chaque contrôle blanc le dernier résultat
-// de la partie écrite et le texte de ma présentation. Le Sheet n'est jamais modifié.
+// de la partie écrite et le texte de ma présentation, et « Mes mots » (ceux que j'ajoute moi-même).
+// Le Sheet n'est jamais modifié.
 
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
 
-const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {} });
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {} });
 let etat = lire();
 
 function lire() {
@@ -36,13 +37,13 @@ export function noterMot(idMot, note, aujourdhui) {
 }
 
 // Les mots à revoir aujourd'hui, du plus en retard au moins en retard : ceux dont l'intervalle est passé.
-// Un mot jamais travaillé ici compte depuis le jour de sa leçon (dateLecon). Un mot déjà vu aujourd'hui,
+// Un mot jamais travaillé ici compte depuis le jour de sa leçon, ou de son ajout pour mes mots (depart(m)). Un mot déjà vu aujourd'hui,
 // même raté, attend demain : sinon « il te reste N mots » ne finirait jamais.
-export function motsARevoir(mots, aujourdhui, dateLecon) {
+export function motsARevoir(mots, aujourdhui, depart) {
   return mots.map(m => {
     const f = etat.mots[m.id];
     if (f?.vu === aujourdhui) return null;
-    const retard = jours(f?.vu || dateLecon(m.lecon) || aujourdhui, aujourdhui) - INTERVALLES[f?.boite ?? 0];
+    const retard = jours(f?.vu || depart(m) || aujourdhui, aujourdhui) - INTERVALLES[f?.boite ?? 0];
     return retard >= 0 ? { m, retard } : null;
   }).filter(Boolean).sort((a, b) => b.retard - a.retard).map(x => x.m);
 }
@@ -75,6 +76,11 @@ export function cocher(aujourdhui, cle, valeur = true) {
   sauver();
 }
 
+// La dernière fois qu'une case a été cochée avant « aujourdhui » (date ISO), ou "" si jamais.
+export function dernierJourCoche(aujourdhui, cle) {
+  return Object.keys(etat.jours).filter(j => j < aujourdhui && etat.jours[j]?.[cle]).sort().pop() || "";
+}
+
 export function niveauEcoute() { return etat.ecoute; }
 export function monterEcoute(max) { etat.ecoute = Math.min(etat.ecoute + 1, max); sauver(); }
 
@@ -88,6 +94,37 @@ export function noterControle(idUnite, aujourdhui, score) {
 export function textePresentation(idUnite) { return etat.presentations[idUnite] || ""; }
 export function garderPresentation(idUnite, texte) {
   etat.presentations = { ...etat.presentations, [idUnite]: texte };
+  sauver();
+}
+
+// « Mes mots » : les mots que j'ajoute moi-même (entendus à l'écoute, ou donnés par le prof).
+// { id, es, fr, ex (phrase d'exemple, facultative), le (date d'ajout), via: "ecoute" | "dico" }. L'id ne change jamais : corriger un mot garde sa révision.
+// Ils entrent dans « Tes mots à revoir » comme les mots du livre, à partir du lendemain.
+export const mesMots = () => etat.mesMots;
+export const monMot = idMot => etat.mesMots.find(m => m.id === idMot) || null;
+export function ajouterMonMot(es, fr, ex, aujourdhui, via) {
+  const m = { id: `moi-${Date.now()}`, es, fr, ...(ex && { ex }), le: aujourdhui, via };
+  etat.mesMots = [...etat.mesMots, m];
+  sauver();
+  return m;
+}
+export function modifierMonMot(idMot, es, fr, ex) {
+  etat.mesMots = etat.mesMots.map(m => m.id === idMot ? { ...m, es, fr, ex } : m);
+  sauver();
+}
+export function supprimerMonMot(idMot) {
+  etat.mesMots = etat.mesMots.filter(m => m.id !== idMot);
+  const { [idMot]: _, ...reste } = etat.mots;
+  etat.mots = reste;
+  sauver();
+}
+
+// Les mots du livre appris en avance (« L'apprendre maintenant ») : { id du mot: date }. C'est la carte du livre
+// elle-même qui entre dans « Tes mots à revoir », dès le lendemain ; quand sa leçon arrive, elle garde sa révision.
+export const apprisEnAvance = idMot => etat.avance[idMot] || "";
+export function apprendreEnAvance(idMot, aujourdhui) {
+  if (etat.avance[idMot]) return;
+  etat.avance = { ...etat.avance, [idMot]: aujourdhui };
   sauver();
 }
 
@@ -110,7 +147,9 @@ export function lireSauvegarde(texte) {
     throw new Error("ce fichier n'est pas une sauvegarde de l'appli");
   }
   return { le: d.le || "", etat: { ...VIDE(), mots: d.mots, jours: d.jours, ecoute: d.ecoute,
-    ...(objet(d.controles) && { controles: d.controles }), ...(objet(d.presentations) && { presentations: d.presentations }) } };
+    ...(objet(d.controles) && { controles: d.controles }), ...(objet(d.presentations) && { presentations: d.presentations }),
+    ...(Array.isArray(d.mesMots) && { mesMots: d.mesMots.filter(m => m && m.id && m.es) }),
+    ...(objet(d.avance) && { avance: d.avance }) } };
 }
 
 // Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).

@@ -7,20 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=31";
-import { lecon as trouver } from "../position.js?v=31";
-import { EXERCICES } from "../exercices.js?v=31";
-import { corriger } from "../corriger.js?v=31";
-import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=31";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=31";
-import { BONUS } from "../bonus.js?v=31";
-import { verbeDe } from "../dico.js?v=31";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=31";
-import { vibrer, son } from "../retours.js?v=31";
+import { esc, md, id, ICONES } from "../ui.js?v=32";
+import { lecon as trouver } from "../position.js?v=32";
+import { EXERCICES } from "../exercices.js?v=32";
+import { corriger } from "../corriger.js?v=32";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=32";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=32";
+import { BONUS } from "../bonus.js?v=32";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=32";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=32";
+import { vibrer, son } from "../retours.js?v=32";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=31";
+} from "../enregistrement.js?v=32";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -44,16 +44,19 @@ function serieLecon(ctx, idLecon) {
 }
 
 // « Tes mots à revoir » : tous les mots dus, toutes leçons confondues, sauf ceux de la leçon faite aujourd'hui
-// (ils sont dans la leçon du jour). Les plus en retard d'abord.
+// (ils sont dans la leçon du jour). Avec mes mots et les mots du livre appris en avance, à partir du lendemain.
+// Un mot appris en avance compte depuis ce jour-là, même une fois sa leçon faite : il garde sa révision.
 export const PAQUET = 20;
 export function motsDus(ctx) {
   const { pos, motsParLecon, jour } = ctx;
   const mots = [...pos.faites].filter(l => pos.dateFaite[l] !== jour).flatMap(l => motsParLecon[l] || []);
-  return motsARevoir(mots, jour, l => pos.dateFaite[l]);
+  const enAvance = ctx.mots.filter(m => !pos.faites.has(m.lecon) && apprisEnAvance(m.id) && apprisEnAvance(m.id) < jour);
+  const aMoi = motsAMoi().filter(m => m.le < jour);
+  return motsARevoir([...mots, ...enAvance, ...aMoi], jour, m => m.moi ? m.le : apprisEnAvance(m.id) || pos.dateFaite[m.lecon]);
 }
 
 function serieRevision(ctx) {
-  return { titre: "Tes mots à revoir", revision: true, items: cartes(motsDus(ctx).slice(0, PAQUET)) };
+  return { titre: "Tes mots à revoir", revision: true, faites: ctx.pos.faites, items: cartes(motsDus(ctx).slice(0, PAQUET)) };
 }
 
 // La partie écrite du contrôle blanc : les questions tirées au hasard, thème après thème.
@@ -284,11 +287,19 @@ function formesCarte(m) {
 }
 
 function vueCarte(it) {
+  // Un de mes mots a pu être corrigé pendant la série (« Modifier ») : on reprend sa dernière version.
+  if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
   const m = it.mot;
   const tete = sorte(s.revision ? "Tes mots à revoir · carte" : "Carte · du français à l'espagnol");
   // En révision, la leçon d'où vient le mot. « Revoir la leçon » s'ouvre par-dessus la série, qui reprend au retour.
   const l = s.revision && trouver(m.lecon);
-  const origine = l ? `<div class="origine"><span>${id(l.id)} · ${esc(l.titre)}</span><a class="lien" href="#/lecon/${l.id}/revision">Revoir la leçon</a></div>` : "";
+  // Un de mes mots : quand je l'ai ajouté, et « Modifier » (après la correction du prof).
+  const origine = s.revision && m.moi
+    ? `<div class="origine"><span>Mes mots · ${esc(origineMonMot(m))}</span><a class="lien" href="#/mes-mots/modifier/${encodeURIComponent(m.id)}">Modifier</a></div>`
+    : l && !s.faites.has(l.id) && apprisEnAvance(m.id)
+      // Appris en avance : la leçon ne s'ouvre pas encore, la fiche du Dico si.
+      ? `<div class="origine"><span>${id(l.id)} · appris en avance</span><a class="lien" href="#/dico/mot/${encodeURIComponent(m.id)}/dico">Voir la fiche</a></div>`
+    : l ? `<div class="origine"><span>${id(l.id)} · ${esc(l.titre)}</span><a class="lien" href="#/lecon/${l.id}/revision">Revoir la leçon</a></div>` : "";
   if (s.phase === "question") {
     return `${tete}<div class="carte"><p class="fr-seul">${esc(m.fr)}</p><p class="sous">Dis-le en espagnol, puis retourne la carte.</p></div>
       ${zoneIndice(it)}
@@ -581,7 +592,8 @@ export async function actionPratique(ctx, action, el) {
     case "note": {
       const n = Number(el.dataset.n);
       if (s.indice && it.type !== "ecrire") s.notes.aide[it.type]++;
-      if (it.type === "carte") { noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); }
+      // Un de mes mots supprimé pendant la série : on ne lui recrée pas de mémoire.
+      if (it.type === "carte") { if (!it.mot.moi || monMot(it.mot.id)) noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); }
       else s.notes.dire.push(n);
       vibrer(); suivant();
       return "suivant";

@@ -1,12 +1,13 @@
 // L'onglet « Dico » (#/dico) : le sommaire avec la recherche, une page par sorte (#/dico/verbes…),
 // et la fiche d'un mot (#/dico/mot/ID/verbes : la fin dit d'où l'on vient, pour le lien du haut).
-// Seulement les mots des leçons faites. Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
+// Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
+// sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=31";
-import { lecon as trouver } from "../position.js?v=31";
-import { PERSONNES, formesSurlignees, conjuguer } from "../controles.js?v=31";
-import { etatRevision } from "../progression.js?v=31";
-import { SORTES, sorteDe, motsDuDico, chercher, verbeDe, etiquette, REGLES } from "../dico.js?v=31";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=32";
+import { lecon as trouver } from "../position.js?v=32";
+import { PERSONNES, formesSurlignees, conjuguer } from "../controles.js?v=32";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=32";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=32";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -16,6 +17,18 @@ const lienMot = (m, depuis) => `#/dico/mot/${encodeURIComponent(m.id)}/${depuis}
 const ligneMot = (m, depuis, tag = "") => `<li><a href="${lienMot(m, depuis)}">
     <span class="es" lang="es">${esc(m.es)}</span><span class="fr">${esc(m.fr)}</span>${tag ? `<span class="tag">${esc(tag)}</span>` : ""}
   </a></li>`;
+// Un mot pas encore vu : l'espagnol et le français sur une ligne, « arrive en U3-L2 » dessous (pas de bulle).
+const ligneAVenir = (m, depuis) => `<li class="a-venir"><a href="${lienMot(m, depuis)}">
+    <span class="l1"><span class="es" lang="es">${esc(m.es)}</span><span class="fr">${esc(m.fr)}</span></span>
+    <small>arrive en ${id(m.lecon)}</small>
+  </a></li>`;
+// Les 8 premiers, puis « Voir les N autres » qui déplie le reste.
+const MONTRES = 8;
+function listeAVenir(mots, depuis) {
+  const lignes = mots.map(m => ligneAVenir(m, depuis));
+  return `<ul class="liste">${lignes.slice(0, MONTRES).join("")}</ul>${mots.length > MONTRES
+    ? `<details class="autres"><summary>Voir les ${mots.length - MONTRES} autres</summary><ul class="liste">${lignes.slice(MONTRES).join("")}</ul></details>` : ""}`;
+}
 const parSorte = mots => Object.fromEntries(SORTES.map(s => [s.cle, mots.filter(m => sorteDe(m) === s)]));
 
 // Une leçon : un lien si elle est faite, sinon son nom estompé (elle ne s'ouvre pas encore).
@@ -33,18 +46,28 @@ function zoneSommaire(ctx) {
   const mots = motsDuDico(ctx);
   if (recherche.trim()) {
     const trouves = chercher(mots, recherche);
-    if (!trouves.length) return `<p class="sous">Aucun mot trouvé dans tes leçons faites.</p>`;
-    return `<ul class="liste res">${trouves.map(m => ligneMot(m, "dico", sorteDe(m).tag)).join("")}</ul>`;
+    // Puis les mots des leçons à venir, de la plus proche à la plus lointaine.
+    const plusLoin = chercher(motsAVenir(ctx), recherche).sort((a, b) => rangLecon(a.lecon) - rangLecon(b.lecon));
+    if (!trouves.length && !plusLoin.length) return `<p class="sous">Aucun mot trouvé, ni dans tes leçons, ni plus loin dans le livre.</p>`;
+    return `${trouves.length ? `<ul class="liste res">${trouves.map(m => ligneMot(m, "dico", sorteDe(m).tag)).join("")}</ul>`
+        : `<p class="sous">Rien dans tes leçons faites.</p>`}
+      ${plusLoin.length ? `<section class="plus-loin"><h2>Plus loin dans le livre</h2>${listeAVenir(plusLoin, "dico")}</section>` : ""}`;
   }
-  if (!mots.length) return `<p class="sous">Ton dico se remplit à chaque leçon faite avec le prof.</p>`;
   const groupes = parSorte(mots);
-  return `<ul class="cats">${SORTES.filter(s => groupes[s.cle].length).map(s => {
+  const aVenir = parSorte(motsAVenir(ctx));
+  // « Mes mots » est toujours là, même vide : c'est par là qu'on ajoute un mot (entendu, ou donné par le prof).
+  // Une sorte sans mot vu reste là si le livre en a plus loin (sa page montre « Pas encore vus ») ; le nombre ne compte que les vus.
+  const lignes = SORTES.filter(s => groupes[s.cle].length || aVenir[s.cle].length || s.cle === "mes-mots").map(s => {
     const g = groupes[s.cle];
+    const apercu = g.length ? `<small lang="es">${esc(g.slice(0, 3).map(m => m.es).join(", "))}${g.length > 3 ? "…" : ""}</small>`
+      : s.cle === "mes-mots" ? `<small>Ajoute un mot entendu ou donné par le prof</small>` : `<small>Aucun vu pour l'instant</small>`;
     return `<li><a href="#/dico/${s.cle}">
-        <span class="t">${esc(s.nom)}<small lang="es">${esc(g.slice(0, 3).map(m => m.es).join(", "))}${g.length > 3 ? "…" : ""}</small></span>
-        <span class="n">${g.length}</span>${ICONES.chevron}
+        <span class="t">${esc(s.nom)}${apercu}</span>
+        ${g.length ? `<span class="n">${g.length}</span>` : ""}${ICONES.chevron}
       </a></li>`;
-  }).join("")}</ul>`;
+  }).join("");
+  const vide = mots.some(m => !m.moi) ? "" : `<p class="sous">Ton dico se remplit à chaque leçon faite avec le prof.</p>`;
+  return `${vide}<ul class="cats">${lignes}</ul>`;
 }
 
 // Appelé à chaque lettre tapée : on ne redessine que la zone sous le champ, le clavier reste ouvert.
@@ -75,42 +98,92 @@ const FAMILLES = [
   { cle: "autres", nom: "Autres verbes" }, // ajoutés au Sheet après la vérification, ou « llueve »
 ];
 
-function section(ctx, titreSection, mots, depuis, regle = "", tag = () => "") {
-  return `<section class="sec">
-      <h2><span>${titreSection} · ${mots.length}</span>${regle}</h2>
-      <ul class="liste">${mots.map(m => ligneMot(m, depuis, tag(m))).join("")}</ul>
-    </section>`;
+// Une section : un en-tête collé en haut pendant le défilement, puis ses mots.
+// replie : true = fermée (on l'ouvre d'un toucher), false = ouverte et repliable, null = toujours ouverte.
+function section(ctx, titreSection, mots, depuis, regle = "", tag = () => "", replie = null) {
+  const tete = `<span>${titreSection} · ${mots.length}</span>${regle}`;
+  const liste = `<ul class="liste">${mots.map(m => ligneMot(m, depuis, tag(m))).join("")}</ul>`;
+  if (replie === null) return `<section class="sec"><h2>${tete}</h2>${liste}</section>`;
+  return `<details class="sec"${replie ? "" : " open"}><summary><h2>${tete}${ICONES.chevron}</h2></summary>${liste}</details>`;
 }
 
-function pageSorte(ctx, sorte) {
-  const mots = parSorte(motsDuDico(ctx))[sorte.cle];
+// La recherche dans une page : elle reste quand on revient d'une fiche (une par page).
+const recherchePage = {};
+const NOMS_RECHERCHE = { verbes: "les verbes", noms: "les noms", adjectifs: "les adjectifs", expressions: "les expressions", "petits-mots": "les petits mots", "mes-mots": "tes mots" };
+// L'article tapé ne compte pas : « el piso » et « piso » trouvent la même chose.
+const sansArticle = q => q.trim().replace(/^(el|la|los|las|un|una|unos|unas)\s+/i, "");
+const tagVerbe = m => { const vb = verbeDe(m); return vb ? etiquette(vb) : ""; };
+
+// Le corps d'une page, sans ou avec recherche.
+function corpsPage(ctx, sorte) {
+  const texte = sansArticle(recherchePage[sorte.cle] || "");
+  const tous = parSorte(motsDuDico(ctx))[sorte.cle];
+  const mots = texte ? chercher(tous, texte) : tous;
+  const aVenirTous = sorte.cle === "mes-mots" ? [] : parSorte(motsAVenir(ctx))[sorte.cle];
   let corps;
-  if (sorte.cle === "verbes") {
+  if (sorte.cle === "mes-mots") {
+    // Du plus récent au plus ancien.
+    corps = mots.length ? `<ul class="liste">${mots.map(m => ligneMot(m, sorte.cle)).join("")}</ul>` : "";
+  } else if (sorte.cle === "verbes") {
     // Rangés par famille de conjugaison, chacune avec la leçon de sa règle.
     corps = FAMILLES.map(f => {
       const dedans = mots.filter(m => (verbeDe(m)?.famille || "autres") === f.cle);
       if (!dedans.length) return "";
       const regle = REGLES[f.cle] ? regleCourte(ctx, REGLES[f.cle].lecon) : "";
-      return section(ctx, f.nom, dedans, sorte.cle, regle, m => { const vb = verbeDe(m); return vb ? etiquette(vb) : ""; });
+      return section(ctx, f.nom, dedans, sorte.cle, regle, tagVerbe);
     }).join("");
   } else {
-    // Le reste, par unité, dans l'ordre du livre.
+    // Par unité, la plus récente d'abord. Les 2 dernières ouvertes, les autres fermées (sauf pendant une recherche).
     const unites = [];
     for (const m of mots) {
       const u = trouver(m.lecon)?.unite;
       if (!u) continue;
       let g = unites.find(x => x.u === u);
-      if (!g) unites.push(g = { u, mots: [] });
+      if (!g) unites.push(g = { u, mots: [], rang: rangLecon(m.lecon) });
       g.mots.push(m);
     }
-    corps = unites.map(g => section(ctx, g.u.n ? `Unité ${g.u.n} · ${titre(g.u.titre)}` : titre(g.u.titre), g.mots, sorte.cle)).join("");
+    unites.sort((a, b) => b.rang - a.rang);
+    corps = unites.map((g, i) => section(ctx, g.u.n ? `Unité ${g.u.n} · ${titre(g.u.titre)}` : titre(g.u.titre), g.mots, sorte.cle, "", () => "",
+      texte ? null : i >= 2)).join("");
   }
+  if (texte) {
+    // Pendant une recherche : à la suite, les mots pas encore vus qui correspondent, les plus proches d'abord.
+    const plusLoin = chercher(aVenirTous, texte).sort((a, b) => rangLecon(a.lecon) - rangLecon(b.lecon));
+    if (!corps && !plusLoin.length) return `<p class="sous">Aucun mot trouvé.</p>`;
+    return `${corps || `<p class="sous">Rien dans tes leçons faites.</p>`}
+      ${plusLoin.length ? `<section class="plus-loin"><h2>Plus loin dans le livre</h2>${listeAVenir(plusLoin, sorte.cle)}</section>` : ""}`;
+  }
+  if (sorte.cle === "mes-mots" && !corps) {
+    corps = `<p class="sous">Pas encore de mots à toi. Après l'écoute du jour, tu peux garder 2 ou 3 mots entendus ; ceux que le prof te donne s'ajoutent ici.</p>`;
+  }
+  // En bas, fermé : les mots de cette sorte qui arrivent plus tard, de la leçon la plus proche à la plus lointaine.
+  if (aVenirTous.length) {
+    corps = `${corps || `<p class="sous">Pas encore de mots vus ici.</p>`}
+      <details class="pas-vus"><summary><span>Pas encore vus · ${aVenirTous.length}</span>${ICONES.chevron}</summary>${listeAVenir(aVenirTous, sorte.cle)}</details>`;
+  }
+  return corps || `<p class="sous">Pas encore de mots ici.</p>`;
+}
+
+// Appelé à chaque lettre tapée dans la recherche d'une page : seule la liste est redessinée, le clavier reste ouvert.
+export function majRecherchePage(ctx, cle, texte) {
+  recherchePage[cle] = texte;
+  const sorte = SORTES.find(s => s.cle === cle);
+  const zone = document.querySelector("[data-page-zone]");
+  if (sorte && zone) zone.innerHTML = corpsPage(ctx, sorte);
+}
+
+function pageSorte(ctx, sorte) {
+  const vide = sorte.cle === "mes-mots" && !parSorte(motsDuDico(ctx))[sorte.cle].length;
   return {
     onglet: "dico",
     html: `<main class="colonne dico">
         <header class="nav-haut"><a class="retour" href="#/dico">${ICONES.retour}Ton dico</a></header>
         <h1>${esc(sorte.nom)}</h1>
-        ${corps || `<p class="sous">Pas encore de mots ici.</p>`}
+        ${sorte.cle === "mes-mots" ? `<a class="primaire ajouter" href="#/mes-mots/ajouter">Ajouter un mot</a>` : ""}
+        ${vide ? "" : `<label class="cherche">${loupe}<input type="search" data-cherche-page="${sorte.cle}" placeholder="Chercher dans ${NOMS_RECHERCHE[sorte.cle]}"
+          value="${esc(recherchePage[sorte.cle] || "")}" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="search" aria-label="Chercher dans ${NOMS_RECHERCHE[sorte.cle]}, en espagnol ou en français"></label>`}
+        <div class="page-zone" data-page-zone>${corpsPage(ctx, sorte)}</div>
       </main>${barreOnglets("dico")}`,
   };
 }
@@ -141,16 +214,22 @@ function blocVerbe(ctx, vb) {
 
 function etat(ctx, m) {
   const e = etatRevision(m.id, ctx.jour);
+  const depuis = m.moi ? m.le : apprisEnAvance(m.id);
+  if (!e && depuis) return depuis >= ctx.jour ? "À revoir demain" : "À revoir aujourd'hui";
   if (!e) return "Pas encore revu dans tes mots à revoir.";
   return e.dans === 0 ? "À revoir aujourd'hui" : e.dans === 1 ? "À revoir demain" : `À revoir dans ${e.dans} jours`;
 }
 
 function fiche(ctx, idMot, depuis) {
-  const m = motsDuDico(ctx).find(x => x.id === decodeURIComponent(idMot || ""));
+  const cherche = decodeURIComponent(idMot || "");
+  const m = motsDuDico(ctx).find(x => x.id === cherche) || ctx.mots.find(x => x.id === cherche);
   const sorte = SORTES.find(s => s.cle === depuis);
   const retour = `<header class="nav-haut"><a class="retour" href="${sorte ? `#/dico/${sorte.cle}` : "#/dico"}" data-arriere>${ICONES.retour}${sorte ? esc(sorte.nom) : "Ton dico"}</a></header>`;
-  if (!m) return { onglet: "dico", html: `<main class="colonne dico">${retour}<h1>Mot introuvable</h1></main>${barreOnglets("dico")}` };
+  if (!m) return { onglet: "dico", html: `<main class="colonne dico">${retour}<h1>Mot introuvable</h1><p class="sous">Il a peut-être été supprimé.</p></main>${barreOnglets("dico")}` };
   const vb = verbeDe(m);
+  const vu = m.moi || motVu(ctx, m);
+  const l = !m.moi && trouver(m.lecon);
+  const enAvance = !m.moi && !ctx.pos.faites.has(m.lecon) && apprisEnAvance(m.id);
   const aDire = m.ex ? `${m.es}. ${m.ex}` : m.es;
   return {
     onglet: "dico",
@@ -162,9 +241,17 @@ function fiche(ctx, idMot, depuis) {
           <p class="fr">${esc(m.fr)}</p>
           ${m.ex ? `<p class="ex" lang="es">${esc(m.ex)}</p>` : ""}
         </div>
+        ${enAvance ? `<span class="avance">${id(m.lecon)} · appris en avance</span>` : ""}
         ${vb ? blocVerbe(ctx, vb) : ""}
-        <div class="bloc"><h3>Ce mot vient de</h3>${lienLecon(ctx, m.lecon, "")}</div>
-        <p class="etat">${etat(ctx, m)}</p>
+        ${m.moi ? `<div class="bloc"><h3>Mes mots</h3><p class="regle">${esc(`${origineMonMot(m).replace(/^./, c => c.toUpperCase())}${m.via === "ecoute" ? ", à l'écoute du jour" : ""}`.replace(/\.?$/, "."))}</p></div>`
+          : !vu ? `<div class="bloc"><h3>Pas encore vu</h3><p class="regle">Arrive en ${id(m.lecon)}${l ? ` · ${esc(l.titre)}` : ""}.</p></div>`
+          : enAvance ? "" : `<div class="bloc"><h3>Ce mot vient de</h3>${lienLecon(ctx, m.lecon, "")}</div>`}
+        ${vu ? `<p class="etat">${etat(ctx, m)}</p>` : `<div class="espace"></div>
+          <button class="primaire soleil" data-apprendre="${esc(m.id)}">L'apprendre maintenant</button>
+          <p class="petit">Il arrive dans tes mots à revoir dès demain. Quelques mots d'avance, c'est bien ; le reste viendra avec le prof.</p>`}
+        ${m.moi ? `<div class="espace"></div><div class="duo">
+            <a class="secondaire cadre" href="#/mes-mots/modifier/${encodeURIComponent(m.id)}">Modifier</a>
+            <button class="secondaire supprimer" data-mm-suppr="${esc(m.id)}" data-retour>Supprimer</button></div>` : ""}
       </main>${barreOnglets("dico")}`,
   };
 }
