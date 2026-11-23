@@ -5,18 +5,18 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=26";
-import { lecon as trouver } from "../position.js?v=26";
-import { EXERCICES } from "../exercices.js?v=26";
-import { corriger } from "../corriger.js?v=26";
-import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=26";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=26";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=26";
-import { vibrer, son } from "../retours.js?v=26";
+import { esc, md, id, ICONES } from "../ui.js?v=27";
+import { lecon as trouver } from "../position.js?v=27";
+import { EXERCICES } from "../exercices.js?v=27";
+import { corriger } from "../corriger.js?v=27";
+import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=27";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison } from "../controles.js?v=27";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=27";
+import { vibrer, son } from "../retours.js?v=27";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=26";
+} from "../enregistrement.js?v=27";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -157,7 +157,7 @@ function vueEcrire(it, enTete) {
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
       ${it.controle || !ok ? explication(it) : ""}
-      ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}">Revoir la leçon</a>` : ""}
+      ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}/exercice">Revoir la leçon</a>` : ""}
     </div>
     <div class="espace"></div>
     <button class="primaire" data-p="suivant">Suivant</button>`;

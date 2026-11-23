@@ -1,11 +1,11 @@
 // La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer ».
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
-// Ouverte depuis une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) : pas de « Commencer », qui remplacerait
-// la série en cours, et le lien du haut te remet sur la même carte.
+// Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
+// (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=26";
-import { lecon as trouver } from "../position.js?v=26";
-import { EXERCICES } from "../exercices.js?v=26";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=27";
+import { lecon as trouver } from "../position.js?v=27";
+import { EXERCICES } from "../exercices.js?v=27";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -17,8 +17,9 @@ export function ecranLecon(ctx, idLecon, depuis) {
 
   const u = l.unite;
   const rang = u.lecons.findIndex(x => x.id === l.id) + 1;
-  const lien = depuis === "revision"
-    ? `<a class="retour" href="#/revision" data-arriere>${ICONES.retour}Reprendre tes mots</a>`
+  const serie = { revision: ["#/revision", "Reprendre tes mots"], exercice: [`#/pratique/${l.id}`, "Reprendre l'exercice"] }[depuis];
+  const lien = serie
+    ? `<a class="retour" href="${serie[0]}" data-arriere>${ICONES.retour}${serie[1]}</a>`
     : `<a class="retour" href="#/livre/${u.id}">${ICONES.retour}Le livre</a>`;
   const retour = `<header class="nav-haut">${lien}<span class="sous">Unité ${u.n ?? "Noël"} · leçon ${rang} sur ${u.lecons.length}</span></header>`;
 
@@ -60,7 +61,7 @@ export function ecranLecon(ctx, idLecon, depuis) {
           ${ex ? `<div class="compteurs"><span><b>${ex.ecrire.length}</b>à écrire</span><span><b>${ex.dire.length}</b>à dire</span><span><b>${mots.length}</b>cartes</span></div>`
             : `<p class="sous">Pour l'instant, les cartes des ${mots.length} mots : les exercices de cette unité arrivent bientôt.</p>`}
         </section>
-        ${depuis === "revision" ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
+        ${serie ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
         ${l.soir ? `<p class="note-soir">Ce soir avec Blanca : ${esc(l.soir)}</p>` : ""}
       </main>${barreOnglets("livre")}`,
   };
