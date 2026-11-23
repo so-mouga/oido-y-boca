@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=30";
+import { md } from "./ui.js?v=31";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -47,6 +47,17 @@ export function conjuguer(v, p, d) {
   return se ? `${PRONOMS[p]} ${f}` : f;
 }
 export const sixFormes = (v, d) => PERSONNES.map((_, p) => conjuguer(v, p, d));
+
+// Pour le Dico : les 6 formes, terminaison et voyelle changée entre ** (« me ac**ue**st**o** »).
+// Un irrégulier connu n'a rien de surligné : toute la forme s'apprend.
+export const irregulierConnu = inf => !!IRREGULIERS[inf];
+export function formesSurlignees(v, d) {
+  const { se, inf, g, r } = decouper(v);
+  return PERSONNES.map((_, p) => {
+    const f = IRREGULIERS[inf] ? IRREGULIERS[inf][p] : `${radical(r, d, p, true)}**${TERMINAISONS[g][p]}**`;
+    return se ? `${PRONOMS[p]} ${f}` : f;
+  });
+}
 
 // « *vivir*, avec *vosotros* : viv + **ís**. Les verbes en -ir : -o, -es, -e, -imos, -ís, -en. »
 // « *contar*, avec *yo* : c**ue**nt + **o**. Le o devient ue, sauf avec nosotros et vosotros. »

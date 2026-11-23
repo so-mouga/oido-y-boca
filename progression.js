@@ -47,6 +47,15 @@ export function motsARevoir(mots, aujourdhui, dateLecon) {
   }).filter(Boolean).sort((a, b) => b.retard - a.retard).map(x => x.m);
 }
 
+// Pour la fiche du Dico : dans combien de jours le mot revient dans « Tes mots à revoir » (0 = aujourd'hui),
+// avec les mêmes règles que motsARevoir. null si le mot n'a jamais été revu.
+export function etatRevision(idMot, aujourdhui) {
+  const f = etat.mots[idMot];
+  if (!f?.vu) return null;
+  const dans = INTERVALLES[f.boite] - jours(f.vu, aujourdhui);
+  return { dans: f.vu === aujourdhui ? Math.max(dans, 1) : Math.max(dans, 0) };
+}
+
 // Les cases du jour : écoute, soir, « revision » (le nombre de mots revus), « exos:ID » ({ ok, sur }). La case « prof » vient de « Suivi », pas d'ici.
 export function cases(aujourdhui) { return etat.jours[aujourdhui] || {}; }
 // Une case cochée un autre jour de la même semaine (du lundi au dimanche) que « aujourdhui » ?

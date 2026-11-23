@@ -483,3 +483,44 @@ textarea.texte:focus { border-color: var(--marine); box-shadow: 0 2px 10px rgba(
 .fin h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
 .a-retenir li { padding: 8px 0; border-top: 1px solid var(--hair); font-size: 15px; }
 .a-retenir small { color: var(--muted); }
+
+/* Ton dico (#/dico) : le sommaire et sa recherche, les pages par sorte, la fiche d'un mot. */
+.dico { padding-right: 22px; }
+.dico h1 { font-size: 30px; line-height: 1.1; }
+.cherche { display: flex; align-items: center; gap: 8px; background: #fff; border: 2px solid var(--hair); border-radius: 14px; padding: 0 12px; color: var(--fog); transition: border-color .2s var(--ease); }
+.cherche:focus-within { border-color: var(--marine-soft); color: var(--marine-soft); }
+.cherche .i { width: 18px; height: 18px; flex: none; }
+.cherche input { flex: 1; min-width: 0; font: inherit; font-size: 16px; color: var(--marine); background: none; border: 0; outline: none; padding: 12px 0; }
+.cherche input::placeholder { color: var(--fog); }
+.cats li { border-bottom: 1px solid var(--hair); }
+.cats a { display: flex; align-items: center; gap: 12px; padding: 13px 2px; }
+.cats .t { flex: 1; min-width: 0; font-weight: 500; font-size: 16px; }
+.cats small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cats .n { font-size: 14px; font-weight: 600; color: var(--marine-soft); font-variant-numeric: tabular-nums; }
+.cats .i { width: 18px; height: 18px; color: var(--fog); }
+.liste a { display: flex; align-items: baseline; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--hair); font-size: 15px; }
+.liste .es { font-weight: 600; }
+.liste .fr { flex: 1; min-width: 0; color: var(--muted); }
+.liste .tag { flex: none; font-size: 12px; color: var(--marine-soft); background: var(--sun-deep); border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.sec h2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; font-weight: 600; color: var(--sun-ink); background: var(--sun-deep); border-radius: 10px; padding: 7px 11px; margin-bottom: 0; }
+.sec h2 a { font-weight: 500; color: var(--marine-soft); text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 2px; text-underline-offset: 3px; padding: 4px 0; }
+.sec h2 .avenir { font-weight: 400; color: var(--fog); }
+.fiche-page { gap: 16px; }
+.fiche { display: flex; flex-direction: column; gap: 4px; }
+.fiche .ligne-son { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.fiche h1 { font-size: 32px; letter-spacing: -.01em; overflow-wrap: anywhere; }
+.fiche .fr { font-size: 17px; color: var(--muted); }
+.fiche .ex { font-size: 15px; color: var(--marine-soft); line-height: 1.4; margin-top: 8px; }
+.bloc { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 9px; align-items: flex-start; }
+.bloc h3 { font-size: 13px; font-weight: 500; color: var(--muted); }
+.formes { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; font-size: 15px; }
+.formes dt { color: var(--muted); }
+.formes dd { margin: 0; }
+.formes .term { font-weight: 600; color: var(--sun-ink); background: var(--sun-halo); border-radius: 4px; padding: 0 2px; }
+.regle { font-size: 14px; color: var(--marine-soft); line-height: 1.45; }
+.lk { font-weight: 600; font-size: 15px; color: var(--marine-soft); text-decoration: underline; text-decoration-color: var(--sun); text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 3px 0; }
+.lk.avenir { font-weight: 500; color: var(--fog); text-decoration: none; }
+.lk.avenir small { font-size: 13px; font-weight: 400; }
+.etat { font-size: 14px; color: var(--muted); }
+/* « Les 6 formes » sur une carte de verbe retournée (Tes mots à revoir). */
+.carte .six-formes { width: 100%; text-align: left; border-top: 1px solid var(--hair); padding-top: 10px; }

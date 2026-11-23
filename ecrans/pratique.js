@@ -7,19 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=30";
-import { lecon as trouver } from "../position.js?v=30";
-import { EXERCICES } from "../exercices.js?v=30";
-import { corriger } from "../corriger.js?v=30";
-import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=30";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=30";
-import { BONUS } from "../bonus.js?v=30";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=30";
-import { vibrer, son } from "../retours.js?v=30";
+import { esc, md, id, ICONES } from "../ui.js?v=31";
+import { lecon as trouver } from "../position.js?v=31";
+import { EXERCICES } from "../exercices.js?v=31";
+import { corriger } from "../corriger.js?v=31";
+import { noterMot, motsARevoir, cocher, cases, noterControle } from "../progression.js?v=31";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES } from "../controles.js?v=31";
+import { BONUS } from "../bonus.js?v=31";
+import { verbeDe } from "../dico.js?v=31";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=31";
+import { vibrer, son } from "../retours.js?v=31";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=30";
+} from "../enregistrement.js?v=31";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -275,6 +276,13 @@ function vueDire(it) {
     ${notes("Tu l'as trouvé ?", true)}`;
 }
 
+// En révision, sur une carte de verbe retournée : « Les 6 formes », fermé, si l'appli connaît ce verbe
+// (pas pour les verbes comme gustar : « yo gusto » ne sert à rien).
+function formesCarte(m) {
+  const vb = s.revision && verbeDe(m);
+  return vb?.formes && !vb.gustar ? lesSixFormes(vb.v, vb.d, -1) : "";
+}
+
 function vueCarte(it) {
   const m = it.mot;
   const tete = sorte(s.revision ? "Tes mots à revoir · carte" : "Carte · du français à l'espagnol");
@@ -291,6 +299,7 @@ function vueCarte(it) {
       <p class="es" lang="es">${esc(m.es)}</p>
       ${ecouter(m.ex ? `${m.es}. ${m.ex}` : m.es, "grand")}
       ${m.ex ? `<p class="exemple" lang="es">${esc(m.ex)}</p>` : ""}
+      ${formesCarte(m)}
       ${origine}
     </div>
     <div class="espace"></div>

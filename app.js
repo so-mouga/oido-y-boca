@@ -1,20 +1,21 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=30";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=30";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=30";
-import { ECOUTES } from "./ecoute.js?v=30";
-import { preparerVoix } from "./voix.js?v=30";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=30";
-import { vibrer } from "./retours.js?v=30";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=30";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=30";
-import { ecranLivre } from "./ecrans/livre.js?v=30";
-import { ecranLecon } from "./ecrans/lecon.js?v=30";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=30";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=30";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=30";
+import { chargerTableau } from "./donnees.js?v=31";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=31";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=31";
+import { ECOUTES } from "./ecoute.js?v=31";
+import { preparerVoix } from "./voix.js?v=31";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=31";
+import { vibrer } from "./retours.js?v=31";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=31";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=31";
+import { ecranLivre } from "./ecrans/livre.js?v=31";
+import { ecranLecon } from "./ecrans/lecon.js?v=31";
+import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=31";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=31";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=31";
+import { ecranDico, majRecherche } from "./ecrans/dico.js?v=31";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -55,6 +56,7 @@ const ECRANS = {
   revision: ctx => ecranPratique(ctx, null),
   bonus: ecranBonus,
   controle: ecranControle,
+  dico: ecranDico,
 };
 
 function bientot(nom, onglet) {
@@ -146,6 +148,11 @@ app.addEventListener("click", async e => {
     monterEcoute(ECOUTES.length - 1);
     afficher();
   }
+});
+
+// La recherche du Dico : chaque lettre met à jour la liste, sans redessiner l'écran (le clavier reste ouvert).
+app.addEventListener("input", e => {
+  if (e.target.matches("[data-cherche]")) majRecherche(ctx, e.target.value);
 });
 
 window.addEventListener("hashchange", () => afficher(true));

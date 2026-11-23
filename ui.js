@@ -33,5 +33,5 @@ export const ICONES = {
 export function barreOnglets(actif) {
   const onglet = (cle, href, nom) =>
     `<a href="${href}" class="onglet${actif === cle ? " on" : ""}"${actif === cle ? ' aria-current="page"' : ""}>${nom}</a>`;
-  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("soir", "#/soir", "Ce soir")}</nav>`;
+  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("dico", "#/dico", "Dico")}${onglet("soir", "#/soir", "Ce soir")}</nav>`;
 }

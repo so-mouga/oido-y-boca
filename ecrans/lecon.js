@@ -3,11 +3,12 @@
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
 // Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
+// Ouverte depuis le Dico (#/lecon/U1-L3/dico) : tout est là, et le lien du haut ramène au mot.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=30";
-import { lecon as trouver } from "../position.js?v=30";
-import { EXERCICES } from "../exercices.js?v=30";
-import { BONUS } from "../bonus.js?v=30";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=31";
+import { lecon as trouver } from "../position.js?v=31";
+import { EXERCICES } from "../exercices.js?v=31";
+import { BONUS } from "../bonus.js?v=31";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -20,18 +21,22 @@ export function ecranLecon(ctx, idLecon, depuis) {
   const u = l.unite;
   const rang = u.lecons.findIndex(x => x.id === l.id) + 1;
   const serie = { revision: ["#/revision", "Reprendre tes mots"], exercice: [`#/pratique/${l.id}`, "Reprendre l'exercice"] }[depuis];
+  // Ouverte depuis une fiche du Dico (#/lecon/U1-L1/dico) : le lien du haut ramène au mot, la barre reste sur Dico.
+  const dico = depuis === "dico";
   const lien = serie
     ? `<a class="retour" href="${serie[0]}" data-arriere>${ICONES.retour}${serie[1]}</a>`
+    : dico ? `<a class="retour" href="#/dico" data-arriere>${ICONES.retour}Revenir au mot</a>`
     : `<a class="retour" href="#/livre/${u.id}">${ICONES.retour}Le livre</a>`;
+  const onglet = dico ? "dico" : "livre";
   const retour = `<header class="nav-haut">${lien}<span class="sous">Unité ${u.n ?? "Noël"} · leçon ${rang} sur ${u.lecons.length}</span></header>`;
 
   if (!pos.faites.has(l.id)) {
     return {
-      onglet: "livre",
+      onglet,
       html: `<main class="colonne lecon-page">${retour}
           <h1>${esc(l.titre)}</h1>
           <p class="sous">Cette leçon s'ouvre après ta séance avec le prof : il l'écrit dans ton suivi, et elle apparaît ici.</p>
-        </main>${barreOnglets("livre")}`,
+        </main>${barreOnglets(onglet)}`,
     };
   }
 
@@ -40,7 +45,7 @@ export function ecranLecon(ctx, idLecon, depuis) {
   const ex = EXERCICES[l.id];
   return {
     // Ouverte depuis une série : pas de barre du bas, la seule sortie est « Reprendre… » (ou le retour d'Android).
-    onglet: serie ? null : "livre",
+    onglet: serie ? null : onglet,
     html: `<main class="colonne lecon-page">
         ${retour}
         <div>
@@ -67,6 +72,6 @@ export function ecranLecon(ctx, idLecon, depuis) {
         ${serie ? "" : `<a class="primaire" href="#/pratique/${l.id}">Commencer</a>`}
         ${serie || !BONUS[l.id] ? "" : `<a class="secondaire" href="#/bonus/${l.id}/lecon">S'entraîner · 6 phrases</a>`}
         ${l.soir ? `<p class="note-soir">Ce soir avec Blanca : ${esc(l.soir)}</p>` : ""}
-      </main>${serie ? "" : barreOnglets("livre")}`,
+      </main>${serie ? "" : barreOnglets(onglet)}`,
   };
 }
