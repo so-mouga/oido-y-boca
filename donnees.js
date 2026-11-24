@@ -64,7 +64,7 @@ export function versSuivi(lignes) {
 }
 
 // Une ligne par leçon : misión, 4 questions (la 4e peut manquer), le défi (« reto », peut manquer) et la note pour moi.
-// La copie hors ligne d'avant la v=42 n'a ni « pregunta 4 » ni « reto » : l'écran fait sans.
+// La copie hors ligne d'avant la v=43 n'a ni « pregunta 4 » ni « reto » : l'écran fait sans.
 export function versSoir(lignes) {
   const soir = {};
   const colonnes = { lecon: "leçon", mision: "misión", q1: "pregunta 1", q2: "pregunta 2", q3: "pregunta 3", q4: "pregunta 4", reto: "reto", kevin: "para kevin" };

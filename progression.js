@@ -59,18 +59,6 @@ export function etatRevision(idMot, aujourdhui) {
 
 // Les cases du jour : écoute, soir, « revision » (le nombre de mots revus), « exos:ID » ({ ok, sur }). La case « prof » vient de « Suivi », pas d'ici.
 export function cases(aujourdhui) { return etat.jours[aujourdhui] || {}; }
-// Une case cochée un autre jour de la même semaine (du lundi au dimanche) que « aujourdhui » ?
-export function cocheCetteSemaine(aujourdhui, cle) {
-  const d = new Date(aujourdhui + "T12:00:00");
-  const lundi = new Date(d); lundi.setDate(d.getDate() - ((d.getDay() + 6) % 7));
-  for (let i = 0; i < 7; i++) {
-    const j = new Date(lundi); j.setDate(lundi.getDate() + i);
-    const iso = `${j.getFullYear()}-${String(j.getMonth() + 1).padStart(2, "0")}-${String(j.getDate()).padStart(2, "0")}`;
-    if (iso !== aujourdhui && etat.jours[iso]?.[cle]) return true;
-  }
-  return false;
-}
-
 export function cocher(aujourdhui, cle, valeur = true) {
   etat.jours[aujourdhui] = { ...cases(aujourdhui), [cle]: valeur };
   sauver();

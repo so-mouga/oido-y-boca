@@ -2,14 +2,14 @@
 // - #/mes-mots/ecoute : « Tu as gardé des mots ? », juste après « C'est fait » sur l'écoute (« entendu le… ») ;
 // - #/mes-mots/ajouter : le même écran, depuis la page « Mes mots » du Dico (« ajouté le… », pour les mots du prof) ;
 // - #/mes-mots/modifier/ID : corriger ou supprimer un mot (depuis une carte, une liste ou le Dico) ;
-// - #/semaine : « Ton écoute de la semaine », les mots depuis le dernier envoi et « Copier pour le prof ».
+// - #/semaine : « Tes mots pour la séance » (la séance orale du jeudi), les mots depuis le dernier envoi et « Copier pour le prof ».
 // Un mot ajouté va dans « Tes mots à revoir » dès le lendemain, toujours appris : si je n'en veux plus, je le supprime.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=42";
-import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=42";
-import { memeMot, motVu } from "../dico.js?v=42";
-import { lecon as trouverLecon } from "../position.js?v=42";
-import { vibrer } from "../retours.js?v=42";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=43";
+import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=43";
+import { memeMot, motVu } from "../dico.js?v=43";
+import { lecon as trouverLecon } from "../position.js?v=43";
+import { vibrer } from "../retours.js?v=43";
 
 const svg = corps => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const CRAYON = svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>');
@@ -21,7 +21,8 @@ const pluriel = n => `${n} mot${n > 1 ? "s" : ""}`;
 let message = "";
 let saisie = null;
 
-// Les mots de la semaine : ceux ajoutés depuis le dernier envoi au prof (la ligne cochée un autre jour),
+// Les mots de la semaine : ceux ajoutés depuis le dernier envoi au prof (la dernière copie, un autre jour : case « dimanche »,
+// le nom d'avant, gardé pour que les anciennes sauvegardes restent bonnes),
 // ou des 7 derniers jours s'il n'y en a jamais eu.
 export function motsDeLaSemaine(jour) {
   let depuis = dernierJourCoche(jour, "dimanche");
@@ -98,26 +99,25 @@ function ecranModifier(ctx, idMot) {
   };
 }
 
-// ── L'écoute de la semaine ── (la phrase d'exemple entre parenthèses, pour que le prof la corrige aussi)
+// ── Tes mots pour la séance orale du jeudi ── (la phrase d'exemple entre parenthèses, pour que le prof la corrige aussi)
 export const texteProf = mots => `Mis palabras de la semana: ${mots.map(m => `${m.es} = ${m.fr}${m.ex ? ` (${m.ex})` : ""}`).join(", ")}`;
 
 function ecranSemaine(ctx) {
   const mots = motsDeLaSemaine(ctx.jour);
-  const faite = !!cases(ctx.jour).dimanche;
+  const copie = !!cases(ctx.jour).dimanche;
   return {
     onglet: "jour",
     html: `<main class="colonne mes-mots semaine">
         <header class="nav-haut"><a class="retour" href="#/" data-arriere>${ICONES.retour}Aujourd'hui</a></header>
-        <div><h1>Ton écoute de la semaine</h1><p class="sous">${faite ? "Envoyée au prof aujourd'hui" : "À envoyer au prof, quand tu veux cette semaine"}</p></div>
-        <p class="conseil">Colle le lien d'une vidéo de la semaine dans la conversation avec le prof, puis tes mots.
-          Il te dira s'ils sont justes et lesquels valent la peine.</p>
-        ${mots.length ? `<section><h2>Tes mots de la semaine · ${mots.length}</h2><ul class="mm-liste">${mots.map(ligne).join("")}</ul></section>
+        <div><h1>Tes mots pour la séance</h1><p class="sous">${copie && mots.length ? "Copiés aujourd'hui" : "La séance orale avec le prof, le jeudi à 12 h"}</p></div>
+        <p class="conseil">Colle-les au début de la séance : le prof les corrige et les réutilise dans les jeux de rôle.
+          Ensuite, modifie-les ici ou dans « Mes mots ».</p>
+        ${mots.length ? `<section><h2>Tes mots depuis la dernière séance · ${mots.length}</h2><ul class="mm-liste">${mots.map(ligne).join("")}</ul></section>
           <button class="copier" data-mm-copier>${COPIER}Copier pour le prof</button>
           <p class="copie" role="status" data-mm-copie></p>`
-          : `<p class="sous">Pas de mot gardé depuis ton dernier envoi. Envoie seulement le lien de ta vidéo.</p>`}
+          : `<p class="sous">Pas de mot gardé depuis ta dernière séance.</p>`}
         <div class="espace"></div>
-        ${faite ? `<a class="secondaire cadre" href="#/" data-remplace>Revenir à aujourd'hui</a>`
-          : `<button class="primaire" data-mm-envoyee>C'est fait</button>`}
+        <a class="secondaire cadre" href="#/" data-remplace>Revenir à aujourd'hui</a>
       </main>${barreOnglets("jour")}`,
   };
 }
@@ -195,18 +195,21 @@ export async function actionMesMots(ctx, e) {
   if (e.target.closest("[data-mm-copier]")) {
     const texte = texteProf(motsDeLaSemaine(ctx.jour));
     const ok = await copier(texte);
+    // La copie compte comme l'envoi au prof : jeudi prochain, les mots partiront d'ici.
+    if (ok) cocher(ctx.jour, "dimanche", true);
+    vibrer(8);
+    // Depuis « Ta journée », on redessine : le bouton devient « Copié ✓ ». Si la copie échoue,
+    // l'écran des mots affiche le texte, à copier à la main.
+    if (e.target.closest(".accueil")) {
+      if (ok) return true;
+      location.hash = "#/semaine";
+      return false;
+    }
     const zone = document.querySelector("[data-mm-copie]");
     if (zone) {
       zone.innerHTML = ok ? `${ICONES.coche}Copié : « ${esc(texte)} »` : `Copie impossible : ${esc(texte)}`;
       zone.classList.add("on");
     }
-    vibrer(8);
-    return false;
-  }
-  if (e.target.closest("[data-mm-envoyee]")) {
-    cocher(ctx.jour, "dimanche", true);
-    vibrer();
-    location.replace("#/");
     return false;
   }
   return null;

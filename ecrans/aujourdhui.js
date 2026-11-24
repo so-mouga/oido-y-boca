@@ -2,20 +2,21 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=42";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=42";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=42";
-import { EXERCICES } from "../exercices.js?v=42";
-import { controlePret, dernierResultat } from "./controle.js?v=42";
-import { motsDus, PAQUET } from "./pratique.js?v=42";
-import { BONUS } from "../bonus.js?v=42";
-import { motsDeLaSemaine } from "./mesmots.js?v=42";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=42";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=43";
+import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=43";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=43";
+import { EXERCICES } from "../exercices.js?v=43";
+import { controlePret, dernierResultat } from "./controle.js?v=43";
+import { motsDus, PAQUET } from "./pratique.js?v=43";
+import { BONUS } from "../bonus.js?v=43";
+import { motsDeLaSemaine } from "./mesmots.js?v=43";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=43";
 
+const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
 
-// Une ligne de « Ta journée ». t : { titre, detail, fait, href, externe, cle (bouton « C'est fait ») }.
+// Une ligne de « Ta journée ». t : { titre, detail, fait, href, externe, cle (bouton « C'est fait »), bouton (un autre bouton, en HTML) }.
 function ligne(t, ici) {
   const etat = t.fait ? "fait" : ici ? "maintenant" : "à venir";
   const point = `<span class="pt${t.fait ? " ok" : ici ? " ici" : ""}" role="img" aria-label="${etat}">${t.fait ? ICONES.coche : ""}</span>`;
@@ -24,7 +25,7 @@ function ligne(t, ici) {
   const lien = t.href
     ? `<a class="aller" href="${t.href}"${t.externe ? ' target="_blank" rel="noopener"' : ""}>${corps}${t.externe ? ICONES.sortie : ICONES.chevron}</a>`
     : `<span class="aller">${corps}</span>`;
-  const bouton = t.cle && !t.fait ? `<button class="mini" data-cocher="${t.cle}">C'est fait</button>` : "";
+  const bouton = t.bouton ?? (t.cle && !t.fait ? `<button class="mini" data-cocher="${t.cle}">C'est fait</button>` : "");
   return `<li class="tache${t.fait ? " faite" : ""}${ici ? " ici" : ""}">${point}${lien}${bouton}</li>`;
 }
 
@@ -114,8 +115,21 @@ export function ecranAujourdhui(ctx) {
   const journee = [];
 
   // 1. La leçon avec le prof : cochée toute seule grâce à « Suivi ». Cachée le week-end s'il n'y en a pas eu.
-  const semaine = [1, 2, 3, 4, 5].includes(new Date(jour + "T12:00:00").getDay());
-  if (pos.seanceDuJour || semaine) {
+  // Le jeudi, c'est la séance orale (jeux de rôle, pas de nouvelle leçon) : la ligne propose de copier
+  // tes mots depuis la dernière séance, à coller au début. La copie compte comme l'envoi (case « dimanche »).
+  const numJour = new Date(jour + "T12:00:00").getDay();
+  const semaine = [1, 2, 3, 4, 5].includes(numJour);
+  if (numJour === 4) {
+    const n = motsDeLaSemaine(jour).length;
+    const copie = !!c.dimanche;
+    journee.push({
+      titre: "Séance orale avec le prof", fait: pos.seanceDuJour, href: "#/semaine",
+      detail: pos.seanceDuJour ? "faite" : copie && n ? `${HEURE_SEANCE} · ${mots(n)} copié${n > 1 ? "s" : ""}, à coller au début`
+        : `${HEURE_SEANCE} · jeux de rôle, pas de nouvelle leçon`,
+      bouton: !n || pos.seanceDuJour ? "" : copie ? `<span class="mini copiee">Copié ✓</span>`
+        : `<button class="mini" data-mm-copier>Copier ${mots(n)}</button>`,
+    });
+  } else if (pos.seanceDuJour || semaine) {
     journee.push({
       titre: "Leçon avec le prof", fait: pos.seanceDuJour,
       detail: pos.seanceDuJour ? (leconDuJour ? `${id(der.id)}, ce matin` : "séance notée aujourd'hui")
@@ -167,20 +181,6 @@ export function ecranAujourdhui(ctx) {
       extra: `<p class="liens"><a class="lien" href="${e.lien}" target="_blank" rel="noopener">Ouvrir ${esc(e.nom)}</a>${plusDur}</p>`,
       bouton: "C'est fait", cle: "ecoute" },
   });
-
-  // Une fois par semaine, le jour de ton choix : la ligne reste tant qu'elle n'est pas faite,
-  // disparaît le reste de la semaine une fois faite, et revient le lundi.
-  // Elle ouvre l'écran de la semaine : tes mots, « Copier pour le prof », « C'est fait ».
-  if (!cocheCetteSemaine(jour, "dimanche")) {
-    const n = motsDeLaSemaine(jour).length;
-    journee.push({
-      titre: "Ton écoute de la semaine", fait: !!c.dimanche, href: "#/semaine",
-      detail: c.dimanche ? "envoyée" : `le lien d'une vidéo${n ? ` et ${mots(n)}` : ""}, pour le prof`,
-      carte: { titre: "Ton écoute de la semaine",
-        texte: `Envoie au prof le lien d'une vidéo de la semaine${n ? `, avec tes ${mots(n)}` : ""}.`,
-        bouton: "Préparer l'envoi", href: "#/semaine" },
-    });
-  }
 
   // 5. Ce soir avec Blanca : toujours dans la liste, dans la carte seulement à partir de 18 h.
   const leSoir = new Date().getHours() >= HEURE_SOIR;
