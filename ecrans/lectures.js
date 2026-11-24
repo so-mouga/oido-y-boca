@@ -6,11 +6,12 @@
 // Dessous, 3 questions à choix ; à la 3e réponse, le score est enregistré et le texte compte comme lu.
 // Tout se passe sur la page (écouteurs posés dans « apres ») : l'écran n'est pas redessiné pendant la lecture.
 
-import { esc, ICONES, barreOnglets, dateCourte } from "../ui.js?v=45";
-import { uniteCourante } from "../position.js?v=45";
-import { NIVEAUX, TEXTES, SORTES, texte as trouver, niveauDe, nbMots, phrases, morceaux } from "../lectures.js?v=45";
-import { resultatLecture, noterLecture } from "../progression.js?v=45";
-import { vibrer } from "../retours.js?v=45";
+import { esc, ICONES, barreOnglets, dateCourte } from "../ui.js?v=46";
+import { uniteCourante } from "../position.js?v=46";
+import { NIVEAUX, TEXTES, SORTES, texte as trouver, niveauDe, nbMots, phrases, morceaux } from "../lectures.js?v=46";
+import { resultatLecture, noterLecture } from "../progression.js?v=46";
+import { vibrer } from "../retours.js?v=46";
+import { phraseTouchable } from "../toucher.js?v=46";
 
 // L'unité où j'en suis (Noël compte comme la fin de l'unité 8), et donc mon niveau.
 const uniteDuMoment = pos => uniteCourante(pos).n ?? 8;
@@ -64,11 +65,11 @@ function ecranListe(ctx, ouvert) {
   };
 }
 
-// Le texte, phrase par phrase et mot par mot.
-function corps(t) {
-  const phrase = ph => `<span class="lx-ph">${morceaux(ph, t).map(m => m.g
-    ? `<span class="lx-mot${m.nouveau ? " nouveau" : ""}" role="button" tabindex="0" data-g="${esc(m.g)}">${esc(m.t)}</span>`
-    : esc(m.t)).join("")}</span>`;
+// Le texte, phrase par phrase et mot par mot. Chaque mot se touche (ecrans/bulle.js, la même bulle que les exercices) :
+// sa traduction est celle écrite pour le texte ; le moteur (toucher.js) dit seulement s'il est appris, plus loin, ou absent du livre.
+// Pas de « La phrase en français » ici : comprendre la phrase avec les mots, c'est l'exercice (Q10-11).
+function corps(ctx, t) {
+  const phrase = ph => phraseTouchable(ctx, ph, { gloses: morceaux(ph, t).map(m => ({ ...m, g: m.g ?? undefined })) });
   const paragraphes = t.texte.map(p => phrases(p).map(phrase).join(" "));
   if (t.sorte === "message") return `<div class="lx-msg"><span class="de">${esc(t.de)}</span>${paragraphes.map(p => `<p class="bulle">${p}</p>`).join("")}</div>`;
   if (t.sorte === "dialogue") return `<div class="lx-dialogue">${paragraphes.map(p => `<p>${p}</p>`).join("")}</div>`;
@@ -103,49 +104,15 @@ function ecranTexte(ctx, t) {
         <header class="nav-haut"><a class="retour" href="#/lectures">${ICONES.retour}Lectures</a></header>
         <div><p class="lx-sorte">Niveau ${t.niveau} · ${SORTES[t.sorte].toLowerCase()}${deja}</p><h1>${esc(t.titre)}</h1>
           <p class="sous">Lis d'abord tout le texte, sans t'arrêter. Puis touche les mots qui te bloquent.</p></div>
-        <div class="lx-lire">${corps(t)}
-          <div class="lx-trad" hidden role="status"><p></p>
-            <button class="lx-ecouter" data-dire="" aria-pressed="false"><span class="ecoute">${ICONES.lecture}</span>Écouter la phrase</button></div>
-        </div>
+        <div class="lx-lire">${corps(ctx, t)}</div>
         ${questions(t)}
       </main>${barreOnglets("livre")}`,
   };
 }
 
-// Les gestes sur la page d'un texte.
+// Les gestes sur la page d'un texte : les questions (les mots se touchent avec ecrans/bulle.js).
 function brancher(ctx, t) {
   const page = document.querySelector(".lx-page");
-  const lire = page.querySelector(".lx-lire");
-  const bulle = lire.querySelector(".lx-trad");
-  const fermer = () => {
-    bulle.hidden = true;
-    lire.querySelectorAll(".touche, .lit").forEach(x => x.classList.remove("touche", "lit"));
-  };
-  const toucher = mot => {
-    if (mot.classList.contains("touche")) return fermer();
-    fermer();
-    const ph = mot.closest(".lx-ph");
-    mot.classList.add("touche");
-    ph.classList.add("lit");
-    bulle.querySelector("p").innerHTML = `<b>${esc(mot.textContent)}</b> → ${esc(mot.dataset.g)}`;
-    bulle.querySelector("[data-dire]").dataset.dire = ph.textContent.replace(/^—\s*/, "");
-    bulle.hidden = false;
-    // La bulle se place sous le mot touché, sans sortir de l'écran.
-    const zone = lire.getBoundingClientRect(), r = mot.getBoundingClientRect();
-    const gauche = Math.max(0, Math.min(r.left - zone.left - 12, zone.width - bulle.offsetWidth));
-    bulle.style.left = `${gauche}px`;
-    bulle.style.top = `${r.bottom - zone.top + 8}px`;
-  };
-  lire.addEventListener("click", e => {
-    const mot = e.target.closest(".lx-mot");
-    if (mot) toucher(mot);
-    else if (!e.target.closest(".lx-trad")) fermer();
-  });
-  lire.addEventListener("keydown", e => {
-    const mot = e.target.closest(".lx-mot");
-    if (mot && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); toucher(mot); }
-  });
-
   const zoneQ = page.querySelector(".lx-questions");
   const reponses = {};
   zoneQ.addEventListener("click", e => {

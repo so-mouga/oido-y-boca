@@ -1,26 +1,27 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=45";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=45";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=45";
-import { ECOUTES } from "./ecoute.js?v=45";
-import { preparerVoix } from "./voix.js?v=45";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=45";
-import { vibrer } from "./retours.js?v=45";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=45";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=45";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=45";
-import { ecranLivre } from "./ecrans/livre.js?v=45";
-import { ecranLecon } from "./ecrans/lecon.js?v=45";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=45";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=45";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=45";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=45";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=45";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=45";
-import { ecranLectures } from "./ecrans/lectures.js?v=45";
-import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=45";
+import { chargerTableau } from "./donnees.js?v=46";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=46";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=46";
+import { ECOUTES } from "./ecoute.js?v=46";
+import { preparerVoix } from "./voix.js?v=46";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=46";
+import { vibrer } from "./retours.js?v=46";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=46";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=46";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=46";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=46";
+import { ecranLivre } from "./ecrans/livre.js?v=46";
+import { ecranLecon } from "./ecrans/lecon.js?v=46";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=46";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=46";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=46";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=46";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=46";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=46";
+import { ecranLectures } from "./ecrans/lectures.js?v=46";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=46";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -91,6 +92,7 @@ function dessiner() {
   const rendu = ecran ? ecran(ctx, ...args)
     : bientot("Bientôt", "jour");
   arreterLecture();
+  fermerBulle();
   app.dataset.ecran = route || "jour";
   document.body.classList.toggle("nuit", !!rendu.nuit);
   document.querySelector('meta[name="theme-color"]').content = rendu.nuit ? "#13294B" : "#FFF4DC";
@@ -101,6 +103,12 @@ function dessiner() {
 }
 
 app.addEventListener("submit", async e => {
+  // « Ajouter à Mes mots » dans la bulle d'un mot touché.
+  if (e.target.matches("[data-tx-form]")) {
+    e.preventDefault();
+    envoiToucher(ctx, e.target);
+    return;
+  }
   if (e.target.matches("[data-mm-form]")) {
     e.preventDefault();
     if (envoiMesMots(ctx, e.target)) afficher();
@@ -117,6 +125,8 @@ app.addEventListener("submit", async e => {
 });
 
 app.addEventListener("click", async e => {
+  // Toucher un mot : la bulle et ses boutons (ecrans/bulle.js). Un clic ailleurs la ferme, puis continue son chemin.
+  if (actionToucher(ctx, e)) return;
   // « Reprendre tes mots » : revenir en arrière dans l'historique, pour retrouver la série à la même carte.
   if (e.target.closest("[data-arriere]") && history.length > 1) {
     e.preventDefault();
@@ -250,6 +260,7 @@ app.addEventListener("change", async e => {
 async function demarrer() {
   preparerVoix();
   suivreClavier();
+  suivreBulle();
   // Demande à Chrome de ne jamais effacer la progression pour faire de la place (accordé sans question,
   // surtout quand l'appli est installée).
   navigator.storage?.persist?.().catch(() => {});

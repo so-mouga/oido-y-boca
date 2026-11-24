@@ -117,7 +117,8 @@ export function apprendreEnAvance(idMot, aujourdhui) {
 }
 
 // « Mes verbes en cours » : les verbes que je travaille en ce moment ({ verbe: date d'ajout }), choisis par moi
-// (« Je l'apprends » sur la fiche, « + » dans « À apprendre ensuite »). « justes » : pour chaque verbe, le nombre de séries
+// (« Je l'apprends » sur la fiche, « + » dans « À apprendre ensuite », « M'entraîner sur ce verbe » en touchant un verbe).
+// Sans limite (Q10-16) : une série en prend 5, ceux travaillés il y a le plus longtemps d'abord (« derniere » : { verbe: date }). « justes » : pour chaque verbe, le nombre de séries
 // de suite où toutes ses questions étaient justes ; à 2, la fin de série propose « Tu le sais ? ». Le verbe est l'infinitif, avec -se.
 const verbes = () => etat.verbes || (etat.verbes = { cours: {}, justes: {} });
 export const verbesEnCours = () => Object.keys(verbes().cours);
@@ -130,15 +131,16 @@ export function mettreEnCours(v, aujourdhui) {
 export function retirerDesCours(v) {
   const { [v]: _, ...cours } = verbes().cours;
   const { [v]: __, ...justes } = verbes().justes;
-  etat.verbes = { cours, justes };
+  etat.verbes = { ...verbes(), cours, justes };
   sauver();
 }
 export const seriesJustes = v => verbes().justes[v] || 0;
+export const derniereSerie = v => (verbes().derniere || {})[v] || "";
 // À la fin d'une série : pour chaque verbe interrogé, true = tout juste (on ajoute 1), false = une erreur (on repart de 0).
-export function noterSerieVerbes(resultats) {
-  const justes = { ...verbes().justes };
-  for (const [v, ok] of Object.entries(resultats)) justes[v] = ok ? (justes[v] || 0) + 1 : 0;
-  etat.verbes = { ...verbes(), justes };
+export function noterSerieVerbes(resultats, aujourdhui) {
+  const justes = { ...verbes().justes }, derniere = { ...verbes().derniere };
+  for (const [v, ok] of Object.entries(resultats)) { justes[v] = ok ? (justes[v] || 0) + 1 : 0; if (aujourdhui) derniere[v] = aujourdhui; }
+  etat.verbes = { ...verbes(), justes, derniere };
   sauver();
 }
 

@@ -5,16 +5,20 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=45";
-import { corriger } from "../corriger.js?v=45";
-import { PERSONNES, formesSurlignees } from "../controles.js?v=45";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe } from "../verbes.js?v=45";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance } from "../progression.js?v=45";
-import { motVu } from "../dico.js?v=45";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=45";
-import { vibrer, son } from "../retours.js?v=45";
+import { esc, md, ICONES } from "../ui.js?v=46";
+import { corriger } from "../corriger.js?v=46";
+import { PERSONNES, formesSurlignees } from "../controles.js?v=46";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe } from "../verbes.js?v=46";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=46";
+import { motVu } from "../dico.js?v=46";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=46";
+import { vibrer, son } from "../retours.js?v=46";
 
-export const LIMITE_COURS = 5;
+// Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
+// travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi
+// régulièrement, et « Tu le sais ? » (2 séries tout justes de suite) continue de faire sortir ceux que je sais.
+export const VERBES_PAR_SERIE = 5;
+const lesPlusAnciens = verbes => [...verbes].sort((a, b) => derniereSerie(a.v).localeCompare(derniereSerie(b.v))).slice(0, VERBES_PAR_SERIE);
 let s = null; // la série en cours
 
 const MODES = {
@@ -23,7 +27,8 @@ const MODES = {
 };
 
 function nouvelleSerie(ctx, cle, mode, v, retour) {
-  const verbes = mode === "un" ? [trouverVerbe(ctx, v)].filter(Boolean) : MODES[mode]?.verbes(ctx) || [];
+  const tous = mode === "un" ? [trouverVerbe(ctx, v)].filter(Boolean) : MODES[mode]?.verbes(ctx) || [];
+  const verbes = mode === "cours" ? lesPlusAnciens(tous) : tous;
   s = {
     cle, mode, retour, verbes,
     titre: mode === "un" ? (verbes[0]?.v || v) : MODES[mode]?.titre || "Verbes",
@@ -178,7 +183,7 @@ export function ecranVerbes(ctx, mode, a, b, c) {
       // Pour « Tu le sais ? » : chaque verbe interrogé, tout juste ou non.
       const parVerbe = {};
       for (const { q, ok } of s.resultats) parVerbe[q.v] = (parVerbe[q.v] ?? true) && ok;
-      noterSerieVerbes(parVerbe);
+      noterSerieVerbes(parVerbe, ctx.jour);
     }
     return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
   }
@@ -289,6 +294,6 @@ export function actionVerbes(ctx, e) {
 
 // ——— pour le Dico ———
 // La carte du haut de la page Verbes : mes verbes en cours, « À apprendre ensuite », « Tous mes verbes ».
-export const tropEnCours = () => verbesEnCours().length >= LIMITE_COURS
-  ? `<p class="limite">Tu en as déjà ${verbesEnCours().length} en cours. Finis-en un avant d'en ajouter.</p>` : "";
+export const tropEnCours = () => verbesEnCours().length > 10
+  ? `<p class="limite">Chaque série en prend ${VERBES_PAR_SERIE} : ceux que tu n'as pas travaillés depuis longtemps passent d'abord.</p>` : "";
 export { sensDe };

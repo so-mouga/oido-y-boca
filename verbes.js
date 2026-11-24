@@ -3,11 +3,11 @@
 // Pensé pour servir aussi plus tard à la « Course de conjugaison » des jeux (mêmes questions, chronométrées).
 // Seulement le présent pour l'instant : chaque question porte « temps: "present" », pour pouvoir ajouter les autres temps.
 
-import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=45";
-import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=45";
-import { verbesEnCours } from "./progression.js?v=45";
-import { EXERCICES } from "./exercices.js?v=45";
-import { BONUS } from "./bonus.js?v=45";
+import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=46";
+import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=46";
+import { verbesEnCours } from "./progression.js?v=46";
+import { EXERCICES } from "./exercices.js?v=46";
+import { BONUS } from "./bonus.js?v=46";
 
 // ── Les verbes ──
 // Un verbe qu'on peut travailler : l'appli connaît ses 6 formes, et il ne se construit pas comme gustar.
@@ -29,15 +29,44 @@ export function tousLesVerbes(ctx) {
   }
   return [...parVerbe.values()];
 }
-export const trouverVerbe = (ctx, v) => tousLesVerbes(ctx).find(x => x.v === v) || null;
+// Les verbes des exercices et du bonus qui ne sont pas dans le Sheet (« buscar », « estudiar ») : l'exercice donne
+// le verbe, sa voyelle qui change (d) et son sens (« buscar = chercher »). Ils peuvent aller dans « Mes verbes en cours »
+// depuis un exercice (« M'entraîner sur ce verbe »), mais ne sont jamais proposés dans « À apprendre ensuite ».
+// Seulement ceux que le moteur sait conjuguer (réguliers, ou irréguliers connus).
+let extras = null;
+function verbesDesExercices() {
+  if (extras) return extras;
+  const parVerbe = new Map();
+  const voir = (q, sens) => {
+    if (!q.v || q.v.includes(" ")) return;
+    const inf = q.v.replace(/se$/, "");
+    if (!/[aeií]r$/.test(inf)) return;
+    const x = parVerbe.get(q.v) || parVerbe.set(q.v, { v: q.v, inf, d: q.d, irr: irregulierConnu(inf), fr: "", cartes: [], carte: null, rang: 1e6, exercice: true }).get(q.v);
+    if (sens && !x.fr) x.fr = sens;
+    if (q.d && !x.d) x.d = q.d;
+  };
+  for (const b of Object.values(BONUS)) { for (const q of b.phrases || []) voir(q, q.sens); for (const q of b.tableaux || []) voir(q, q.sens); }
+  for (const e of Object.values(EXERCICES)) for (const q of e.ecrire || []) voir(q);
+  extras = [...parVerbe.values()].filter(x => {
+    try { conjuguer(x.v, 0, x.d); return true; } catch { return false; }
+  });
+  return extras;
+}
+// Les verbes du Sheet, puis ceux des exercices qui n'y sont pas.
+export function verbesConnus(ctx) {
+  const sheet = tousLesVerbes(ctx);
+  const deja = new Set(sheet.map(x => x.v));
+  return [...sheet, ...verbesDesExercices().filter(x => !deja.has(x.v))];
+}
+export const trouverVerbe = (ctx, v) => verbesConnus(ctx).find(x => x.v === v) || null;
 
 // Vu : une de ses cartes est vue (leçon faite, ou apprise en avance).
 const vuDe = (ctx, x) => x.cartes.some(m => motVu(ctx, m));
 
 // « Tous mes verbes » : les verbes vus et ceux en cours.
-export const mesVerbes = ctx => { const cours = new Set(verbesEnCours()); return tousLesVerbes(ctx).filter(x => cours.has(x.v) || vuDe(ctx, x)); };
+export const mesVerbes = ctx => { const cours = new Set(verbesEnCours()); return verbesConnus(ctx).filter(x => cours.has(x.v) || vuDe(ctx, x)); };
 // « Mes verbes en cours », dans l'ordre où je les ai ajoutés.
-export const verbesCours = ctx => { const tous = tousLesVerbes(ctx); return verbesEnCours().map(v => tous.find(x => x.v === v)).filter(Boolean); };
+export const verbesCours = ctx => { const tous = verbesConnus(ctx); return verbesEnCours().map(v => tous.find(x => x.v === v)).filter(Boolean); };
 // « À apprendre ensuite » : les prochains verbes du livre, pas encore vus ni en cours.
 export function suggestions(ctx, n = 3) {
   const cours = new Set(verbesEnCours());

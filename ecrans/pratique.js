@@ -7,25 +7,27 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=45";
-import { lecon as trouver } from "../position.js?v=45";
-import { EXERCICES } from "../exercices.js?v=45";
-import { corriger } from "../corriger.js?v=45";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=45";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=45";
-import { BONUS } from "../bonus.js?v=45";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=45";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=45";
-import { vibrer, son } from "../retours.js?v=45";
+import { esc, md, id, ICONES } from "../ui.js?v=46";
+import { lecon as trouver } from "../position.js?v=46";
+import { EXERCICES } from "../exercices.js?v=46";
+import { corriger } from "../corriger.js?v=46";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=46";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=46";
+import { BONUS } from "../bonus.js?v=46";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=46";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=46";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=46";
+import { vibrer, son } from "../retours.js?v=46";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=45";
+} from "../enregistrement.js?v=46";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
 
 let s = null; // la série en cours
+let ctxVue = null; // pour les phrases qu'on touche (toucher.js)
 
 const cartes = mots => mots.map(m => ({ type: "carte", mot: m }));
 
@@ -177,7 +179,19 @@ function vueEcrire(it, enTete) {
   const consigne = it.bonus
     ? `${sorte(`Entraînement · ${esc(it.nom)}`)}<p class="consigne">${esc(it.consigne)}</p>`
     : sorte(`À écrire · ${it.consigne.toLowerCase()}`);
-  const enonce = `<p class="enonce">${esc(it.fr)}</p>${it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : ""}`;
+  // Toucher un mot (chantier 10) : une phrase espagnole à compléter se touche pendant la question (pas pendant un contrôle) ;
+  // après la réponse, la phrase complète se touche, la réponse surlignée. Un « Traduis » montre du français : rien à toucher
+  // avant la réponse ; après, c'est la bonne réponse qui se touche. La traduction de l'auteur (trad) ne donne jamais la forme.
+  const trou = it.fr.includes("___");
+  const sens = it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : "";
+  let enonce = `<p class="enonce">${esc(it.fr)}</p>${sens}`;
+  if (trou && s.phase === "question" && !it.controle) {
+    enonce = `<p class="enonce">${phraseTouchable(ctxVue, it.fr, { fr: it.trad, extras: it.sens })}</p>${sens}`;
+  } else if (trou && s.phase !== "question") {
+    const reponse = it.es[0], debut = it.fr.indexOf("___");
+    const complete = it.fr.replace("___", reponse);
+    enonce = `<p class="enonce">${phraseTouchable(ctxVue, complete, { fr: it.trad, extras: it.sens, marques: [{ debut, fin: debut + reponse.length, cls: "bon" }] })}</p>${sens}`;
+  }
   if (s.phase === "question") {
     return `<div class="defile">${enTete}${consigne}${enonce}${zoneIndice(it)}</div>
       <form class="saisie" data-p-form>
@@ -194,7 +208,8 @@ function vueEcrire(it, enTete) {
   const titre = { juste: s.indice ? "Juste, avec un indice" : "Juste", accents: "Juste, aux accents près", presque: unSeulMot ? "Pas encore" : "Presque : un mot", faux: "Pas encore", passe: "La réponse" }[r.niveau];
   const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
   const tape = s.saisie && r.tape ? `<p class="tape">${surligne(r.tape, "faux")}</p>` : s.saisie ? `<p class="tape">${esc(s.saisie)}</p>` : "";
-  const bonne = r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu);
+  const bonne = trou ? (r.reponse ? surligne(r.reponse, "bon") : esc(r.attendu))
+    : phraseTouchable(ctxVue, r.attendu, { marques: marquesDe(r.attendu, r.reponse, "bon") });
   return `${enTete}${consigne}${enonce}
     ${tape}
     <div class="verdict ${ok ? "ok" : r.niveau === "passe" ? "ko passe" : "ko"}" role="status">
@@ -273,7 +288,7 @@ function vueDire(it) {
   return `${tete}
     <div class="carte-reponse">
       <p class="sous">La réponse</p>
-      <p class="es" lang="es">${esc(it.es)}</p>
+      <p class="es" lang="es">${phraseTouchable(ctxVue, it.es)}</p>
       <div class="deux">
         <button data-dire="${esc(it.es)}" aria-pressed="false">${ICONES.lecture}Le modèle</button>
         ${aUnEnregistrement() ? `<button data-voix aria-pressed="false">${ICONES.lecture}Ma voix</button>` : ""}
@@ -315,7 +330,7 @@ function vueCarte(it) {
       <p class="fr">${esc(m.fr)}</p>
       <p class="es" lang="es">${esc(m.es)}</p>
       ${ecouter(m.ex ? `${m.es}. ${m.ex}` : m.es, "grand")}
-      ${m.ex ? `<p class="exemple" lang="es">${esc(m.ex)}</p>` : ""}
+      ${m.ex ? `<p class="exemple" lang="es">${phraseTouchable(ctxVue, m.ex)}</p>` : ""}
       ${formesCarte(m)}
       ${origine}
     </div>
@@ -479,6 +494,7 @@ export function ecranEcritControle(ctx, idUnite) {
 
 // retour : là d'où tu viens (pour « Quitter » et la fin). Une série reprise garde sa place mais prend le nouveau retour.
 function ecranSerie(ctx, cle, construire, retour, vide = "") {
+  ctxVue = ctx;
   if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, construire);
   if (retour) s.retour = retour;
 

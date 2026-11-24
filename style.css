@@ -743,24 +743,11 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .lx-page h1 { font-size: 26px; line-height: 1.15; }
 .lx-lire { position: relative; font-size: 18px; line-height: 1.7; }
 .lx-lire p + p { margin-top: 10px; }
-.lx-mot { cursor: pointer; border-radius: 5px; -webkit-tap-highlight-color: transparent; }
-.lx-mot.nouveau { text-decoration: underline dotted var(--marine-soft); text-decoration-thickness: 2px; text-underline-offset: 4px; }
-.lx-ph.lit { background: var(--sun-deep); border-radius: 6px; box-shadow: 0 0 0 2px var(--sun-deep); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.lx-mot.touche { background: var(--sun); box-shadow: 0 0 0 2px var(--sun); }
 .lx-msg { background: #EFE3C4; border-radius: 18px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 .lx-msg .de { font-size: 12px; font-weight: 600; color: var(--sage-ink); }
 .lx-msg .bulle { background: #fff; border-radius: 4px 16px 16px 16px; padding: 10px 13px; }
 .lx-dialogue p { padding-left: 14px; text-indent: -14px; }
 .lx-breve .lieu { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 15px; }
-.lx-trad { position: absolute; z-index: 2; max-width: min(300px, 100%); background: var(--marine); color: var(--sun-ground); border-radius: 14px; padding: 10px 13px; font-size: 15px; line-height: 1.35; box-shadow: 0 8px 22px rgba(19, 41, 75, .25); display: flex; flex-direction: column; gap: 8px; }
-.lx-trad[hidden] { display: none; }
-.lx-trad b { font-weight: 600; }
-.lx-ecouter { display: inline-flex; align-items: center; gap: 8px; color: var(--sun-halo); font-size: 13.5px; font-weight: 500; align-self: flex-start; }
-.lx-ecouter .ecoute { width: 28px; height: 28px; background: var(--sun); }
-.lx-ecouter .ecoute .i { width: 12px; height: 12px; }
-.lx-ecouter.on .ecoute { box-shadow: 0 0 0 4px rgba(249, 218, 140, .35); }
-.lx-ecouter.on .lecture .i { display: none; }
-.lx-ecouter.on .lecture .barres { display: flex; }
 
 /* Les questions */
 .lx-questions { display: flex; flex-direction: column; gap: 18px; border-top: 1px solid var(--hair); padding-top: 18px; }
@@ -780,3 +767,44 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .lx-res.bof { background: var(--sun-deep); color: var(--sun-ink); }
 .lx-res b { font-size: 18px; font-weight: 600; }
 .lx-res span { font-size: 13.5px; }
+
+/* Toucher un mot (chantier 10, ecrans/bulle.js) : partout où une phrase espagnole se touche, la même bulle.
+   Le mot touché passe en jaune, sa phrase se colore ; la bulle s'ouvre sous la phrase, dans la largeur de l'appli. */
+.tx-mot { cursor: pointer; border-radius: 5px; -webkit-tap-highlight-color: transparent; }
+.tx-mot.nouveau { text-decoration: underline dotted var(--marine-soft); text-decoration-thickness: 2px; text-underline-offset: 4px; }
+.tx-ph.lit { background: var(--sun-deep); border-radius: 6px; box-shadow: 0 0 0 2px var(--sun-deep); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.tx-mot.touche { background: var(--sun); box-shadow: 0 0 0 2px var(--sun); }
+mark .tx-mot.touche { box-shadow: none; }
+.bulle-mot {
+  position: absolute; z-index: 20; background: var(--marine); color: var(--sun-ground); border-radius: 16px; padding: 12px 14px;
+  font-size: 15px; line-height: 1.4; box-shadow: 0 10px 26px rgba(19, 41, 75, .3); display: flex; flex-direction: column; gap: 9px;
+  animation: arrive .3s var(--ease) both; text-align: left; font-weight: 400; letter-spacing: 0;
+}
+.bulle-mot .bm-tete { font-size: 17px; padding-right: 24px; overflow-wrap: anywhere; }
+.bulle-mot .bm-tete b { font-weight: 600; }
+.bulle-mot .bm-ou { font-size: 13px; color: #C9D3E4; }
+.bulle-mot .bm-ou b, .bulle-mot .bm-ou span[lang] { color: var(--sun-halo); font-weight: 500; }
+.bulle-mot .id { color: inherit; }
+.bm-fermer { position: absolute; top: 6px; right: 8px; width: 32px; height: 32px; color: #C9D3E4; font-size: 22px; line-height: 1; }
+.bm-ligne { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.bm-lien { display: inline-flex; align-items: center; gap: 8px; color: var(--sun-halo); font-size: 13.5px; font-weight: 500; min-height: 32px; }
+.bm-lien .ecoute { width: 28px; height: 28px; background: var(--sun); }
+.bm-lien .ecoute .i { width: 12px; height: 12px; }
+.bm-lien.on .ecoute { box-shadow: 0 0 0 4px rgba(249, 218, 140, .35); }
+.bm-lien.on .lecture .i { display: none; }
+.bm-lien.on .lecture .barres { display: flex; }
+.bm-fr::before { content: "FR"; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid var(--sun-halo); font-size: 10.5px; font-weight: 600; flex: none; }
+.bm-trad { font-size: 14px; color: #E7ECF4; border-left: 3px solid var(--sun); padding-left: 9px; }
+.bm-trad[hidden] { display: none; }
+.bm-garder { width: 100%; background: var(--sun); color: var(--marine); border-radius: 12px; padding: 11px; font-weight: 600; font-size: 14.5px; text-align: center; }
+.bm-fait { background: rgba(220, 235, 221, .15); color: #CFE6D3; border-radius: 12px; padding: 9px 11px; font-size: 13.5px; }
+.bm-fait::before { content: "✓ "; font-weight: 600; color: #9FD4AC; }
+.bm-fait b, .bm-fait span[lang] { color: var(--sun-ground); }
+.bm-form { display: flex; flex-direction: column; gap: 8px; }
+.bm-form label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #C9D3E4; }
+.bm-form input { font: inherit; font-size: 16px; color: var(--marine); background: #fff; border: 0; border-radius: 10px; padding: 9px 11px; }
+
+/* Mes verbes en cours : chaque verbe avec sa croix pour le retirer (Q10-16). */
+.encours .puce-verbe { display: inline-flex; align-items: center; background: #2A3F63; border-radius: 999px; padding-left: 13px; }
+.encours .puce-verbe a, .encours .puce-verbe > span { background: none; padding: 6px 0; font-size: 15px; font-weight: 500; color: var(--sun-ground); border-radius: 0; }
+.retirer-verbe { width: 32px; height: 32px; display: grid; place-items: center; color: #C9D3E4; font-size: 18px; line-height: 1; }

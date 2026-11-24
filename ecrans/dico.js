@@ -3,14 +3,15 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=45";
-import { lecon as trouver } from "../position.js?v=45";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=45";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=45";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=45";
-import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=45";
-import { verbeEnCours } from "../progression.js?v=45";
-import { tropEnCours } from "./verbes.js?v=45";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=46";
+import { lecon as trouver } from "../position.js?v=46";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=46";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=46";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=46";
+import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=46";
+import { verbeEnCours } from "../progression.js?v=46";
+import { tropEnCours } from "./verbes.js?v=46";
+import { phraseTouchable } from "../toucher.js?v=46";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -199,7 +200,9 @@ function carteEntrainement(ctx) {
   const cours = verbesCours(ctx);
   const tous = mesVerbes(ctx);
   const ensuite = suggestions(ctx);
-  const puce = x => `<a href="${lienMot(x.carte, "verbes")}" lang="es">${esc(x.v)}</a>`;
+  // Chaque verbe en cours : son lien vers sa fiche (s'il a une carte dans le Sheet), et une croix pour le retirer
+  // (sans dire « je le sais », Q10-16). Un verbe des exercices sans carte (« buscar ») n'a pas de fiche.
+  const puce = x => `<span class="puce-verbe">${x.carte ? `<a href="${lienMot(x.carte, "verbes")}" lang="es">${esc(x.v)}</a>` : `<span lang="es">${esc(x.v)}</span>`}<button class="retirer-verbe" data-v-retirer="${esc(x.v)}" aria-label="Retirer ${esc(x.v)} de mes verbes en cours">×</button></span>`;
   return `<section class="entrainement" aria-labelledby="t-cours">
       <div class="encours">
         <h2 id="t-cours">Mes verbes en cours${cours.length ? ` · ${cours.length}` : ""}</h2>
@@ -309,7 +312,7 @@ function fiche(ctx, idMot, depuis) {
           <div class="ligne-son"><h1 lang="es">${esc(m.es)}</h1>
             <button class="ecoute grand" data-dire="${esc(aDire)}" aria-label="Écouter : ${esc(m.es)}" aria-pressed="false">${ICONES.lecture}</button></div>
           <p class="fr">${esc(m.fr)}</p>
-          ${m.ex ? `<p class="ex" lang="es">${esc(m.ex)}</p>` : ""}
+          ${m.ex ? `<p class="ex" lang="es">${phraseTouchable(ctx, m.ex)}</p>` : ""}
         </div>
         ${enAvance ? `<span class="avance">${id(m.lecon)} · appris en avance</span>` : ""}
         ${vb ? blocVerbe(ctx, vb) : ""}
