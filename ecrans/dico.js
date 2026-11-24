@@ -3,15 +3,15 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=63";
-import { lecon as trouver } from "../position.js?v=63";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=63";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=63";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=63";
-import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=63";
-import { verbeEnCours } from "../progression.js?v=63";
-import { tropEnCours } from "./verbes.js?v=63";
-import { phraseTouchable } from "../toucher.js?v=63";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=64";
+import { lecon as trouver } from "../position.js?v=64";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=64";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=64";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=64";
+import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=64";
+import { verbeEnCours } from "../progression.js?v=64";
+import { tropEnCours } from "./verbes.js?v=64";
+import { phraseTouchable } from "../toucher.js?v=64";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -270,6 +270,8 @@ const QUAND = {
   pc: "pour aujourd'hui, ce matin, cette semaine : un temps pas encore fini",
   ps: "pour hier, samedi dernier, l'an dernier : un moment fini",
   imp: "pour décrire et pour les habitudes : ce que je faisais, comment c'était",
+  fut: "pour ce qui est plus loin ou moins sûr : algún día, el año que viene (sinon, voy a…)",
+  cond: "pour demander poliment : ¿podría…?, me gustaría…, debería…",
 };
 function panneauTemps(ctx, vb, t, vu) {
   // Comme gustar : la même forme du verbe, avec le petit mot qui dit à qui (me gusta, te gusta… ; me ha gustado…).

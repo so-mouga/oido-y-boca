@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=63";
-import { mesMots, apprisEnAvance } from "./progression.js?v=63";
-import { LECONS } from "./position.js?v=63";
+import { irregulierConnu } from "./controles.js?v=64";
+import { mesMots, apprisEnAvance } from "./progression.js?v=64";
+import { LECONS } from "./position.js?v=64";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -121,6 +121,7 @@ const LECON_IRREGULIER = {
   hacer: "U7-L4", poner: "U7-L4", traer: "U7-L4", dar: "U7-L4", salir: "U7-L5", decir: "U7-L5", venir: "U7-L5", jugar: "U8-L5",
   // Ajoutés le 23 nov. (unités 9 à 15) : la leçon où arrive la carte du verbe.
   saber: "U1-L5", enviar: "U9-L2", ver: "U9-L3", recoger: "U10-L1", crecer: "U10-L6", conducir: "U13-L2", caer: "U13-L3", conocer: "U6-L5",
+  "freír": "U19-L4",
 };
 
 // Ce qui est irrégulier, dit précisément (vérifié forme par forme avec IRREGULIERS, controles.js).
@@ -143,6 +144,7 @@ const CE_QUI_CHANGE = {
   caer: "Seul *yo* est irrégulier : **caigo**. Le reste suit la règle des -er.",
   conocer: "Seul *yo* est irrégulier : **conozco**. Le reste suit la règle des -er.",
   saber: "Seul *yo* est irrégulier : **sé**. Le reste suit la règle des -er.",
+  "freír": "Le e devient í, avec un accent (*frío, fríes, fríe*), sauf avec nosotros et vosotros (*freímos, freís*).",
 };
 
 // Ce que l'appli sait d'un verbe du Sheet. « tener … años » → tener ; « comer (= déjeuner) » → comer ;

@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=63";
+import { md } from "./ui.js?v=64";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -40,6 +40,8 @@ const IRREGULIERS = {
   caer: ["caigo", "caes", "cae", "caemos", "caéis", "caen"],
   conocer: ["conozco", "conoces", "conoce", "conocemos", "conocéis", "conocen"],
   saber: ["sé", "sabes", "sabe", "sabemos", "sabéis", "saben"],
+  // Ajouté pour l'unité 19 (24 nov.) : le e devient í, avec un accent (se fríe).
+  "freír": ["frío", "fríes", "fríe", "freímos", "freís", "fríen"],
 };
 
 // ── Les temps du passé (unités 9 à 15) ──
@@ -50,8 +52,11 @@ export const TEMPS = {
   pc: { nom: "passé composé", livre: "pretérito perfecto", lecon: "U9-L1", ex: ["he hecho", "j'ai fait"] },
   ps: { nom: "passé simple", livre: "pretérito indefinido", lecon: "U12-L1", ex: ["hice", "j'ai fait (hier)"] },
   imp: { nom: "imparfait", livre: "imperfecto", lecon: "U14-L1", ex: ["hacía", "je faisais"] },
+  // Ajoutés pour les unités 16 et 17 (24 nov., Q14-1 et Q14-2).
+  fut: { nom: "futur", livre: "futuro simple", lecon: "U16-L4", ex: ["haré", "je ferai"] },
+  cond: { nom: "conditionnel", livre: "condicional", lecon: "U17-L1", ex: ["haría", "je ferais"] },
 };
-export const ORDRE_TEMPS = ["present", "pc", "ps", "imp"];
+export const ORDRE_TEMPS = ["present", "pc", "ps", "imp", "fut", "cond"];
 const temps = t => (t && t !== "present" ? t : "present");
 
 // Le passé composé : haber au présent + le participe. Les participes irréguliers, avec la leçon qui les explique.
@@ -60,6 +65,7 @@ const PARTICIPES = {
   hacer: "hecho", decir: "dicho", ver: "visto", poner: "puesto", escribir: "escrito", // U9-L3
   volver: "vuelto", romper: "roto", abrir: "abierto", morir: "muerto", // U9-L4
   devolver: "devuelto", suponer: "supuesto", descubrir: "descubierto", resolver: "resuelto",
+  "freír": "frito",
 };
 const LECON_PARTICIPE = { hacer: "U9-L3", decir: "U9-L3", ver: "U9-L3", poner: "U9-L3", escribir: "U9-L3",
   volver: "U9-L4", romper: "U9-L4", abrir: "U9-L4", morir: "U9-L4", devolver: "U9-L4" };
@@ -98,9 +104,24 @@ const IRR_PS = {
   traer: ["traje", "trajiste", "trajo", "trajimos", "trajisteis", "trajeron"],
   saber: ["supe", "supiste", "supo", "supimos", "supisteis", "supieron"],
   conducir: ["conduje", "condujiste", "condujo", "condujimos", "condujisteis", "condujeron"],
+  "freír": ["freí", "freíste", "frió", "freímos", "freísteis", "frieron"],
 };
 const LECON_IRR_PS = { ser: "U13-L1", ir: "U13-L1", tener: "U13-L2", estar: "U13-L2", hacer: "U13-L3", poder: "U13-L3",
   poner: "U13-L3", venir: "U13-L4", decir: "U13-L4", querer: "U13-L4", dar: "U13-L5" };
+
+// Le futur et le conditionnel (unités 16 et 17) : l'infinitif entier + la terminaison, pareil pour -ar, -er, -ir.
+// Les irréguliers gardent les terminaisons mais ont un radical court, le même aux deux temps (tendré, tendría).
+const FUT = ["é", "ás", "á", "emos", "éis", "án"];
+const COND = ["ía", "ías", "ía", "íamos", "íais", "ían"];
+const RAD_FUT = {
+  tener: "tendr", hacer: "har", poder: "podr", salir: "saldr", venir: "vendr", decir: "dir", // les 6 du livre (U16-L5)
+  haber: "habr", // habrá (U16-L5)
+  poner: "pondr", querer: "querr", saber: "sabr", caber: "cabr", valer: "valdr", suponer: "supondr", // pas dans le livre, mais justes
+};
+const LECON_FUT = { tener: "U16-L5", hacer: "U16-L5", poder: "U16-L5", salir: "U16-L5", venir: "U16-L5", decir: "U16-L5", haber: "U16-L5" };
+const TERM_FC = { fut: FUT, cond: COND };
+// Le radical : court pour un irrégulier, sinon l'infinitif entier, sans l'accent de freír ou reír (freiré).
+const radFut = inf => ({ r: RAD_FUT[inf] || inf.replace("í", "i"), irr: !!RAD_FUT[inf] });
 
 // Les formes irrégulières d'un temps (un tableau de 6), ou rien.
 const irregulieres = (inf, t) => ({ present: IRREGULIERS, ps: IRR_PS, imp: IRR_IMP })[t]?.[inf];
@@ -117,7 +138,7 @@ const changePs = (g, d, p) => d && g === "ir" && (p === 2 || p === 5);
 const decouper = v => {
   const se = v.endsWith("se") && v !== "se";
   const inf = se ? v.slice(0, -2) : v;
-  return { se, inf, g: inf.slice(-2), r: inf.slice(0, -2) };
+  return { se, inf, g: inf.slice(-2).replace("í", "i"), r: inf.slice(0, -2) };
 };
 // gras : la voyelle entre ** — celle qui change (c**ue**nto), ou celle qui ne change pas avec nosotros et vosotros (c**o**ntamos).
 function radical(r, d, p, gras = false) {
@@ -169,6 +190,7 @@ export function conjuguer(v, p, d, t) {
   else if (t === "present") f = radical(r, d, p) + TERMINAISONS[g][p];
   else if (t === "pc") f = `${HABER[p]} ${participe(inf, g, r).f}`;
   else if (t === "imp") f = r + IMP[g][p];
+  else if (TERM_FC[t]) f = radFut(inf).r + TERM_FC[t][p];
   else { const m = morceauxPs(g, r, d, p); f = m.rad + m.term; }
   return se ? `${PRONOMS[p]} ${f}` : f;
 }
@@ -187,6 +209,7 @@ export function formesSurlignees(v, d, t) {
     else if (t === "present") f = `${radical(r, d, p, true)}**${TERMINAISONS[g][p]}**`;
     else if (t === "pc") { const pa = participe(inf, g, r); f = `${HABER[p]} ${pa.irr ? `**${pa.f}**` : `${pa.r}**${pa.term}**`}`; }
     else if (t === "imp") f = `${r}**${IMP[g][p]}**`;
+    else if (TERM_FC[t]) { const x = radFut(inf); f = x.irr ? `**${x.r}**${TERM_FC[t][p]}` : `${x.r}**${TERM_FC[t][p]}**`; }
     else { const m = morceauxPs(g, r, d, p, true); f = `${m.rad}**${m.term}**`; }
     return se ? `${PRONOMS[p]} ${f}` : f;
   });
@@ -222,6 +245,14 @@ export function reglesDetaillees(v, d, t) {
   if (t === "imp") {
     if (IRR_IMP[inf]) return [{ texte: `*${Maj(inf)}* est un des 3 irréguliers de l'imparfait : ${IRR_IMP[inf].join(", ")}.`, lecon: "U14-L3" }, pronoms].filter(Boolean);
     return [pronoms, { texte: `Les verbes en ‑${g} à l'imparfait : on enlève ‑${g}, puis ${tirets(IMP[g])}.`, lecon: g === "ar" ? "U14-L1" : "U14-L2" }].filter(Boolean);
+  }
+  if (TERM_FC[t]) {
+    const x = radFut(inf), nom = t === "fut" ? "Le futur" : "Le conditionnel";
+    return [
+      x.irr && { texte: `Radical court : **${x.r}‑** (pas *${inf}‑*)${t === "cond" ? `, le même qu'au futur (*${x.r}é*)` : ""}.`, lecon: LECON_FUT[inf] || null },
+      pronoms,
+      { texte: `${nom} : ${x.irr ? "le radical" : "l'infinitif entier"} + ${tirets(TERM_FC[t])}, pareil pour ‑ar, ‑er et ‑ir.`, lecon: TEMPS[t].lecon },
+    ].filter(Boolean);
   }
   // Passé simple
   if (IRR_PS[inf]) {
@@ -264,6 +295,10 @@ export function explicationConjugaison(v, p, d, t) {
       : g === "ar" ? " Les verbes en ‑ar : participe en ‑ado." : " Les verbes en ‑er et ‑ir : participe en ‑ido.";
     const ordre = se ? " Me, te, se… se mettent devant *haber*." : "";
     return `${avec} : **${se ? `${PRONOMS[p]} ` : ""}${HABER[p]}** + ${pa.irr ? `**${pa.f}**` : `${pa.r}**${pa.term}**`}.${quoi}${ordre}`;
+  }
+  if (TERM_FC[t]) {
+    const x = radFut(inf), regles = reglesDetaillees(v, d, t).filter(y => !y.texte.startsWith("Devant")).map(y => y.texte);
+    return `${avec} : ${pronom}${x.irr ? `**${x.r}**` : x.r} + **${TERM_FC[t][p]}**. ${regles.join(" ")}${devant}`;
   }
   const irr = irregulieres(inf, t);
   if (irr) return `${avec} : ${pronom}**${irr[p]}**. ${reglesDetaillees(v, d, t)[0].texte}`;

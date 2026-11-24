@@ -32,6 +32,7 @@ const ATTENDU = {
   darse: ["me doy", "te das", "se da", "nos damos", "os dais", "se dan"],
   caerse: ["me caigo", "te caes", "se cae", "nos caemos", "os caéis", "se caen"],
   conocerse: ["me conozco", "te conoces", "se conoce", "nos conocemos", "os conocéis", "se conocen"],
+  "freír": ["frío", "fríes", "fríe", "freímos", "freís", "fríen"], // U19-L4 (24 nov.)
 };
 
 // controles.js importe ui.js (pour l'affichage) : on le charge sans cet import.
@@ -51,7 +52,7 @@ for (const [v, attendu] of Object.entries(ATTENDU)) {
   });
   const inf = v.replace(/se$/, "");
   if (!irregulierConnu(inf)) { erreurs++; console.log(`✗ ${inf} n'est pas dans IRREGULIERS`); }
-  if (!new RegExp(`\\b${inf}: "U\\d+-L\\d+"`).test(dico)) { erreurs++; console.log(`✗ ${inf} n'a pas de leçon dans LECON_IRREGULIER (dico.js)`); }
+  if (!new RegExp(`(\\b|")${inf}"?: "U\\d+-L\\d+"`).test(dico)) { erreurs++; console.log(`✗ ${inf} n'a pas de leçon dans LECON_IRREGULIER (dico.js)`); }
 }
 console.log(`${formes} formes vérifiées, ${erreurs} erreur(s).`);
 process.exit(erreurs ? 1 : 0);

@@ -9,13 +9,13 @@
 // Ici, pas seulement les mots connus : ces jeux servent aussi à apprendre (décidé avec Kevin). Les mots gardés entrent
 // dans « Tes mots à revoir » (5 par jour au plus, tous jeux confondus). Le contenu des thèmes et les gages sont dans themes.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=63";
-import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=63";
-import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=63";
-import { taire } from "../voix.js?v=63";
-import { chispa } from "../mascotte.js?v=63";
-import { THEMES, GAGES } from "../themes.js?v=63";
-import * as J from "../jeux.js?v=63";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=64";
+import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=64";
+import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=64";
+import { taire } from "../voix.js?v=64";
+import { chispa } from "../mascotte.js?v=64";
+import { THEMES, GAGES } from "../themes.js?v=64";
+import * as J from "../jeux.js?v=64";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

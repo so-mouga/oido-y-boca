@@ -1,8 +1,9 @@
-// Vérifie, forme par forme, les 3 temps du passé que l'appli calcule (controles.js) :
-// passé composé (pc), passé simple (ps), imparfait (imp). Au moins un verbe pour chaque règle et chaque irrégulier.
+// Vérifie, forme par forme, les temps que l'appli calcule en plus du présent (controles.js) :
+// passé composé (pc), passé simple (ps), imparfait (imp), et depuis le 24 nov. futur (fut) et conditionnel (cond). Au moins un verbe pour chaque règle et chaque irrégulier.
 // Les formes attendues sont tapées ici à la main, indépendamment de controles.js. Lancer depuis appli/ : node outils/test-temps.mjs
 // Contre-vérification faite le 23 nov. 2026 avec verbecc (176 verbes du Dico × 4 temps = 4200 formes) :
 // seules différences, les participes anciens de verbecc (atento, despierto) et pasar (erreur de verbecc).
+// Futur et conditionnel contre-vérifiés le 24 nov. 2026 (189 verbes × 2 temps = 2268 formes) : 0 différence, après l'ajout de suponer.
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -116,6 +117,58 @@ const ATTENDU = [
   ["enviar", null, {
     pc: ["he enviado", "has enviado", "ha enviado", "hemos enviado", "habéis enviado", "han enviado"],
     ps: ["envié", "enviaste", "envió", "enviamos", "enviasteis", "enviaron"] }],
+  // Futur et conditionnel (unités 16 et 17), tapés à la main.
+  ["trabajar", null, {
+    fut: ["trabajaré", "trabajarás", "trabajará", "trabajaremos", "trabajaréis", "trabajarán"],
+    cond: ["trabajaría", "trabajarías", "trabajaría", "trabajaríamos", "trabajaríais", "trabajarían"] }],
+  ["comer", null, {
+    fut: ["comeré", "comerás", "comerá", "comeremos", "comeréis", "comerán"],
+    cond: ["comería", "comerías", "comería", "comeríamos", "comeríais", "comerían"] }],
+  ["vivir", null, {
+    fut: ["viviré", "vivirás", "vivirá", "viviremos", "viviréis", "vivirán"],
+    cond: ["viviría", "vivirías", "viviría", "viviríamos", "viviríais", "vivirían"] }],
+  ["jubilarse", null, {
+    fut: ["me jubilaré", "te jubilarás", "se jubilará", "nos jubilaremos", "os jubilaréis", "se jubilarán"] }],
+  ["ir", null, {
+    fut: ["iré", "irás", "irá", "iremos", "iréis", "irán"],
+    cond: ["iría", "irías", "iría", "iríamos", "iríais", "irían"] }],
+  ["ser", null, { fut: ["seré", "serás", "será", "seremos", "seréis", "serán"] }],
+  ["estar", null, { fut: ["estaré", "estarás", "estará", "estaremos", "estaréis", "estarán"] }],
+  ["volver", "ue", { fut: ["volveré", "volverás", "volverá", "volveremos", "volveréis", "volverán"] }],
+  ["gustar", null, { cond: ["gustaría", "gustarías", "gustaría", "gustaríamos", "gustaríais", "gustarían"] }],
+  ["deber", null, { cond: ["debería", "deberías", "debería", "deberíamos", "deberíais", "deberían"] }],
+  ["importar", null, { cond: ["importaría", "importarías", "importaría", "importaríamos", "importaríais", "importarían"] }],
+  ["tener", null, {
+    fut: ["tendré", "tendrás", "tendrá", "tendremos", "tendréis", "tendrán"],
+    cond: ["tendría", "tendrías", "tendría", "tendríamos", "tendríais", "tendrían"] }],
+  ["hacer", null, {
+    fut: ["haré", "harás", "hará", "haremos", "haréis", "harán"],
+    cond: ["haría", "harías", "haría", "haríamos", "haríais", "harían"] }],
+  ["poder", "ue", {
+    fut: ["podré", "podrás", "podrá", "podremos", "podréis", "podrán"],
+    cond: ["podría", "podrías", "podría", "podríamos", "podríais", "podrían"] }],
+  ["salir", null, { fut: ["saldré", "saldrás", "saldrá", "saldremos", "saldréis", "saldrán"] }],
+  ["venir", null, { fut: ["vendré", "vendrás", "vendrá", "vendremos", "vendréis", "vendrán"] }],
+  ["decir", null, {
+    fut: ["diré", "dirás", "dirá", "diremos", "diréis", "dirán"],
+    cond: ["diría", "dirías", "diría", "diríamos", "diríais", "dirían"] }],
+  ["haber", null, { fut: ["habré", "habrás", "habrá", "habremos", "habréis", "habrán"] }],
+  ["poner", null, { fut: ["pondré", "pondrás", "pondrá", "pondremos", "pondréis", "pondrán"] }],
+  ["querer", "ie", {
+    fut: ["querré", "querrás", "querrá", "querremos", "querréis", "querrán"],
+    cond: ["querría", "querrías", "querría", "querríamos", "querríais", "querrían"] }],
+  ["suponer", null, { fut: ["supondré", "supondrás", "supondrá", "supondremos", "supondréis", "supondrán"] }],
+  ["saber", null, { fut: ["sabré", "sabrás", "sabrá", "sabremos", "sabréis", "sabrán"] }],
+  // freír (U19-L4) : présent dans test-irreguliers.mjs ; ici les autres temps.
+  ["freír", null, {
+    pc: ["he frito", "has frito", "ha frito", "hemos frito", "habéis frito", "han frito"],
+    ps: ["freí", "freíste", "frió", "freímos", "freísteis", "frieron"],
+    imp: ["freía", "freías", "freía", "freíamos", "freíais", "freían"],
+    fut: ["freiré", "freirás", "freirá", "freiremos", "freiréis", "freirán"],
+    cond: ["freiría", "freirías", "freiría", "freiríamos", "freiríais", "freirían"] }],
+  ["hervir", "ie", {
+    ps: ["herví", "herviste", "hirvió", "hervimos", "hervisteis", "hirvieron"],
+    fut: ["herviré", "hervirás", "hervirá", "herviremos", "herviréis", "hervirán"] }],
 ];
 
 // controles.js importe ui.js (pour l'affichage) : on le charge sans cet import.

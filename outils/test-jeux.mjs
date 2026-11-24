@@ -201,7 +201,7 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   const toutes = new Set(LECONS);
   const verbes = V.verbesConnus({ mots, pos: { faites: toutes } });
   egal("temps vus au début", J.tempsVus(new Set(["U1-L1"]), TEMPS), ["present"]);
-  egal("tous les temps à la fin du livre", J.tempsVus(toutes, TEMPS), ["present", "pc", "ps", "imp"]);
+  egal("tous les temps à la fin du livre", J.tempsVus(toutes, TEMPS), ["present", "pc", "ps", "imp", "fut", "cond"]);
   const temps = J.tempsVus(toutes, TEMPS);
   let n = 0, autreTemps = 0;
   for (const x of verbes) for (let g = 1; g <= 6; g++) {

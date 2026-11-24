@@ -5,15 +5,17 @@
 //          + v, p pour un verbe à conjuguer (p : 0 = yo … 5 = ellos) : l'explication se calcule toute seule.
 //            + d ("ue", "ie" ou "i") pour un verbe qui change de voyelle (dormir, empezar, vestirse).
 //            ⚠ Jamais de v sur un irrégulier que controles.js ne connaît pas (IRREGULIERS).
-//            + t ("pc", "ps" ou "imp") pour un temps du passé (absent = présent) : réponse, explication et « Les 6 formes » au bon temps.
+//            + t ("pc", "ps", "imp", "fut" ou "cond") pour un autre temps que le présent : réponse, explication et « Les 6 formes » au bon temps.
 //          + expl (facultatif) : l'explication écrite, quand la règle de la leçon n'aide pas pour cette phrase.
 // dire   : { fr, es }                                    → tu la dis à voix haute, tu compares, tu te notes.
 //
-// Unités prêtes : 1 à 15, et Noël. Les suivantes s'ajoutent au fil des leçons.
+// Unités prêtes : 1 à 20, et Noël. Les suivantes s'ajoutent au fil des leçons.
 
 const T = "Traduis";
 const C = "Complète";
 const L = "Écris en lettres";
+const UST = f => `Avec *usted*, le verbe se conjugue comme avec *él, ella* : **${f}**.`;
+const COND_POLI = "Le conditionnel de politesse : l'infinitif + ‑ía (*podría, debería*), plus poli que le présent.";
 
 export const EXERCICES = {
   "U1-L1": {
@@ -1201,6 +1203,419 @@ export const EXERCICES = {
       { fr: "Je suis très heureux.", es: "Estoy muy feliz." },
       { fr: "Pour le mariage, je ne suis pas stressé : je suis très détendu.", es: "Para la boda, no estoy nervioso: estoy muy relajado." },
       { fr: "Le 19 juin, c'est notre mariage.", es: "El 19 de junio es nuestra boda." },
+    ],
+  },
+  // ── Unité 16 : mes projets. ir a + infinitif (présent), pensar / tener ganas de, dentro de / que viene, puis le futur (t: "fut"). ──
+  "U16-L1": {
+    ecrire: [
+      { consigne: T, fr: "Ce soir, je vais préparer le dîner.", es: ["Esta noche voy a preparar la cena.", "Esta noche preparo la cena."] },
+      { consigne: C, fr: "Mañana ___ a organizar el finde. (ir, nosotros)", es: ["vamos"], v: "ir", p: 3,
+        expl: "*Ir a* + l'infinitif = un projet proche : **vamos** a organizar. C'est le *ir* de l'unité 3 (voy, vas, va, vamos, vais, van)." },
+      { consigne: T, fr: "Qu'est-ce que tu vas faire ce week-end ?", es: ["¿Qué vas a hacer este finde?", "¿Qué vas a hacer este fin de semana?"] },
+      { consigne: C, fr: "Léo ___ a tener cuatro años pronto. (ir)", es: ["va"], v: "ir", p: 2,
+        expl: "*Ir a* + l'infinitif : Léo **va** a tener. Le *a* ne disparaît jamais." },
+    ],
+    dire: [
+      { fr: "Demain, je vais m'entraîner à midi.", es: "Mañana voy a entrenar a mediodía." },
+      { fr: "On va dîner dehors samedi ?", es: "¿Vamos a cenar fuera el sábado?" },
+      { fr: "Bientôt, on va organiser le mariage.", es: "Pronto vamos a organizar la boda." },
+    ],
+  },
+  "U16-L2": {
+    ecrire: [
+      { consigne: T, fr: "Cet été, je compte aller en France avec les enfants.", es: ["Este verano pienso ir a Francia con los niños.", "Este verano voy a ir a Francia con los niños."] },
+      { consigne: C, fr: "Tengo muchas ganas de ___ a mi familia. (voir)", es: ["ver"],
+        expl: "*Tener ganas de* + l'infinitif, sans le conjuguer : tengo ganas de **ver**." },
+      { consigne: C, fr: "¿Qué ___ hacer este finde? (pensar, tú)", es: ["piensas"], v: "pensar", d: "ie", p: 1,
+        expl: "*Pensar* + l'infinitif = compter faire : ¿qué **piensas** hacer? Le e devient ie, sauf avec nosotros et vosotros." },
+      { consigne: T, fr: "C'est une bonne idée !", es: ["¡Es una buena idea!", "¡Qué buena idea!"] },
+    ],
+    dire: [
+      { fr: "J'ai très envie de te voir.", es: "Tengo muchas ganas de verte." },
+      { fr: "Quel est ton rêve ?", es: "¿Cuál es tu sueño?" },
+      { fr: "On n'a pas encore décidé.", es: "Todavía no lo hemos decidido." },
+    ],
+  },
+  "U16-L3": {
+    ecrire: [
+      { consigne: T, fr: "Après-demain, le père de Blanca vient.", es: ["Pasado mañana viene el padre de Blanca.", "Pasado mañana el padre de Blanca viene.", "Pasado mañana viene mi suegro."] },
+      { consigne: C, fr: "El año ___ nos casamos. (prochain)", es: ["que viene"],
+        expl: "*El año que viene* = l'année prochaine (on dit aussi *el próximo año*, avant le nom)." },
+      { consigne: T, fr: "Dans un mois, c'est Noël.", es: ["Dentro de un mes es Navidad.", "Dentro de un mes es la Navidad."] },
+      { consigne: C, fr: "La Navidad es ___ diciembre. (à la fin de)", es: ["a finales de"],
+        expl: "**A finales de** + le mois = à la fin de (*a principios de* = au début de)." },
+    ],
+    dire: [
+      { fr: "On se marie en juin de l'année prochaine.", es: "Nos casamos en junio del año que viene." },
+      { fr: "Début mai, on est allés à Valence.", es: "A principios de mayo fuimos a Valencia." },
+      { fr: "Le mois prochain, Léo aura quatre ans.", es: "El mes que viene Léo va a tener cuatro años." },
+    ],
+  },
+  "U16-L4": {
+    ecrire: [
+      { consigne: C, fr: "Algún día ___ en una casa con jardín. (vivir, nosotros, futur)", es: ["viviremos"], v: "vivir", p: 3, t: "fut" },
+      { consigne: T, fr: "Un jour, je parlerai très bien espagnol.", es: ["Algún día hablaré muy bien español.", "Algún día hablaré español muy bien."] },
+      { consigne: C, fr: "Seguramente los niños ___ tres idiomas. (hablar, futur)", es: ["hablarán"], v: "hablar", p: 5, t: "fut" },
+      { consigne: T, fr: "Peut-être qu'on ira en France cet été.", es: ["Quizás iremos a Francia este verano.", "Quizás este verano iremos a Francia.", "Quizás vamos a ir a Francia este verano."] },
+    ],
+    dire: [
+      { fr: "Le mariage sera en juin.", es: "La boda será en junio." },
+      { fr: "Nous serons très heureux.", es: "Seremos muy felices." },
+      { fr: "Quand est-ce que tu prendras ta retraite ?", es: "¿Cuándo te jubilarás?" },
+    ],
+  },
+  "U16-L5": {
+    ecrire: [
+      { consigne: C, fr: "El año que viene ___ más tiempo. (tener, yo, futur)", es: ["tendré"], v: "tener", p: 0, t: "fut" },
+      { consigne: C, fr: "En la boda ___ mucha gente. (il y aura)", es: ["habrá"],
+        expl: "*Hay* au futur : **habrá** (il y aura), toujours la même forme." },
+      { consigne: T, fr: "Je ferai l'examen d'espagnol et je le réussirai.", es: ["Haré el examen de español y lo aprobaré.", "Haré el examen de español y podré aprobarlo."] },
+      { consigne: C, fr: "Mi suegro ___ a cenar el sábado. (venir, futur)", es: ["vendrá"], v: "venir", p: 2, t: "fut" },
+    ],
+    dire: [
+      { fr: "Tu pourras venir au mariage ?", es: "¿Podrás venir a la boda?" },
+      { fr: "Avec de la patience, je réussirai à parler espagnol.", es: "Con paciencia, conseguiré hablar español." },
+      { fr: "Je te le dirai demain.", es: "Te lo diré mañana." },
+    ],
+  },
+  // ── Unité 17 : les démarches. Le conditionnel de politesse (t: "cond"), usted et su. Pase, siéntese, espere : à reconnaître seulement (Q14-3). ──
+  "U17-L1": {
+    ecrire: [
+      { consigne: T, fr: "Excusez-moi, pourriez-vous m'aider ?", es: ["Disculpe, ¿podría ayudarme?", "Disculpe, ¿me podría ayudar?", "Perdone, ¿podría ayudarme?"] },
+      { consigne: C, fr: "Me ___ pedir información. (gustar, conditionnel)", es: ["gustaría"],
+        expl: "Comme *gustar* : me **gustaría** = j'aimerais, plus poli que *quiero*. Le conditionnel : l'infinitif + ‑ía." },
+      { consigne: C, fr: "Por favor, ¿___ atenderme? (poder, usted, conditionnel)", es: ["podría"], v: "poder", d: "ue", p: 2, t: "cond",
+        expl: UST("podría") + " " + COND_POLI },
+      { consigne: T, fr: "J'ai une question.", es: ["Tengo una duda.", "Tengo una pregunta."] },
+    ],
+    dire: [
+      { fr: "Vous êtes très aimable.", es: "Es usted muy amable." },
+      { fr: "Pourriez-vous le répéter ?", es: "¿Podría repetirlo?" },
+      { fr: "J'aimerais parler avec vous.", es: "Me gustaría hablar con usted." },
+    ],
+  },
+  "U17-L2": {
+    ecrire: [
+      { consigne: T, fr: "Est-ce qu'il faut un rendez-vous ?", es: ["¿Hace falta cita previa?", "¿Hace falta una cita previa?", "¿Hace falta pedir cita previa?", "¿Hace falta pedir cita?"] },
+      { consigne: C, fr: "Para el empadronamiento, ___ reservar por internet. (on peut)", es: ["se puede"],
+        expl: "**Se puede** + l'infinitif = on peut (pour tout le monde)." },
+      { consigne: C, fr: "No ___ falta traer nada. (hacer)", es: ["hace"],
+        expl: "**Hace falta** = il faut, il est nécessaire : no hace falta traer nada. *Hace* ne change jamais." },
+      { consigne: T, fr: "Quel est le délai ?", es: ["¿Cuál es el plazo?", "¿Qué plazo hay?"] },
+    ],
+    dire: [
+      { fr: "On peut le faire sur le site web.", es: "Se puede hacer en la página web." },
+      { fr: "Je vais réserver un rendez-vous.", es: "Voy a reservar una cita previa." },
+      { fr: "Il faut le NIE ?", es: "¿Hace falta el NIE?" },
+    ],
+  },
+  "U17-L3": {
+    ecrire: [
+      { consigne: T, fr: "Quels documents devrais-je apporter ?", es: ["¿Qué documentos debería traer?", "¿Qué documentos debería llevar?"] },
+      { consigne: C, fr: "Yo ___ pedir cita antes. (deber, conditionnel)", es: ["debería"], v: "deber", p: 0, t: "cond",
+        expl: "*Debería* + l'infinitif = je devrais, un conseil poli ; *tengo que* = je dois, une obligation." },
+      { consigne: T, fr: "Je voudrais le certificat d'inscription pour Léo.", es: ["Me gustaría el certificado de empadronamiento para Léo.", "Quería el certificado de empadronamiento para Léo.", "Me gustaría pedir el certificado de empadronamiento para Léo."] },
+      { consigne: C, fr: "Para la boda ___ que llevar muchos documentos. (tener, nosotros)", es: ["tenemos"], v: "tener", p: 3,
+        expl: "Une obligation : **tenemos que** (≠ *deberíamos*, un conseil)." },
+    ],
+    dire: [
+      { fr: "Où est la mairie ?", es: "¿Dónde está el ayuntamiento?" },
+      { fr: "Voici mon NIE et le certificat.", es: "Aquí tiene mi NIE y el certificado." },
+      { fr: "Tu devrais te reposer.", es: "Deberías descansar." },
+    ],
+  },
+  "U17-L4": {
+    ecrire: [
+      { consigne: T, fr: "J'ai déjà rempli le formulaire.", es: ["Ya he rellenado el formulario."] },
+      { consigne: C, fr: "¿Le ___ darme un justificante? (importar, conditionnel)", es: ["importaría"],
+        expl: "*Importar* se construit comme *gustar* : ¿le **importaría**…? = ça vous dérangerait de… C'est la demande la plus polie." },
+      { consigne: T, fr: "Il faut l'écrire en majuscules ?", es: ["¿Hace falta escribirlo en mayúsculas?", "¿Lo escribo en mayúsculas?"] },
+      { consigne: C, fr: "¿Le importaría hacerme una ___? (photocopie)", es: ["fotocopia"] },
+    ],
+    dire: [
+      { fr: "Non, pas du tout.", es: "No, claro." },
+      { fr: "Ça vous dérangerait de le répéter ?", es: "¿Le importaría repetirlo?" },
+      { fr: "Où est-ce que je signe ?", es: "¿Dónde firmo?" },
+    ],
+  },
+  "U17-L5": {
+    ecrire: [
+      { consigne: T, fr: "Excusez-moi, qui est le dernier ?", es: ["Perdone, ¿quién es el último?", "Disculpe, ¿quién es el último?"] },
+      { consigne: C, fr: "—Pase, siéntese. ¿Tiene ___ NIE? (votre)", es: ["su"],
+        expl: "Avec *usted* : **su** (votre), comme pour *él, ella*." },
+      { consigne: C, fr: "—Sí, aquí lo ___. (tener, usted)", es: ["tiene"], v: "tener", p: 2, expl: UST("tiene") },
+      { consigne: T, fr: "J'attends mon tour.", es: ["Espero mi turno.", "Estoy esperando mi turno."] },
+    ],
+    dire: [
+      { fr: "C'est la file pour le guichet ?", es: "¿Es esta la cola para la ventanilla?" },
+      { fr: "Vous me dites votre nom ?", es: "¿Me dice su nombre?" },
+      { fr: "Quel est votre numéro de téléphone ?", es: "¿Cuál es su número de teléfono?" },
+    ],
+  },
+  "U17-L6": {
+    ecrire: [
+      { consigne: T, fr: "Bonjour, j'aimerais récupérer un colis.", es: ["Buenos días, me gustaría recoger un paquete.", "Hola, me gustaría recoger un paquete."] },
+      { consigne: C, fr: "Perdone, ¿___ darme el recibo? (poder, usted, conditionnel)", es: ["podría"], v: "poder", d: "ue", p: 2, t: "cond",
+        expl: UST("podría") + " " + COND_POLI },
+      { consigne: T, fr: "Est-ce qu'il faut un rendez-vous pour faire un virement ?", es: ["¿Hace falta cita previa para hacer una transferencia?", "¿Hace falta cita para hacer una transferencia?"] },
+      { consigne: C, fr: "¿Le ___ enviar este paquete a Francia? (importar, conditionnel)", es: ["importaría"],
+        expl: "Comme *gustar* : ¿le **importaría**…? = ça vous dérangerait de…" },
+    ],
+    dire: [
+      { fr: "Voici mon NIE.", es: "Aquí tiene mi NIE." },
+      { fr: "À quelle heure ferme la banque ?", es: "¿A qué hora cierra el banco?" },
+      { fr: "Je devrais aller à la Poste demain.", es: "Debería ir a Correos mañana." },
+    ],
+  },
+  "U18-L1": {
+    ecrire: [
+      { consigne: T, fr: "Bonjour, est-ce que Blanca est là ?", es: ["Hola, ¿está Blanca?", "Buenos días, ¿está Blanca?", "Hola, ¿Blanca está?"],
+        expl: "Au téléphone, « elle est là ? » : **¿está Blanca?** (*estar*)." },
+      { consigne: C, fr: "Hola, ___ Kevin, el novio de Blanca. (ser, yo)", es: ["soy"], v: "ser", p: 0,
+        expl: "Pour dire qui on est : **soy Kevin** (*ser*), jamais *es Kevin*." },
+      { consigne: T, fr: "De la part de qui ?", es: ["¿De parte de quién?"] },
+      { consigne: C, fr: "Lo siento, se ha ___ de número. (se tromper)", es: ["equivocado"],
+        expl: "*Se ha equivocado* = vous vous êtes trompé : le passé composé de *equivocarse*." },
+    ],
+    dire: [
+      { fr: "Un instant, s'il vous plaît.", es: "Un momento, por favor." },
+      { fr: "Je t'appelle sur le portable.", es: "Te llamo al móvil." },
+      { fr: "Allô ? Oui, c'est Kevin.", es: "¿Diga? Sí, soy Kevin." },
+    ],
+  },
+  "U18-L2": {
+    ecrire: [
+      { consigne: T, fr: "On n'entend pas bien, je n'ai pas de réseau.", es: ["No se oye bien, no tengo cobertura.", "No se oye bien. No tengo cobertura."] },
+      { consigne: C, fr: "Te ___ a llamar más tarde. (volver, yo)", es: ["vuelvo"], v: "volver", d: "ue", p: 0,
+        expl: "**Volver a** + l'infinitif = refaire : te vuelvo a llamar = je te rappelle." },
+      { consigne: C, fr: "Ahora ___ y te llamo. (colgar, yo)", es: ["cuelgo"], v: "colgar", d: "ue", p: 0,
+        expl: "*Colgar* change **o → ue** : cuelgo." },
+      { consigne: T, fr: "Il me reste peu de batterie.", es: ["Me queda poca batería."] },
+    ],
+    dire: [
+      { fr: "Tu es toujours là ?", es: "¿Sigues ahí?" },
+      { fr: "Tu peux le redire ?", es: "¿Puedes volver a decirlo?" },
+      { fr: "Je te rappelle plus tard.", es: "Te llamo más tarde." },
+    ],
+  },
+  "U18-L3": {
+    ecrire: [
+      { consigne: C, fr: "___ mando un audio a Blanca. (à elle)", es: ["Le"],
+        expl: "**Le** = à lui, à elle. En Espagne on répète souvent la personne : *le mando un audio a Blanca*." },
+      { consigne: C, fr: "___ contesto a los padres del cole esta tarde. (à eux)", es: ["Les"],
+        expl: "**Les** = à eux, à elles." },
+      { consigne: T, fr: "Je lui ai laissé un message sur la messagerie.", es: ["Le he dejado un mensaje en el buzón de voz."] },
+      { consigne: C, fr: "Te ___ un audio ahora mismo. (grabar, yo)", es: ["grabo"], v: "grabar", p: 0 },
+    ],
+    dire: [
+      { fr: "J'envoie un message à Blanca.", es: "Le mando un mensaje a Blanca." },
+      { fr: "Je réponds à ta mère.", es: "Le contesto a tu madre." },
+      { fr: "Je leur écris ce soir.", es: "Les escribo esta noche." },
+    ],
+  },
+  "U18-L4": {
+    ecrire: [
+      { consigne: C, fr: "¿La foto de Dorian? ___ la mando ahora al abuelo. (à lui)", es: ["Se"],
+        expl: "*Le* + *la* devient **se la** : jamais *le la*." },
+      { consigne: C, fr: "¿El enlace? Se ___ mando ahora. (le lien)", es: ["lo"],
+        expl: "*El enlace* est masculin : se **lo** mando." },
+      { consigne: T, fr: "L'avis de l'école ? Je l'envoie au groupe WhatsApp.", es: ["¿El aviso del cole? Se lo mando al grupo de WhatsApp.", "¿El aviso del cole? Lo mando al grupo de WhatsApp."] },
+      { consigne: C, fr: "Blanca quiere el correo: se lo ___ ahora. (reenviar, yo)", es: ["reenvío"],
+        expl: "*Reenviar* comme *enviar* : le i prend un accent, **reenvío**." },
+    ],
+    dire: [
+      { fr: "Les photos ? Je les envoie à ta mère.", es: "¿Las fotos? Se las mando a tu madre." },
+      { fr: "Je le lui envoie maintenant.", es: "Se lo mando ahora." },
+      { fr: "Tu as vu l'avis de l'école ?", es: "¿Has visto el aviso del cole?" },
+    ],
+  },
+  "U18-L5": {
+    ecrire: [
+      { consigne: T, fr: "Ton père a appelé : il dit qu'il arrive à huit heures.", es: ["Ha llamado tu padre: dice que llega a las ocho.", "Ha llamado tu padre, dice que llega a las ocho.", "Tu padre ha llamado: dice que llega a las ocho."] },
+      { consigne: C, fr: "« Llego tarde. » → Dice que ___ tarde. (llegar)", es: ["llega"], v: "llegar", p: 2,
+        expl: "La personne change : *« llego »* (yo) → dice que **llega** (él, ella)." },
+      { consigne: C, fr: "Pregunta ___ cenamos juntos. (si)", es: ["si"],
+        expl: "Pour rapporter une question oui ou non : **pregunta si…**" },
+      { consigne: C, fr: "Dice que ___ la cena de esta noche. (cancelar, él)", es: ["cancela"], v: "cancelar", p: 2 },
+    ],
+    dire: [
+      { fr: "Ton père t'a laissé un message.", es: "Tu padre te ha dejado un recado." },
+      { fr: "Il demande si on confirme le rendez-vous.", es: "Pregunta si confirmamos la cita." },
+      { fr: "Il dit qu'il te prévient quand il arrive.", es: "Dice que te avisa cuando llega." },
+    ],
+  },
+  "U19-L1": {
+    ecrire: [
+      { consigne: T, fr: "Ça fait combien de temps que tu t'entraînes ?", es: ["¿Cuánto tiempo llevas entrenando?"],
+        expl: "**Llevar** + durée + gérondif = ça fait… que : ¿cuánto tiempo **llevas entrenando**?" },
+      { consigne: C, fr: "Llevo una hora ___ pesas. (hacer)", es: ["haciendo"],
+        expl: "Après *llevo una hora*, le gérondif : *hacer* → **haciendo**." },
+      { consigne: C, fr: "¿Cuánto tiempo ___ esperando? (llevar, tú)", es: ["llevas"], v: "llevar", p: 1,
+        expl: "*Llevar* se conjugue, le gérondif (*esperando*) ne change jamais." },
+      { consigne: T, fr: "Aujourd'hui j'ai des courbatures.", es: ["Hoy tengo agujetas."] },
+    ],
+    dire: [
+      { fr: "Comment on utilise cette machine ?", es: "¿Cómo se usa esta máquina?" },
+      { fr: "Je m'entraîne à midi.", es: "Entreno a mediodía." },
+      { fr: "À la fin, on s'étire bien.", es: "Al final se estira bien." },
+    ],
+  },
+  "U19-L2": {
+    ecrire: [
+      { consigne: T, fr: "Il faut bien s'étirer.", es: ["Hay que estirar bien."] },
+      { consigne: C, fr: "Para adelgazar ___ comer sano. (il faut)", es: ["hay que"],
+        expl: "**Hay que** + l'infinitif = il faut, pour tout le monde. *Tengo que* = moi, je dois." },
+      { consigne: C, fr: "Hoy ___ que entrenar las piernas. (tener, yo)", es: ["tengo"], v: "tener", p: 0,
+        expl: "Pour moi : **tengo que**. Pour tout le monde : *hay que*." },
+      { consigne: T, fr: "Il faut faire attention au genou.", es: ["Hay que tener cuidado con la rodilla."] },
+    ],
+    dire: [
+      { fr: "Il faut manger sain.", es: "Hay que comer sano." },
+      { fr: "Si le muscle fait mal, il faut se reposer.", es: "Si te duele el músculo, hay que descansar." },
+      { fr: "Aujourd'hui j'entraîne les jambes.", es: "Hoy entreno las piernas." },
+    ],
+  },
+  "U19-L3": {
+    ecrire: [
+      { consigne: C, fr: "En España se comen ___ legumbres. (pas mal de)", es: ["bastantes"],
+        expl: "**Bastante** s'accorde au pluriel : *bastantes legumbres*." },
+      { consigne: C, fr: "¿Comes ___ proteína? (assez)", es: ["suficiente", "bastante"],
+        expl: "Assez : **suficiente** ou *bastante* + le nom." },
+      { consigne: C, fr: "Hay ___ pan en la mesa. (trop)", es: ["demasiado"],
+        expl: "*El pan* est masculin singulier : **demasiado** pan." },
+      { consigne: T, fr: "Combien de protéines il y a dans un œuf ?", es: ["¿Cuánta proteína hay en un huevo?"] },
+    ],
+    dire: [
+      { fr: "En Espagne on cuisine à l'huile d'olive.", es: "En España se cocina con aceite de oliva." },
+      { fr: "Tu manges assez d'œufs ?", es: "¿Comes bastantes huevos?" },
+      { fr: "Une alimentation saine, c'est très important.", es: "Una dieta sana es muy importante." },
+    ],
+  },
+  "U19-L4": {
+    ecrire: [
+      { consigne: C, fr: "Primero se ___ las patatas. (pelar)", es: ["pelan"], v: "pelar", p: 5,
+        expl: "Le *se* de la recette : le verbe au pluriel quand le nom est pluriel, **se pelan las patatas**." },
+      { consigne: C, fr: "Las patatas se ___ en aceite. (freír)", es: ["fríen"], v: "freír", p: 5,
+        expl: "*Freír* change e → í : se **fríen**." },
+      { consigne: C, fr: "Cuando el agua ___, se echa la pasta. (hervir)", es: ["hierve"], v: "hervir", d: "ie", p: 2,
+        expl: "*Hervir* change e → ie : el agua **hierve**." },
+      { consigne: T, fr: "On mélange les œufs avec les pommes de terre.", es: ["Se mezclan los huevos con las patatas."] },
+    ],
+    dire: [
+      { fr: "On coupe les pommes de terre en petits morceaux.", es: "Se cortan las patatas en trozos pequeños." },
+      { fr: "L'eau bout.", es: "El agua hierve." },
+      { fr: "D'abord, on épluche.", es: "Primero se pela." },
+    ],
+  },
+  "U19-L5": {
+    ecrire: [
+      { consigne: T, fr: "On ajoute cinq cents grammes de pommes de terre.", es: ["Se añaden quinientos gramos de patatas."] },
+      { consigne: C, fr: "Se mete en el horno a ___ grados. (200)", es: ["doscientos"],
+        expl: "*Los grados* est masculin : **doscientos**." },
+      { consigne: C, fr: "Un kilo son ___ gramos. (1000)", es: ["mil"],
+        expl: "**Mil** ne change jamais : *mil gramos*." },
+      { consigne: C, fr: "Se añade una ___ de aceite. (cuillerée)", es: ["cucharada"] },
+    ],
+    dire: [
+      { fr: "On met tout dans la poêle.", es: "Se pone todo en la sartén." },
+      { fr: "Un demi-kilo de pommes de terre.", es: "Medio kilo de patatas." },
+      { fr: "À la fin, on ajoute le sel.", es: "Al final se añade la sal." },
+    ],
+  },
+  "U20-L1": {
+    ecrire: [
+      { consigne: T, fr: "Qu'est-ce que tu penses du restaurant ?", es: ["¿Qué te parece el restaurante?", "¿Qué opinas del restaurante?"] },
+      { consigne: C, fr: "Sinceramente, ___ que vamos a volver. (creer, yo)", es: ["creo"], v: "creer", p: 0,
+        expl: "**Creo que** + une phrase = je crois que." },
+      { consigne: C, fr: "¿Qué te ___ los zapatos? (parecer)", es: ["parecen"],
+        expl: "*Parecer* se construit comme *gustar* : **parecen**, au pluriel, parce que *los zapatos* est pluriel." },
+      { consigne: T, fr: "Je suppose que oui.", es: ["Supongo que sí."],
+        expl: "*Suponer* comme *poner* : **supongo**." },
+    ],
+    dire: [
+      { fr: "Franchement, il me semble très bon.", es: "Sinceramente, me parece muy bueno." },
+      { fr: "Et toi, qu'est-ce que tu en penses ?", es: "¿Y tú qué opinas?" },
+      { fr: "Je crois que oui.", es: "Creo que sí." },
+    ],
+  },
+  "U20-L2": {
+    ecrire: [
+      { consigne: T, fr: "Tu as raison, Blanca.", es: ["Tienes razón, Blanca."],
+        expl: "Avoir raison : **tener razón** (pas *ser razón*)." },
+      { consigne: C, fr: "No estoy de acuerdo ___ en todo. (avec toi)", es: ["contigo"],
+        expl: "Avec toi : **contigo** (avec moi : *conmigo*)." },
+      { consigne: C, fr: "Para ___ no es tan fácil. (moi)", es: ["mí"],
+        expl: "Après une préposition : **para mí**, avec un accent." },
+      { consigne: C, fr: "Vale, me has ___. (convencer)", es: ["convencido"],
+        expl: "Le passé composé : me has **convencido** = tu m'as convaincu." },
+    ],
+    dire: [
+      { fr: "Ça dépend.", es: "Depende." },
+      { fr: "Tu viens avec moi ?", es: "¿Vienes conmigo?" },
+      { fr: "Je ne veux pas me disputer avec toi.", es: "No quiero discutir contigo." },
+    ],
+  },
+  "U20-L3": {
+    ecrire: [
+      { consigne: T, fr: "En Espagne on dîne plus tard qu'en France.", es: ["En España se cena más tarde que en Francia."] },
+      { consigne: C, fr: "Huesca es ___ grande que Zaragoza. (moins)", es: ["menos"],
+        expl: "**Menos** … **que** = moins … que." },
+      { consigne: C, fr: "Huesca no es tan grande ___ Zaragoza. (que)", es: ["como"],
+        expl: "**Tan** … **como** = aussi … que." },
+      { consigne: C, fr: "El francés y el español son muy ___. (proches)", es: ["parecidos"],
+        expl: "*El francés y el español*, masculin pluriel : **parecidos**." },
+    ],
+    dire: [
+      { fr: "Quelle est la différence ?", es: "¿Cuál es la diferencia?" },
+      { fr: "Un avantage de Huesca, c'est qu'elle est plus tranquille.", es: "Una ventaja de Huesca es que es más tranquila." },
+      { fr: "Les horaires sont très différents.", es: "Los horarios son muy distintos." },
+    ],
+  },
+  "U20-L4": {
+    ecrire: [
+      { consigne: C, fr: "Dorian es ___ que Léo. (plus âgé)", es: ["mayor"],
+        expl: "Plus âgé : **mayor** (plus jeune : *menor*)." },
+      { consigne: C, fr: "Este restaurante es ___ que el otro. (meilleur)", es: ["mejor"],
+        expl: "Meilleur : **mejor**, jamais *más bueno*." },
+      { consigne: T, fr: "Léo est plus jeune que Dorian.", es: ["Léo es menor que Dorian.", "Léo es más pequeño que Dorian."] },
+      { consigne: T, fr: "Ça vaut la peine.", es: ["Merece la pena.", "Vale la pena."] },
+    ],
+    dire: [
+      { fr: "Lequel est le meilleur ?", es: "¿Cuál es mejor?" },
+      { fr: "Aujourd'hui le temps est pire qu'hier.", es: "Hoy el tiempo está peor que ayer." },
+      { fr: "C'est de meilleure qualité.", es: "Es de mejor calidad." },
+    ],
+  },
+  "U20-L5": {
+    ecrire: [
+      { consigne: T, fr: "C'est le bar le plus célèbre de Huesca.", es: ["Este es el bar más famoso de Huesca.", "Es el bar más famoso de Huesca."],
+        expl: "Le plus … de : **el** bar **más** famoso **de** Huesca." },
+      { consigne: C, fr: "¡Las tapas están ___! (très très bonnes)", es: ["buenísimas"],
+        expl: "**-ísimo** = très très : *buenas* → **buenísimas**." },
+      { consigne: C, fr: "Es la mejor tortilla del ___. (monde)", es: ["mundo"] },
+      { consigne: C, fr: "Este restaurante es ___. (très très cher)", es: ["carísimo"],
+        expl: "*Caro* → **carísimo**." },
+    ],
+    dire: [
+      { fr: "C'est incroyable !", es: "¡Es increíble!" },
+      { fr: "C'est délicieux !", es: "¡Está riquísimo!" },
+      { fr: "Tu es unique.", es: "Eres única." },
+    ],
+  },
+  "U20-L6": {
+    ecrire: [
+      { consigne: T, fr: "En plus, la montagne est très près.", es: ["Además, la montaña está muy cerca."] },
+      { consigne: C, fr: "En Francia se cena pronto; ___, en España se cena tarde. (par contre)", es: ["en cambio"],
+        expl: "Par contre : **en cambio**." },
+      { consigne: C, fr: "Huesca es pequeña; ___, es muy bonita. (pourtant)", es: ["sin embargo"],
+        expl: "Pourtant : **sin embargo**." },
+      { consigne: C, fr: "Por un lado, Zaragoza tiene más cosas. Por ___ lado, Huesca es más tranquila. (autre)", es: ["otro"],
+        expl: "**Por un lado … por otro lado** = d'un côté … de l'autre." },
+    ],
+    dire: [
+      { fr: "Par exemple, le poisson.", es: "Por ejemplo, el pescado." },
+      { fr: "D'un côté, oui.", es: "Por un lado, sí." },
+      { fr: "J'aime Huesca, même s'il fait froid.", es: "Me gusta Huesca, aunque hace frío." },
     ],
   },
 };
