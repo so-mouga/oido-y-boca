@@ -43,11 +43,15 @@ const OUTILS = {
   "1b": `nosotras vosotros vosotras ellos ellas`,
   // L'âge de Léo et de Dorian avec « tener … años » (U1-L2), avant les nombres de U2.
   "1c": `cuatro siete`,
+  // Le féminin et le pluriel de « poco » (U6-L3 : *poca verdura*).
+  "1d": `poca pocos pocas`,
   2: `cero uno una dos tres cuatro cinco seis siete ocho nueve diez once doce trece catorce quince dieciséis diecisiete
       dieciocho diecinueve veinte veintiuno veintidós veintitrés veinticuatro veinticinco veintiséis veintisiete veintiocho veintinueve treinta cuarenta cincuenta sesenta
       setenta ochenta noventa cien mil menos cuarto media
       lunes martes miércoles jueves viernes sábado domingo sábados domingos
       enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre`,
+  // Le féminin de « todo el día » (U9-L1) : *toda la tarde*.
+  9: `toda todas`,
   4: `nuestro nuestra nuestros nuestras vuestro vuestra vuestros vuestras que`,
   5: `usted ustedes vosotros vosotras`,
   6: `le les mí ti tampoco quería pones demasiado demasiada demasiados demasiadas`,
@@ -55,10 +59,13 @@ const OUTILS = {
   8: `ven pon sal haz di ve ten sé lávate siéntate ponte quítate báñate dúchate vístete acuéstate levántate despiértate date
       toques corras grites hagas lo`,
 };
+const sansAccent = w => w.normalize("NFD").replace(/[\u0301]/g, "").normalize("NFC");
 // Le pluriel et le singulier d'un mot (« portugués » → portugueses, « español » → españoles, « años » → año).
-const nombres = w => [/[aeiouáéó]$/.test(w) ? w + "s" : /és$/.test(w) ? w.slice(0, -2) + "eses" : w + "es",
+const nombres = w => [/[aeiouáéó]$/.test(w) ? w + "s" : /[áéíóú][ns]$/.test(w) ? sansAccent(w) + "es" : /z$/.test(w) ? w.slice(0, -1) + "ces" : w + "es",
   w.endsWith("s") && w.slice(0, -1), w.endsWith("es") && w.slice(0, -2), w.endsWith("eses") && w.slice(0, -4) + "és"].filter(Boolean);
-const PROPRES = new Set([...NOMS, "navidad", "nochebuena", "galicia", "valencia", "francia", "hyères", "toulon", "marignane", "carpentras", "españa"]);
+const PROPRES = new Set([...NOMS, "navidad", "nochebuena", "galicia", "valencia", "francia", "hyères", "toulon", "marignane", "carpentras", "españa", "dragon", "ball",
+  // Les mots transparents de la vraie histoire de Kevin (U15), absents du livre : pareils en français (Q13-1, validé par Kevin le 24 nov.).
+  "internet", "metro"]);
 
 // Les formes d'un verbe aux temps vus à ce rang (gérondif dès U5, « ducharme » dès U3, comme test-lectures.mjs).
 const GERONDIFS = { dormir: "durmiendo", pedir: "pidiendo", servir: "sirviendo", vestir: "vistiendo", decir: "diciendo", venir: "viniendo", poder: "pudiendo", preferir: "prefiriendo", ir: "yendo" };
@@ -86,6 +93,8 @@ function vusJusqua(rang) {
   const vus = new Set();
   for (const m of mots.filter(m => rangLecon(m.lecon) <= rang)) {
     const es = m.es.replace(/\([^)]*\)/g, " ").replace(/=.*/, " ");
+    // Ce que la carte précise entre parenthèses, en espagnol (« apuntar (a una actividad) ») : lu sur la carte.
+    for (const p of m.es.matchAll(/\(([^)=]*)\)/g)) for (const w of motsDe(p[1])) vus.add(w);
     // Le pluriel d'un nom ou d'un adjectif (« el año » → años), et le singulier d'une carte au pluriel (« los suegros » → suegro,
     // « tener … años » → año). Pas pour le verbe d'une carte (« tener »).
     motsDe(es).forEach((w, i) => {
@@ -93,7 +102,8 @@ function vusJusqua(rang) {
       if (m.categorie !== "verbe" || i > 0) for (const f of nombres(w)) vus.add(f);
     });
     // L'exemple de la carte, déjà lu sur la carte (« Me despierto a las siete » avant la règle e → ie).
-    for (const w of motsDe(m.ex)) vus.add(w);
+    // Avec le pluriel d'un nom de l'exemple (« ¿Prefieres vino o cerveza? » → cervezas).
+    for (const w of motsDe(m.ex)) { vus.add(w); for (const f of nombres(w)) vus.add(f); }
     const premier = min(es.trim().split(/[\s…]+/)[0] || "");
     if (!/^\p{L}*[aeií]r(se)?$/u.test(premier)) continue;
     const vb = verbeDe({ ...m, categorie: "verbe" });
@@ -117,9 +127,21 @@ function donnes(q, rang, u) {
   const d = new Set();
   if (q.v) for (const w of formes(q.v, q.d, Infinity, u, /se$/.test(q.v))) d.add(w);
   // Le mot donné par le bonus (« italiano = italien ») : avec son pluriel et son féminin (« italianos », « médica »).
-  for (const w of motsDe((q.mot || "").replace(/=[^·]*/g, " "))) for (const f of [w, ...nombres(w), w.replace(/o$/, "a"), w.replace(/o$/, "as")]) d.add(f);
-  for (const w of motsDe((q.sens || "").replace(/=.*/, ""))) d.add(w);
-  for (const m of (q.fr || "").matchAll(/\(([^)]*)\)/g)) for (const w of motsDe(m[1])) d.add(w);
+  for (const w of motsDe((q.mot || "").replace(/=[^·]*/g, " "))) {
+    for (const f of [w, ...nombres(w), w.replace(/o$/, "a"), w.replace(/o$/, "as")]) d.add(f);
+    // Un verbe donné (« beber = boire ») : ses formes aussi (*Bebo mucha agua*).
+    if (/[aeií]r(se)?$/u.test(w) && w.length > 3) for (const f of formes(w, undefined, Infinity, u, /se$/.test(w))) d.add(f);
+  }
+  // « sens » : le sens du verbe (« rester »), ou des mots donnés dans un exercice (« la cámara = la caméra · grabar = filmer »).
+  for (const w of motsDe((q.sens || "").replace(/=[^·]*/g, " "))) {
+    for (const f of [w, ...nombres(w)]) d.add(f);
+    if (/[aeií]r(se)?$/u.test(w) && w.length > 3) for (const f of formes(w, undefined, Infinity, u, /se$/.test(w))) d.add(f);
+  }
+  for (const m of (q.fr || "").matchAll(/\(([^)]*)\)/g)) for (const w of motsDe(m[1])) {
+    d.add(w);
+    // Un verbe donné entre parenthèses (« (aprender) ») : ses formes aussi, gérondif compris dès U5 (*estoy aprendiendo*).
+    if (/[aeií]r(se)?$/u.test(w) && w.length > 3) for (const f of formes(w, undefined, Infinity, u, /se$/.test(w))) d.add(f);
+  }
   return d;
 }
 
@@ -127,13 +149,28 @@ function donnes(q, rang, u) {
 const sansParentheses = s => (s || "").replace(/\([^)]*\)/g, " ");
 const espagnolDe = (q, phraseEspagnole) => [phraseEspagnole ? sansParentheses(q.fr) : "", ...(Array.isArray(q.es) ? q.es.slice(0, 1) : [q.es || ""]).map(sansParentheses)].join(" ");
 
+// Un pronom collé à la fin d'un verbe connu (« comprarlas », « cógela », « hazlos ») : appris en U10-L3 et U10-L4.
+// Avant U10, seulement une variante d'une forme déjà lue (« felicitarlos » sur la carte → felicitarlas).
+const CLITIQUES = ["los", "las", "lo", "la", "les", "le", "me", "te", "nos", "os", "se"];
+function colle(w, connu, u) {
+  for (const c of CLITIQUES) {
+    if (!w.endsWith(c) || w.length - c.length < 2) continue;
+    const base = w.slice(0, -c.length);
+    if (u >= 10 && (connu(base) || connu(sansAccent(base)))) return true;
+    if (/[aeií]r$/.test(base) && CLITIQUES.some(c2 => c2 !== c && connu(base + c2))) return true;
+  }
+  return false;
+}
 const fautes = []; // { ou, lecon, phrase, mots }
 function verifier(ou, lecon, q, phraseEspagnole) {
   // Un mot de la même unité, même d'une leçon un peu plus loin, est accepté (Q10-12) : l'unité se fait en une semaine avec le prof.
   const rang = Math.max(rangLecon(lecon), ...LECONS.filter(l => uniteDe(l.id) === uniteDe(lecon)).map(l => rangLecon(l.id)));
   const u = uniteDe(lecon);
   const vus = vusJusqua(rang), d = donnes(q, rang, u);
-  const inconnus = [...new Set(motsDe(espagnolDe(q, phraseEspagnole)))].filter(w => !vus.has(w) && !d.has(w) && !PROPRES.has(w));
+  // Un mot donné par la question se reconnaît aussi quand son pluriel prend un accent (« joven » → jóvenes).
+  const dSans = new Set([...d].map(sansAccent));
+  const connu = w => vus.has(w) || d.has(w) || dSans.has(sansAccent(w));
+  const inconnus = [...new Set(motsDe(espagnolDe(q, phraseEspagnole)))].filter(w => !connu(w) && !colle(w, connu, u) && !PROPRES.has(w));
   if (inconnus.length) fautes.push({ ou, lecon, phrase: phraseEspagnole ? q.fr : `${q.fr} → ${Array.isArray(q.es) ? q.es[0] : q.es}`, mots: inconnus });
 }
 

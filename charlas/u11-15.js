@@ -731,10 +731,10 @@ export const CHARLAS = [
         ],
         suite: "¡Claro que sí! 🥹" },
       { lui: "¿Y ahora? ¿Estás nervioso con la boda?",
-        ok: "No, estoy tranquilo. ¡Estoy muy ilusionado!",
+        ok: "No, estoy relajado. ¡Estoy muy ilusionado!",
         pieges: [
-          ["No, soy tranquilo. ¡Estoy muy ilusionado!", "¿Eres tranquilo? ¿Siempre? 😄", "Maintenant, un état : <i>estoy tranquilo</i>.", "ser-estar"],
-          ["No, estoy tranquilo. ¡Estoy muy ilusionada!", "¿Ilusionada? 😄", "Pour un homme : <i>ilusionado</i>.", "genre"],
+          ["No, soy relajado. ¡Estoy muy ilusionado!", "¿Eres relajado? ¿Siempre? 😄", "Maintenant, un état : <i>estoy relajado</i>.", "ser-estar"],
+          ["No, estoy relajado. ¡Estoy muy ilusionada!", "¿Ilusionada? 😄", "Pour un homme : <i>ilusionado</i>.", "genre"],
         ],
         rires: [
           ["Al principio no hablaba español.", "¡Y ahora mira! 😄 Pero ¿y la boda?", "Elle demande si tu es nerveux pour le mariage."],

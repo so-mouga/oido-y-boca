@@ -265,21 +265,21 @@ export const CHARLAS = [
           ["Buenos días. ¿Tiene de pan del pueblo?", "¿De pan? 😅 ¿Pan?", "Pas de « du » en espagnol : <i>¿tiene pan?</i>", "article"],
         ],
         rires: [
-          ["Necesito algo para la tos.", "¡Esto no es una farmacia! 😂", "Tu es à l'épicerie : demande ce que tu veux acheter."],
+          ["Mi jefe tiene que vender la empresa.", "¿Y me la vende a mí? 😂 ¿Qué necesita?", "Tu es à l'épicerie : demande ce que tu veux acheter."],
           ["Odio levantarme temprano.", "¡Y yo abro a las ocho! 😂", "Elle demande ce que tu veux."],
         ],
         suite: "Sí, aquí tiene. Es de esta mañana." },
       { lui: "¿Algo más?",
-        ok: "Sí, ¿me pone un kilo de tomates?",
+        ok: "Sí, ¿me pone una bolsa, por favor?",
         pieges: [
-          ["Sí, ¿me pone un kilo tomates?", "¿Un kilo… DE tomates? 😅", "Une quantité : <i>un kilo de tomates</i>, avec <i>de</i>.", "preposition"],
-          ["Sí, ¿me pone una kilo de tomates?", "¿Una kilo? 😅 Un kilo.", "<i>kilo</i> est masculin : <i>un kilo</i>.", "article"],
+          ["Sí, ¿me pone un bolsa, por favor?", "¿Un bolsa? 😅 Una bolsa.", "<i>bolsa</i> est féminin : <i>una bolsa</i>.", "genre"],
+          ["Sí, ¿me pones una bolsa, por favor?", "¡Uy, qué confianza! 😄 Sí, claro.", "À la vendeuse, on dit <i>usted</i> : <i>¿me pone…?</i>", "personne"],
         ],
         rires: [
           ["Este sábado quedo con amigos.", "¡Qué bien! 😄 ¿Y algo más?", "Elle demande si tu veux autre chose."],
           ["El ascensor no funciona.", "¡Pues suba a pie! 😂 ¿Algo más?", "Elle demande si tu veux autre chose."],
         ],
-        suite: "Un kilo de tomates, aquí tiene." },
+        suite: "Una bolsa, aquí tiene." },
       { lui: "Son cuatro euros con veinte.",
         ok: "Vale. ¿Puedo pagar con tarjeta?",
         pieges: [
@@ -287,7 +287,7 @@ export const CHARLAS = [
           ["Vale, catorce euros con veinte. ¿Puedo pagar con tarjeta?", "¿Catorce? ¡No, cuatro! 😂", "<i>cuatro</i> = 4 ; <i>catorce</i> = 14.", "nombre"],
         ],
         rires: [
-          ["Me gusta mucho cocinar.", "¡Con mis tomates, seguro! 😄 Son cuatro veinte.", "Elle te dit le prix."],
+          ["Me gusta mucho cocinar.", "¡Con mi pan del pueblo, seguro! 😄 Son cuatro veinte.", "Elle te dit le prix."],
           ["La farmacia está cerca de aquí.", "Sí, al lado. 😄 Pero… cuatro veinte.", "Elle te dit le prix."],
         ],
         suite: "Claro, aquí tiene." },
@@ -630,7 +630,7 @@ export const CHARLAS = [
           ["Vale, una bocadillo y agua. ¿Algo más?", "¿Una bocadillo? 😅", "<i>bocadillo</i> est masculin : <i>un bocadillo</i>.", "genre"],
         ],
         rires: [
-          ["Necesito algo para la tos.", "¿Estás malo? 😅 Pero… ¿la excursión?", "Il dit ce qu'il faut apporter."],
+          ["Necesito algo para Léo.", "¿Para Léo? 😅 Pero… ¿la excursión?", "Il dit ce qu'il faut apporter."],
           ["Las galletas están en la mesa.", "¿Qué mesa? 😂", "Il dit ce qu'il faut apporter."],
         ],
         suite: "Y una gorra, por el sol." },

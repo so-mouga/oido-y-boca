@@ -290,7 +290,7 @@ export const EXERCICES = {
     ],
     dire: [
       { fr: "Je dois aller chercher Léo à l'école à cinq heures.", es: "Tengo que ir a buscar a Léo al cole a las cinco." },
-      { fr: "Comment ça s'est passé, l'école ?", es: "¿Qué tal el cole?" },
+      { fr: "Dorian, comment tu vas ? Et l'école ?", es: "Dorian, ¿cómo estás? ¿Y el cole?" },
       { fr: "Dorian, tu as des devoirs aujourd'hui ?", es: "Dorian, ¿tienes deberes hoy?" },
     ],
   },
@@ -404,7 +404,7 @@ export const EXERCICES = {
   },
   "U6-L1": {
     ecrire: [
-      { consigne: T, fr: "J'aime beaucoup cuisiner, mais je n'aime pas nettoyer.", es: ["Me gusta mucho cocinar, pero no me gusta limpiar."] },
+      { consigne: T, fr: "J'aime beaucoup cuisiner, mais je n'aime pas faire les courses.", es: ["Me gusta mucho cocinar, pero no me gusta hacer la compra."] },
       { consigne: C, fr: "A Blanca ___ gusta Huesca. (à elle)", es: ["le"], expl: "« À elle, à lui » : **le** gusta. (me, te, **le**, nos, os, les)" },
       { consigne: C, fr: "A Léo y a Dorian les ___ los sábados. (encantar)", es: ["encantan"], expl: "*Los sábados* est au pluriel : **encantan**. Le verbe s'accorde avec ce qui plaît." },
       { consigne: T, fr: "Tu préfères déjeuner à la maison ou au restaurant ? Ça m'est égal.", es: ["¿Prefieres comer en casa o en el restaurante? Me da igual."] },
@@ -547,7 +547,7 @@ export const EXERCICES = {
   },
   "U7-L6": {
     ecrire: [
-      { consigne: T, fr: "J'ai besoin de quelque chose pour la toux. Vous avez quelque chose ?", es: ["Necesito algo para la tos. ¿Tiene algo?"] },
+      { consigne: T, fr: "J'ai besoin de quelque chose pour Léo. Vous avez quelque chose ?", es: ["Necesito algo para Léo. ¿Tiene algo?"] },
       { consigne: C, fr: "¿Cuánto ___ el pan? (costar)", es: ["cuesta"], v: "costar", d: "ue", p: 2 },
       { consigne: T, fr: "Vous voulez un sac ? Non, merci.", es: ["¿Quiere bolsa? No, gracias.", "¿Quiere una bolsa? No, gracias."] },
       { consigne: C, fr: "Señora, ¿___ usted pan? (tener)", es: ["tiene"], v: "tener", p: 2,
@@ -641,7 +641,7 @@ export const EXERCICES = {
   },
   "Noël-L2": {
     ecrire: [
-      { consigne: T, fr: "Tout est très bon ! J'adore le touron.", es: ["¡Está todo muy rico! Me encanta el turrón.", "¡Todo está muy rico! Me encanta el turrón."] },
+      { consigne: T, fr: "C'est très bon ! J'adore le touron.", es: ["¡Está muy rico! Me encanta el turrón."] },
       { consigne: T, fr: "Trinquons à la famille !", es: ["¡Brindamos por la familia!", "¡Brindemos por la familia!"] },
       { consigne: C, fr: "Me ___ el cava. (gustar)", es: ["gusta"], expl: "*El cava*, au singulier : **gusta**." },
       { consigne: T, fr: "Le repas du réveillon est très long.", es: ["La cena de Nochebuena es muy larga."] },
@@ -745,7 +745,7 @@ export const EXERCICES = {
     dire: [
       { fr: "On se voit à la sortie de l'école.", es: "Nos vemos a la salida del cole." },
       { fr: "Je suis à l'entrée de l'école.", es: "Estoy en la entrada del cole." },
-      { fr: "Tu prends le sac de Dorian ?", es: "¿Coges tú la mochila de Dorian?" },
+      { fr: "Tu portes le sac de Dorian ?", es: "¿Llevas tú la mochila de Dorian?" },
     ],
   },
   "U10-L2": {
@@ -979,7 +979,7 @@ export const EXERCICES = {
       { consigne: T, fr: "L'été dernier, on est allés à la plage et c'était génial.", es: ["El verano pasado fuimos a la playa y fue genial."] },
       { consigne: C, fr: "Anoche Blanca y yo ___ al cine. (ir, passé simple)", es: ["fuimos"], v: "ir", p: 3, t: "ps" },
       { consigne: T, fr: "Comment était l'hôtel ?", es: ["¿Cómo fue el hotel?", "¿Qué tal fue el hotel?"] },
-      { consigne: C, fr: "El viaje ___ muy largo. (ser, passé simple)", es: ["fue"], v: "ser", p: 2, t: "ps" },
+      { consigne: C, fr: "El viaje ___ muy caro. (ser, passé simple)", es: ["fue"], v: "ser", p: 2, t: "ps" },
     ],
     dire: [
       { fr: "D'abord on est allés au parc, et ensuite à la maison.", es: "Primero fuimos al parque y luego a casa." },
@@ -1015,7 +1015,7 @@ export const EXERCICES = {
   },
   "U13-L4": {
     ecrire: [
-      { consigne: T, fr: "Le père de Blanca est venu manger et il m'a dit que mon espagnol était meilleur.", es: ["El padre de Blanca vino a comer y me dijo que mi español estaba mejor.", "El padre de Blanca vino a comer y me dijo que mi español está mejor."] },
+      { consigne: T, fr: "Le père de Blanca est venu manger et il m'a dit : « Tu parles très bien espagnol ! »", es: ["El padre de Blanca vino a comer y me dijo: ¡Hablas muy bien español!", "El padre de Blanca vino a comer y me dijo: ¡Hablas español muy bien!", "El padre de Blanca vino a comer y me dijo que hablo muy bien español."] },
       { consigne: C, fr: "Léo no ___ comer. (querer, passé simple)", es: ["quiso"], v: "querer", d: "ie", p: 2, t: "ps",
         expl: "*Querer* au passé simple : **quiso**. *No quiso* = il a refusé. *Querer* : quise, quisiste, quiso, quisimos, quisisteis, quisieron." },
       { consigne: T, fr: "La maîtresse m'a demandé des nouvelles de Léo.", es: ["La tutora me preguntó por Léo."] },
@@ -1042,7 +1042,7 @@ export const EXERCICES = {
   },
   "U13-L6": {
     ecrire: [
-      { consigne: T, fr: "Que c'est drôle ! D'abord Dorian s'est caché au supermarché, et à la fin on l'a retrouvé avec la voisine.", es: ["¡Qué gracioso! Primero Dorian se escondió en el súper, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el supermercado, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el súper y al final lo encontramos con la vecina."] },
+      { consigne: T, fr: "Que c'est drôle ! D'abord Dorian s'est caché au supermarché, et à la fin on l'a retrouvé avec la voisine.", es: ["¡Qué gracioso! Primero Dorian se escondió en el supermercado, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el súper, y al final lo encontramos con la vecina.", "¡Qué gracioso! Primero Dorian se escondió en el súper y al final lo encontramos con la vecina."] },
       { consigne: C, fr: "Dorian ___ detrás de la puerta. (esconderse, passé simple)", es: ["se escondió"], v: "esconderse", p: 2, t: "ps" },
       { consigne: T, fr: "On a beaucoup ri avec les enfants.", es: ["Nos reímos mucho con los niños."] },
       { consigne: C, fr: "El sábado nosotros ___ a la playa. (ir, passé simple)", es: ["fuimos"], v: "ir", p: 3, t: "ps" },
@@ -1057,13 +1057,13 @@ export const EXERCICES = {
   "U14-L1": {
     ecrire: [
       { consigne: T, fr: "Petit, je jouais toujours au foot.", es: ["De pequeño siempre jugaba al fútbol.", "Cuando era pequeño, siempre jugaba al fútbol.", "De pequeño jugaba siempre al fútbol."] },
-      { consigne: C, fr: "De pequeño, yo ___ a la consola con mis amigos. (jugar, imparfait)", es: ["jugaba"], v: "jugar", p: 0, t: "imp" },
+      { consigne: C, fr: "De pequeño, yo ___ a la consola con mis amigos. (jugar, imparfait)", es: ["jugaba"], v: "jugar", p: 0, t: "imp", sens: "la consola = la console" },
       { consigne: T, fr: "Tu te souviens de ton enfance ?", es: ["¿Te acuerdas de tu infancia?"] },
       { consigne: C, fr: "De joven, ___ en París. (trabajar, imparfait, yo)", es: ["trabajaba"], v: "trabajar", p: 0, t: "imp" },
     ],
     dire: [
       { fr: "Quel est ton meilleur souvenir d'enfance ?", es: "¿Cuál es tu mejor recuerdo de pequeño?" },
-      { fr: "Petit, je jouais toujours à la console.", es: "De pequeño siempre jugaba a la consola." },
+      { fr: "Petit, je jouais toujours avec mes amis.", es: "De pequeño siempre jugaba con mis amigos." },
       { fr: "Tu jouais dans la rue ?", es: "¿Jugabas en la calle?" },
     ],
   },
@@ -1118,7 +1118,7 @@ export const EXERCICES = {
     dire: [
       { fr: "Comment c'est arrivé ?", es: "¿Cómo ocurrió?" },
       { fr: "Tu es allé à l'hôpital ?", es: "¿Fuiste al hospital?" },
-      { fr: "J'avais douze ans et je me suis fait mal au bras.", es: "Tenía doce años y me hice daño en el brazo." },
+      { fr: "J'avais douze ans quand je me suis fait mal.", es: "Tenía doce años cuando me hice daño." },
     ],
   },
   "U14-L6": {
@@ -1186,7 +1186,7 @@ export const EXERCICES = {
     ],
     dire: [
       { fr: "Elle a été émue ?", es: "¿Se emocionó?" },
-      { fr: "Il y avait des lumières sur le balcon.", es: "Había luces en el balcón." },
+      { fr: "Il y avait plein de lumières.", es: "Había muchas luces." },
       { fr: "Où as-tu acheté la bague ?", es: "¿Dónde compraste el anillo?" },
     ],
   },
@@ -1199,7 +1199,7 @@ export const EXERCICES = {
     ],
     dire: [
       { fr: "Je suis très heureux.", es: "Estoy muy feliz." },
-      { fr: "Pour le mariage, pas de pression : je suis tranquille.", es: "Para la boda, nada de presión: estoy tranquilo." },
+      { fr: "Pour le mariage, je ne suis pas stressé : je suis très détendu.", es: "Para la boda, no estoy nervioso: estoy muy relajado." },
       { fr: "Le 19 juin, c'est notre mariage.", es: "El 19 de junio es nuestra boda." },
     ],
   },
