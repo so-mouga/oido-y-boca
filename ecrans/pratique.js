@@ -7,22 +7,22 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=51";
-import { lecon as trouver } from "../position.js?v=51";
-import { EXERCICES } from "../exercices.js?v=51";
-import { corriger } from "../corriger.js?v=51";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=51";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=51";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=51";
-import { BONUS } from "../bonus.js?v=51";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=51";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=51";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=51";
-import { vibrer, son } from "../retours.js?v=51";
+import { esc, md, id, ICONES } from "../ui.js?v=52";
+import { lecon as trouver } from "../position.js?v=52";
+import { EXERCICES } from "../exercices.js?v=52";
+import { corriger } from "../corriger.js?v=52";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=52";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=52";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=52";
+import { BONUS } from "../bonus.js?v=52";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=52";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=52";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=52";
+import { vibrer, son } from "../retours.js?v=52";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=51";
+} from "../enregistrement.js?v=52";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));

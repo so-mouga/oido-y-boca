@@ -193,8 +193,10 @@ export function etape(n) {
 
 // ——— Le mot surprise ———
 // Une fois par partie, un mot des prochaines leçons du livre, à deviner par élimination parmi des mots connus.
-// Au plus 2 mots gardés par jour : ensuite, plus de mot surprise ce jour-là.
-export const GARDES_PAR_JOUR = 2;
+// Au plus 5 mots gardés par jour, tous jeux confondus (mot surprise, En la frente) : ensuite, plus de mot surprise ce jour-là.
+// Chaque mot gardé entre dans « Tes mots à revoir » : sans limite, la révision déborderait.
+export const GARDES_PAR_JOUR = 5;
+export const gardesRestants = (jeux, jour) => Math.max(0, GARDES_PAR_JOUR - ((jeux?.gardes || {})[jour] || 0));
 export const peutSurprendre = (jeux, jour) => ((jeux?.gardes || {})[jour] || 0) < GARDES_PAR_JOUR;
 // aVenir : les mots pas encore vus, de la leçon la plus proche à la plus lointaine ; connus : les mots du paquet.
 // On prend le premier qui n'a pas déjà été montré aujourd'hui, dont le sens ne ressemble à aucun mot connu,
@@ -246,4 +248,33 @@ export function questionVerbe(x, temps, conj, hasard = Math.random) {
   // Le reste : le même verbe au même temps, à d'autres personnes.
   for (const q of melanger([0, 1, 2, 3, 4, 5].filter(q => q !== p), hasard)) prendre(conj(x.v, q, x.d, t));
   return { verbe: x, p, t, bonne, reponses: melanger([bonne, ...choisis], hasard).map(texte => ({ texte, juste: texte === bonne })) };
+}
+
+// ——— Les jeux à deux (La Bomba, En la frente) ———
+export const DUREE_FRENTE = 60;
+export const JOKERS = 3;
+// La mèche de La Bomba : entre 15 et 40 secondes « de mèche » (en millisecondes). Pendant le tour de Kevin, elle brûle moins vite.
+export const dureeMeche = (hasard = Math.random) => (15 + hasard() * 25) * 1000;
+
+// L'indice d'un joker « ¡Ayuda! » : l'article et la première lettre de chaque mot, puis un trait par lettre.
+// « la vaca » → « la v _ _ _ » ; « el oso de peluche » → « el o _ _   de   p _ _ _ _ _ _ ».
+const PETITS = new Set(["el", "la", "los", "las", "un", "una", "unos", "unas", "y", "de", "del", "o", "a", "en"]);
+export const indice = es => es.split(" ").map(w => PETITS.has(w.toLowerCase()) ? w
+  : [...w].map((c, i) => i === 0 || !/\p{L}/u.test(c) ? c : "_").join(" ")).join("   ");
+
+// La lettre imposée : une première lettre d'un mot du thème (sans l'article), donc toujours possible ; jamais deux fois de suite la même.
+export function tirerLettre(mots, avant = "", hasard = Math.random) {
+  const lettres = [...new Set(mots.map(m => {
+    const w = m.es.replace(/^[¿¡]/, "").split(" ").find(x => !PETITS.has(x.toLowerCase())) || m.es;
+    return w[0].toUpperCase();
+  }))].filter(l => /\p{L}/u.test(l));
+  const choix = lettres.length > 1 ? lettres.filter(l => l !== avant) : lettres;
+  return choix[Math.floor(hasard() * choix.length)] || "";
+}
+
+// Le gage du perdant : les gages communs et ceux de la partenaire (Blanca : de couple ; Dorian : d'enfant).
+// autre : le joueur qui n'a pas perdu, à qui le gage s'adresse.
+export function tirerGage(gages, partenaire, autre, hasard = Math.random) {
+  const liste = [...(gages.tous || []), ...(gages[partenaire] || [])];
+  return (liste[Math.floor(hasard() * liste.length)] || "").replace(/\{autre\}/g, autre);
 }

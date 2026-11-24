@@ -4,20 +4,22 @@
 //   #/jeux/montre/partie   le Contre la montre : un mot en espagnol, 4 sens en français, 60 secondes
 //   #/jeux/montre/fin      le score, le record, le mot apporté par Chispa, les mots attrapés, les trophées
 //   #/jeux/verbes, #/jeux/verbes/partie, #/jeux/verbes/fin : la course de verbes (« venir · tú », 3 formes), même déroulé
+//   #/jeux/deux, #/jeux/bomba…, #/jeux/frente… : les jeux à deux (ecrans/deux.js)
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=51";
-import { UNITES } from "../position.js?v=51";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=51";
-import { mesVerbes, verbesCours } from "../verbes.js?v=51";
-import { motsAMoi, motsAVenir } from "../dico.js?v=51";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=51";
-import { dire, taire } from "../voix.js?v=51";
-import { chispa } from "../mascotte.js?v=51";
-import * as J from "../jeux.js?v=51";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=52";
+import { UNITES } from "../position.js?v=52";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=52";
+import { mesVerbes, verbesCours } from "../verbes.js?v=52";
+import { motsAMoi, motsAVenir } from "../dico.js?v=52";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=52";
+import { dire, taire } from "../voix.js?v=52";
+import { chispa } from "../mascotte.js?v=52";
+import * as J from "../jeux.js?v=52";
+import { ecranDeux } from "./deux.js?v=52";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -146,8 +148,9 @@ function vueSalle(ctx, d, dv) {
         <div class="f-accueil"><a href="#/jeux/chispa" aria-label="Voir Chispa">${flamme(lecon ? "idle" : "joie", 2)}</a><p class="f-bulle">${bulle}</p></div>${bilan}
         <div class="f-stands">${stand}
           ${standVerbes}
+          <a class="f-stand deux" href="#/jeux/deux"><div class="f-toile"></div><div class="f-comptoir"><h2>À deux</h2><p>Avec Blanca ou Dorian, sur le canapé : La Bomba et En la frente.</p><span class="f-btn">Jouer</span></div></a>
           ${vitrine()}
-          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues", "Le prochain jeu")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("À deux", "Avec Blanca ou Dorian")}${ferme("Le défi du jour", "Un seul essai par jour")}</div>
+          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues", "Le prochain jeu")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("Le défi du jour", "Un seul essai par jour")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
         </div>
       </div>${barreOnglets("jeux")}`,
     apres: brancher,
@@ -521,6 +524,7 @@ function brancher() {
 export function ecranJeux(ctx, quoi, etape) {
   arreter();
   const d = donnees(ctx);
+  if (["deux", "bomba", "frente"].includes(quoi)) return ecranDeux(ctx, quoi, etape);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
   if (quoi === "verbes") {

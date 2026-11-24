@@ -176,9 +176,12 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
     const s2 = J.motSurprise(aVenir, connus, r.jeux, jour, graine(3));
     if (!s2 || s2 === s1) faux("le même mot surprise deux fois le même jour");
     egal("le lendemain, il peut revenir", J.motSurprise(aVenir, connus, r.jeux, "2026-11-26", graine(3))?.id, s1.id);
-    // 2 mots gardés : plus de surprise ce jour-là, mais le lendemain si.
-    const g = J.garderSurprise(J.garderSurprise(r.jeux, jour), jour);
-    egal("2 gardés par jour au plus", [J.peutSurprendre(J.garderSurprise(r.jeux, jour), jour), J.motSurprise(aVenir, connus, g, jour), J.peutSurprendre(g, "2026-11-26")], [true, null, true]);
+    // 5 mots gardés (tous jeux confondus) : plus de surprise ce jour-là, mais le lendemain si.
+    let g = r.jeux;
+    for (let i = 0; i < 4; i++) g = J.garderSurprise(g, jour);
+    egal("4 gardés : encore 1", [J.peutSurprendre(g, jour), J.gardesRestants(g, jour)], [true, 1]);
+    g = J.garderSurprise(g, jour);
+    egal("5 gardés par jour au plus", [J.peutSurprendre(g, jour), J.gardesRestants(g, jour), J.motSurprise(aVenir, connus, g, jour), J.peutSurprendre(g, "2026-11-26")], [false, 0, null, true]);
     egal("garder ne retient que le jour même", J.garderSurprise(g, "2026-11-26").gardes, { "2026-11-26": 1 });
   }
   egal("pas assez de mots : pas de surprise", J.motSurprise(aVenir, connus.slice(0, 5), {}, jour), null);
@@ -222,6 +225,47 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   const pq = J.paquetsVerbes(debut, []);
   egal("les paquets de verbes", pq.map(p => [p.id, p.ouvert]), [["tous", debut.length >= J.SEUIL_VERBES], ["cours", false]]);
   console.log(`Après ${LECONS[1]} : ${debut.length} verbes (${debut.map(x => x.v).join(", ")}).`);
+}
+
+// 12. Les jeux à deux : les indices, la lettre imposée, les gages, et les 8 thèmes eux-mêmes.
+{
+  fs.copyFileSync(path.join(racine, "themes.js"), path.join(tmp, "themes.js"));
+  const { THEMES, GAGES } = await import(path.join(tmp, "themes.js"));
+  egal("indice simple", J.indice("la vaca"), "la   v _ _ _");
+  egal("indice à plusieurs mots", J.indice("el oso de peluche"), "el   o _ _   de   p _ _ _ _ _ _");
+  egal("indice avec ponctuation", J.indice("¿Truco o trato?"), "¿ _ _ _ _ _   o   t _ _ _ _ ?");
+  egal("indice d'un verbe", J.indice("esconderse"), "e _ _ _ _ _ _ _ _ _");
+  const ids = Object.keys(THEMES);
+  egal("8 thèmes", ids.length, 8);
+  for (const [id, t] of Object.entries(THEMES)) {
+    if (t.mots.length < 20) faux(`thème ${id} : seulement ${t.mots.length} mots`);
+    const vus = new Set();
+    for (const m of t.mots) {
+      if (!m.es || !m.fr) faux(`thème ${id} : un mot sans espagnol ou sans français`);
+      if (vus.has(m.es)) faux(`thème ${id} : ${m.es} en double`);
+      vus.add(m.es);
+    }
+    // La lettre imposée : toujours la première lettre d'un vrai mot du thème, jamais deux fois de suite.
+    let avant = "";
+    for (let g = 1; g < 40; g++) {
+      const l = J.tirerLettre(t.mots, avant, graine(g));
+      const ok = t.mots.some(m => m.es.replace(/^[¿¡]/, "").split(" ").some(w => w[0].toUpperCase() === l));
+      if (!ok) faux(`thème ${id} : la lettre ${l} ne commence aucun mot`);
+      if (l === avant) faux(`thème ${id} : deux fois de suite la lettre ${l}`);
+      avant = l;
+    }
+  }
+  // Les gages : la partenaire choisit la liste, {autre} est remplacé par le joueur qui n'a pas perdu.
+  const tous = new Set(GAGES.tous);
+  for (let g = 1; g < 60; g++) {
+    const k = J.tirerGage(GAGES, "Blanca", "Kevin", graine(g));
+    if (k.includes("{autre}")) faux("gage : {autre} pas remplacé");
+    const d = J.tirerGage(GAGES, "Dorian", "Kevin", graine(g));
+    if (GAGES.Blanca.some(x => x.replace(/\{autre\}/g, "Kevin") === d)) faux("un gage de couple tiré en jouant avec Dorian");
+    if (!tous.has(d) && !GAGES.Dorian.some(x => x.replace(/\{autre\}/g, "Kevin") === d)) faux("gage inconnu : " + d);
+  }
+  const t = J.dureeMeche(() => 0), u = J.dureeMeche(() => .999);
+  if (t !== 15000 || u > 40000) faux("la mèche doit durer entre 15 et 40 secondes");
 }
 
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");
