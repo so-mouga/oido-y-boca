@@ -6,24 +6,26 @@
 //   #/jeux/verbes, #/jeux/verbes/partie, #/jeux/verbes/fin : la course de verbes (« venir · tú », 3 formes), même déroulé
 //   #/jeux/caseta…         la Caseta de tiro, le stand de tir pour l'oreille (ecrans/caseta.js)
 //   #/jeux/chiringuito…    El Chiringuito, le stand de tapas : monter des phrases (ecrans/chiringuito.js)
+//   #/jeux/charla…         La Charla, le défi du jour : une petite conversation (ecrans/charla.js)
 //   #/jeux/deux, #/jeux/bomba…, #/jeux/frente… : les jeux à deux (ecrans/deux.js)
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=55";
-import { UNITES } from "../position.js?v=55";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=55";
-import { mesVerbes, verbesCours } from "../verbes.js?v=55";
-import { motsAMoi, motsAVenir } from "../dico.js?v=55";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=55";
-import { dire, taire } from "../voix.js?v=55";
-import { chispa } from "../mascotte.js?v=55";
-import * as J from "../jeux.js?v=55";
-import { ecranDeux } from "./deux.js?v=55";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=55";
-import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=55";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=56";
+import { UNITES } from "../position.js?v=56";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=56";
+import { mesVerbes, verbesCours } from "../verbes.js?v=56";
+import { motsAMoi, motsAVenir } from "../dico.js?v=56";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=56";
+import { dire, taire } from "../voix.js?v=56";
+import { chispa } from "../mascotte.js?v=56";
+import * as J from "../jeux.js?v=56";
+import { ecranDeux } from "./deux.js?v=56";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=56";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=56";
+import { ecranCharla, standCharla } from "./charla.js?v=56";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -173,9 +175,10 @@ function vueSalle(ctx, d, dv) {
           ${standVerbes}
           ${standCaseta}
           ${standChiringuito}
+          ${standCharla(ctx)}
           <a class="f-stand deux" href="#/jeux/deux"><div class="f-toile"></div><div class="f-comptoir"><h2>À deux</h2><p>Avec Blanca ou Dorian, sur le canapé : La Bomba et En la frente.</p><span class="f-btn">Jouer</span></div></a>
           ${vitrine()}
-          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("Le défi du jour", "Un seul essai par jour")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
+          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
         </div>
       </div>${barreOnglets("jeux")}`,
     apres: brancher,
@@ -558,12 +561,13 @@ function brancher() {
   });
 }
 
-export function ecranJeux(ctx, quoi, etape) {
+export function ecranJeux(ctx, quoi, etape, plus) {
   arreter();
   const d = donnees(ctx);
   if (["deux", "bomba", "frente"].includes(quoi)) return ecranDeux(ctx, quoi, etape);
   if (quoi === "caseta") return ecranCaseta(ctx, etape);
   if (quoi === "chiringuito") return ecranChiringuito(ctx, etape);
+  if (quoi === "charla") return ecranCharla(ctx, etape, plus);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
   if (quoi === "verbes") {

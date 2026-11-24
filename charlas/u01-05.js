@@ -1,0 +1,56 @@
+// La Charla, les conversations des unités 1 à 5. Le format est décrit dans charlas/index.js.
+// Écrites par la session de contenu de ce bloc ; vérifiées par : node outils/test-charla.mjs <vocabulaire.csv>
+// Les deux premières (Marta, Javier) viennent de la maquette validée par Kevin, ajustées le 24 nov. avec lui aux mots du livre.
+
+export const CHARLAS = [
+  {
+    id: "u01-marta-vecina", lecon: "U1-L6", perso: "marta", lieu: "la nouvelle voisine, sur le palier",
+    echanges: [
+      { lui: "¡Hola! Soy Marta, la nueva vecina. ¿Cómo te llamas?",
+        ok: "Me llamo Kevin. ¡Encantado!",
+        pieges: [["Te llamas Kevin.", "¿Yo? Me llamo Marta… 😅", "<i>te llamas</i>, c'est « tu t'appelles ». Pour toi : <i>me llamo</i>.", "personne"]],
+        rires: [["Tengo cuatro años.", "¿Cuatro años? ¡No, hombre! 😄", "Elle demande ton nom, pas ton âge."]],
+        suite: "¡Encantada, Kevin!" },
+      { lui: "¿Eres francés? Hablas muy bien español.",
+        ok: "Sí, soy francés. Pero todavía no hablo mucho.",
+        pieges: [["Sí, estoy francés.", "¿Estás francés? 😅 Eres francés, ¿no?", "La nationalité se dit avec <i>ser</i> : <i>soy francés</i>.", "ser-estar"]],
+        rires: [["Sí, Léo tiene cuatro años.", "¿Léo? ¡Pero te pregunto a ti! 😄", "Elle demande si tu es français, pas l'âge de Léo."]],
+        suite: "¡Pues hablas bastante bien!" },
+      { lui: "¿Y dónde trabajas?",
+        ok: "Trabajo desde casa, con el ordenador.",
+        pieges: [["Trabajas desde casa.", "¿Yo? No, yo trabajo en una empresa. 😅", "<i>trabajas</i>, c'est « tu travailles ». Pour toi : <i>trabajo</i>.", "personne"]],
+        rires: [["Vivo en un piso, en la ciudad.", "¡Ya lo sé, soy tu vecina! 😄", "Elle demande où tu travailles, pas où tu vis."]],
+        suite: "¡Qué bien, sin ir a la oficina!" },
+      { lui: "Bueno, me voy. ¡Hasta luego, Kevin!",
+        ok: "¡Hasta luego, Marta!",
+        pieges: [["¡Hola, Marta!", "¿Hola? ¡Pero si me voy! 😅", "Pour dire au revoir : <i>¡hasta luego!</i>, pas <i>¡hola!</i>", "formule"]],
+        rires: [["Nos casamos en junio.", "¡Enhorabuena! Pero… ¡me voy! 😄", "Elle te dit au revoir : <i>¡hasta luego!</i>"]],
+        suite: "¡Chao!" },
+    ],
+  },
+  {
+    id: "u02-javier-gimnasio", lecon: "U2-L4", perso: "javier", lieu: "à l'accueil de la salle de sport",
+    echanges: [
+      { lui: "¡Buenos días! ¿Cuántos días a la semana vas al gimnasio?",
+        ok: "Voy al gimnasio cuatro días a la semana.",
+        pieges: [["Voy en el gimnasio cuatro días a la semana.", "¿En el gimnasio? Vienes AL gimnasio. 😅", "On va <i>a</i> un endroit : <i>voy al gimnasio</i>, pas <i>en el</i>.", "preposition"]],
+        rires: [["Son cuatro euros.", "¿Cuatro euros? ¡Ojalá! 😄", "Il demande combien de jours, pas un prix."]],
+        suite: "¡Muy bien, cuatro días!" },
+      { lui: "¿Y a qué hora vas normalmente?",
+        ok: "A las doce, al mediodía.",
+        pieges: [["Son las doce.", "¿Ahora? No, son las diez. 😅", "<i>¿A qué hora…?</i> se répond <i>a las doce</i>. <i>Son las doce</i>, c'est l'heure qu'il est.", "heure"]],
+        rires: [["Por la noche hablo español con Blanca.", "¡Qué bien! Pero… ¿y el gimnasio? 😄", "Il demande à quelle heure tu viens."]],
+        suite: "Perfecto, al mediodía hay poca gente." },
+      { lui: "¿Cuál es tu número de teléfono?",
+        ok: "Es el seis, cuatro, cinco, doce, treinta.",
+        pieges: [["Está el seis, cuatro, cinco, doce, treinta.", "Vale… ¿es el seis, cuatro, cinco? 😅", "Un numéro, c'est <i>ser</i> : <i>es el…</i>", "ser-estar"]],
+        rires: [["Tengo cuarenta y cinco años.", "¡Pues pareces más joven! 😄", "Il demande ton numéro, pas ton âge."]],
+        suite: "Apuntado." },
+      { lui: "Son cuarenta euros al mes. ¡Hasta mañana!",
+        ok: "Vale, gracias. ¡Hasta mañana!",
+        pieges: [["¿Catorce euros? Vale, gracias.", "No, no: cuarenta, cuatro y cero. 😅", "<i>cuarenta</i> = 40, <i>catorce</i> = 14.", "nombre"]],
+        rires: [["¿Cuándo es tu cumpleaños?", "¿Mi cumpleaños? ¡Es en marzo! 😄 Pero… ¡hasta mañana!", "Il te dit à demain : <i>¡hasta mañana!</i>"]],
+        suite: "¡Hasta mañana, Kevin!" },
+    ],
+  },
+];
