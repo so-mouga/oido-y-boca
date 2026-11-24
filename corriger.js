@@ -1,6 +1,8 @@
 // Corrige une réponse tapée. Règles (décidées le 22 nov.) :
 // la casse et la ponctuation ne comptent pas ; un accent oublié est signalé mais compté juste ;
 // un ñ ou une lettre fausse compte faux.
+// Avec { accents: true } (Mes erreurs, chantier 11 : la moitié des erreurs notées par le prof sont des accents),
+// un accent oublié compte faux, comme une lettre ; la casse et la ponctuation (¿ ¡ compris) ne comptent toujours pas.
 
 const PONCTUATION = /[¿?¡!.,;:«»"“”'’()…\-–—]/g;
 
@@ -26,10 +28,10 @@ function alignement(a, b) {
 }
 
 // Renvoie { niveau: "juste" | "accents" | "presque" | "faux", attendu, okAttendu, okTape, motsTapes, motsAttendus, astuce }.
-export function corriger(tape, reponses) {
-  const tapeNu = mots(tape, true);
+export function corriger(tape, reponses, { accents: stricts = false } = {}) {
+  const tapeNu = mots(tape, !stricts);
   for (const r of reponses) {
-    if (tapeNu.join(" ") === mots(r, true).join(" ")) {
+    if (tapeNu.join(" ") === mots(r, !stricts).join(" ")) {
       const accents = mots(tape, false).join(" ") === mots(r, false).join(" ");
       return { niveau: accents ? "juste" : "accents", attendu: r };
     }
@@ -37,7 +39,7 @@ export function corriger(tape, reponses) {
   // La réponse la plus proche, pour montrer où ça coince.
   let meilleur = null;
   for (const r of reponses) {
-    const attendus = mots(r, true);
+    const attendus = mots(r, !stricts);
     const al = alignement(tapeNu, attendus);
     const ecart = Math.max(attendus.length, tapeNu.length) - al.communs;
     if (!meilleur || ecart < meilleur.ecart) meilleur = { r, ecart, al, attendus };
@@ -49,6 +51,8 @@ export function corriger(tape, reponses) {
   let astuce = "";
   if (fautifs.length === 1 && tapesFautifs.length === 1 && fautifs[0].includes("ñ") && fautifs[0].replace(/ñ/g, "n") === tapesFautifs[0]) {
     astuce = `« ${fautifs[0]} » prend un ñ : sans lui, c'est un autre mot.`;
+  } else if (stricts && fautifs.length === 1 && tapesFautifs.length === 1 && mots(fautifs[0], true)[0] === tapesFautifs[0]) {
+    astuce = `« ${fautifs[0]} » prend un accent : à l'oral, il dit où appuyer.`;
   }
   return {
     niveau: ecart <= 1 ? "presque" : "faux",

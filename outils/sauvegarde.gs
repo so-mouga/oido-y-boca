@@ -12,9 +12,16 @@
 // Ce que fait le script : il range chaque sauvegarde dans le dossier « Oído y Boca – sauvegardes »
 // de ton Drive, un fichier par jour, et garde les 60 derniers jours (les plus vieux vont à la corbeille).
 // Il ne touche à rien d'autre. Sans la clé, il ne répond rien.
+//
+// « Mes erreurs » (chantier 11) : avec « ?quoi=carnet », il lit aussi le carnet du prof (Google Doc « Espagnol – Carnet de suivi »),
+// en lecture seule : le tableau de « 2. Mes erreurs fréquentes » et les paragraphes de « 4. Bilans », tels quels.
+// C'est l'appli qui en fait des cartes (carnet.js) : si le prof change un peu la mise en forme, le script n'a pas à changer.
+// Après avoir collé cette version : lancer une fois « testerCarnet » (Google demande l'accès aux Docs), puis
+// Déployer → Gérer les déploiements → crayon → Version : « Nouvelle version » → Déployer.
 
 const DOSSIER = "Oído y Boca – sauvegardes";
 const GARDER = 60;
+const CARNET = "1O4NmpsYuUI5BbBkOqrypKecP_wp9s2J23qGSutxFMHE"; // le Doc du carnet (privé : ce numéro seul ne l'ouvre pas)
 
 // La clé secrète : créée au premier usage, gardée dans les propriétés du script (jamais dans le code).
 function cle_() {
@@ -82,9 +89,49 @@ function doPost(e) {
   return json_({ ok: true, le: d.le });
 }
 
+// Le carnet : { tableau: [[cellules], …], bilans: ["paragraphe", …] }. Une section commence à un titre (« 2. Mes erreurs fréquentes ») :
+// un paragraphe en style titre, ou qui commence par un numéro. Le premier tableau après « erreurs » est le bon.
+function carnet_() {
+  const corps = DocumentApp.openById(CARNET).getBody();
+  const T = DocumentApp.ElementType;
+  let section = "";
+  const tableau = [], bilans = [];
+  for (let i = 0; i < corps.getNumChildren(); i++) {
+    const el = corps.getChild(i);
+    const type = el.getType();
+    if (type === T.PARAGRAPH || type === T.LIST_ITEM) {
+      const texte = el.getText().trim();
+      if (!texte) continue;
+      const titre = type === T.PARAGRAPH && el.asParagraph().getHeading() !== DocumentApp.ParagraphHeading.NORMAL;
+      if (titre || /^\d+\.\s/.test(texte)) { section = texte.toLowerCase(); continue; }
+      if (section.indexOf("bilan") >= 0) bilans.push(texte);
+    } else if (type === T.TABLE && section.indexOf("erreurs") >= 0 && !tableau.length) {
+      const t = el.asTable();
+      for (let r = 0; r < t.getNumRows(); r++) {
+        const ligne = t.getRow(r), cellules = [];
+        for (let c = 0; c < ligne.getNumCells(); c++) cellules.push(ligne.getCell(c).getText().trim());
+        tableau.push(cellules);
+      }
+    }
+  }
+  return { tableau, bilans };
+}
+
+// À lancer une fois à la main après avoir collé cette version : Google demande l'accès aux Docs, puis le journal dit ce qu'il a lu.
+function testerCarnet() {
+  const c = carnet_();
+  Logger.log(c.tableau.length + " lignes dans le tableau des erreurs (avec la ligne des titres), "
+    + c.bilans.filter(b => /^phrase personnalisée/i.test(b)).length + " phrase(s) personnalisée(s).");
+}
+
 // L'appli demande la dernière sauvegarde : ?cle=… → { ok, le, progression } (ou { ok, le: "" } s'il n'y en a pas).
+// Ou le carnet du prof : ?cle=…&quoi=carnet → { ok, tableau, bilans }.
 function doGet(e) {
   if ((e.parameter || {}).cle !== cle_()) return json_({ ok: false, erreur: "clé refusée" });
+  if (e.parameter.quoi === "carnet") {
+    try { return json_({ ok: true, ...carnet_() }); }
+    catch (err) { return json_({ ok: false, erreur: "carnet illisible : " + err.message }); }
+  }
   const derniere = fichiers_(dossier_())[0];
   if (!derniere) return json_({ ok: true, le: "" });
   return json_({ ok: true, le: derniere.getName().slice(12, 22), progression: JSON.parse(derniere.getBlob().getDataAsString()) });

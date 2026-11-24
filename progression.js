@@ -6,7 +6,7 @@
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
 
-const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {} });
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {}, erreurs: {} });
 let etat = lire();
 
 function lire() {
@@ -161,6 +161,18 @@ export function garderJeux(jeux) {
   sauver();
 }
 
+// « Mes erreurs » (chantier 11) : pour chaque carte du carnet du prof, sa fiche { boite, vu, vue } (le calcul est dans carnet.js).
+// La clé vient de la bonne forme. Les fiches partent dans les deux sauvegardes.
+export const fichesErreurs = () => etat.erreurs || {};
+export function noterErreur(cle, fiche) {
+  etat.erreurs = { ...fichesErreurs(), [cle]: fiche };
+  sauver();
+}
+export function remplacerErreurs(fiches) {
+  etat.erreurs = fiches;
+  sauver();
+}
+
 // Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
 const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
 export function exporter(aujourdhui) {
@@ -193,6 +205,7 @@ export function lireSauvegarde(texte) {
     ...(objet(d.avance) && { avance: d.avance }),
     ...(objet(d.lectures) && { lectures: d.lectures }),
     ...(objet(d.jeux) && { jeux: d.jeux }),
+    ...(objet(d.erreurs) && { erreurs: d.erreurs }),
     ...(objet(d.verbes) && { verbes: { cours: objet(d.verbes.cours) ? d.verbes.cours : {}, justes: objet(d.verbes.justes) ? d.verbes.justes : {} } }) } };
 }
 

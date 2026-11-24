@@ -2,8 +2,9 @@
 // L'appli envoie la progression quand elle s'ouvre et quand on la quitte, seulement si elle a changé.
 // Le lien du script (adresse + « #clé ») est collé une fois et gardé sur le téléphone : jamais dans le code.
 
-import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu } from "./progression.js?v=49";
-import { dateCourte } from "./ui.js?v=49";
+import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu, fichesErreurs, remplacerErreurs } from "./progression.js?v=50";
+import { dateCourte } from "./ui.js?v=50";
+import { lireCarnet, garderCarnet, carnetActuel, synchroniser } from "./carnet.js?v=50";
 
 const CLE_LIEN = "oyb.google";           // { url, cle }
 const CLE_ENVOI = "oyb.google.envoi";    // { empreinte, echec } : le dernier envoi réussi, et s'il a raté depuis
@@ -42,6 +43,27 @@ async function lireGoogle(l = lien()) {
   const d = await appeler(fetch(`${l.url}?cle=${encodeURIComponent(l.cle)}`));
   if (!d.le) return null;
   return { ...lireSauvegarde(JSON.stringify(d.progression)), le: d.le };
+}
+
+// « Mes erreurs » (chantier 11) : le même script lit le carnet du prof (?quoi=carnet, avec la même clé).
+// Un script pas encore mis à jour renvoie la sauvegarde à la place : sans « tableau », on ne fait rien.
+// Renvoie true si un nouveau carnet est arrivé (l'écran peut se redessiner). Sans réseau, la copie du téléphone reste.
+export async function rafraichirCarnet() {
+  const l = lien();
+  if (!l) return false;
+  try {
+    const d = await appeler(fetch(`${l.url}?cle=${encodeURIComponent(l.cle)}&quoi=carnet`, { cache: "no-store" }));
+    if (!Array.isArray(d.tableau)) return false;
+    const carnet = lireCarnet(d);
+    // Un carnet sans aucune carte (tableau cassé, section renommée) ne remplace pas la copie : on garde les cartes d'avant.
+    if (!carnet.erreurs.length && !carnet.phrases.length && carnetActuel()) return false;
+    garderCarnet(carnet, new Date().toISOString());
+    if (!enApercu()) remplacerErreurs(synchroniser(fichesErreurs(), carnet));
+    return true;
+  } catch (err) {
+    console.warn("Carnet du prof :", err.message);
+    return false;
+  }
 }
 
 // Envoie la progression si elle a changé. « enPartant » : l'appli passe en arrière-plan, la requête doit survivre.

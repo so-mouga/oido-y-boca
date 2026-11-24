@@ -808,3 +808,20 @@ mark .tx-mot.touche { box-shadow: none; }
 .encours .puce-verbe { display: inline-flex; align-items: center; background: #2A3F63; border-radius: 999px; padding-left: 13px; }
 .encours .puce-verbe a, .encours .puce-verbe > span { background: none; padding: 6px 0; font-size: 15px; font-weight: 500; color: var(--sun-ground); border-radius: 0; }
 .retirer-verbe { width: 32px; height: 32px; display: grid; place-items: center; color: #C9D3E4; font-size: 18px; line-height: 1; }
+
+/* Mes erreurs (chantier 11) : la faute notée par le prof, en rose ; sa note entre parenthèses en petit ; le bilan de fin. */
+.corrige { font-size: 14px; color: var(--muted); }
+.faute { font-size: 24px; line-height: 1.3; font-weight: 500; letter-spacing: -.01em; text-wrap: pretty; }
+.faute.petite { font-size: 18px; }
+.faute s { text-decoration: none; background: var(--rose); color: var(--rose-ink); border-radius: 6px; padding: 0 4px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.faute-note { font-size: 14px; color: var(--muted); margin-top: -6px; }
+.faute-vue { font-size: 12.5px; color: var(--muted); }
+.verdict .revient { font-size: 13px; color: var(--marine-soft); }
+.bilan-erreurs { list-style: none; padding: 0; margin: 8px 0 0; }
+.bilan-erreurs li { display: flex; gap: 12px; align-items: flex-start; padding: 11px 0; border-top: 1px solid var(--hair); font-size: 15px; line-height: 1.35; }
+.bilan-erreurs .r { flex: none; font-size: 12px; font-weight: 600; border-radius: 999px; padding: 3px 9px; margin-top: 1px; }
+.bilan-erreurs .r.ok { background: #DCEBDD; color: var(--sage-ink); }
+.bilan-erreurs .r.ko { background: var(--rose); color: var(--rose-ink); }
+.bilan-erreurs .r.mi { background: var(--sun-deep); color: var(--sun-ink); }
+.bilan-erreurs .t { flex: 1; }
+.bilan-erreurs small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }

@@ -2,16 +2,17 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=49";
-import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=49";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=49";
-import { EXERCICES } from "../exercices.js?v=49";
-import { controlePret, dernierResultat } from "./controle.js?v=49";
-import { motsDus, PAQUET } from "./pratique.js?v=49";
-import { BONUS } from "../bonus.js?v=49";
-import { motsDeLaSemaine } from "./mesmots.js?v=49";
-import { soirRepaso } from "./soir.js?v=49";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=49";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=50";
+import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=50";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=50";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=50";
+import { EXERCICES } from "../exercices.js?v=50";
+import { controlePret, dernierResultat } from "./controle.js?v=50";
+import { motsDus, PAQUET } from "./pratique.js?v=50";
+import { BONUS } from "../bonus.js?v=50";
+import { motsDeLaSemaine } from "./mesmots.js?v=50";
+import { soirRepaso } from "./soir.js?v=50";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=50";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
@@ -169,6 +170,24 @@ export function ecranAujourdhui(ctx) {
         texte: dus > PAQUET ? `${dus} mots en attente. Un paquet de ${PAQUET} cartes, en commençant par les plus oubliés.`
           : `${mots(dus)} en attente, en commençant par les plus oubliés.`,
         bouton: "Commencer", href: "#/revision" },
+    });
+  }
+
+  // 3 bis. Mes erreurs (chantier 11) : les cartes du carnet du prof, 5 au plus par jour. Seulement si le carnet est déjà arrivé
+  // (sauvegarde Google branchée, script à jour). Faite quand il ne reste rien à faire aujourd'hui.
+  const carnet = carnetActuel();
+  if (carnet && carnet.erreurs.length + carnet.phrases.length) {
+    const fiches = fichesErreurs();
+    const dues = cartesDuJour(carnet, fiches, jour);
+    const faites = faitesAujourdhui(carnet, fiches, jour);
+    const nE = dues.filter(x => x.type === "erreur").length, nP = dues.length - nE;
+    const quoi = [nE && `${nE} à corriger`, nP && `${nP} phrase à dire`].filter(Boolean).join(", ");
+    journee.push({
+      titre: "Mes erreurs", fait: !dues.length, href: dues.length ? "#/erreurs" : null,
+      detail: dues.length ? quoi : faites ? `${faites} carte${faites > 1 ? "s" : ""} faite${faites > 1 ? "s" : ""}` : "rien aujourd'hui",
+      carte: { titre: "Mes erreurs",
+        texte: `${nE ? `${nE} erreur${nE > 1 ? "s" : ""} notée${nE > 1 ? "s" : ""} par le prof, à corriger par écrit` : ""}${nE && nP ? ", et " : ""}${nP ? `${nE ? "t" : "T"}a phrase à redire` : ""}.`,
+        bouton: "Commencer", href: "#/erreurs" },
     });
   }
 

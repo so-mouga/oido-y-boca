@@ -7,21 +7,22 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=49";
-import { lecon as trouver } from "../position.js?v=49";
-import { EXERCICES } from "../exercices.js?v=49";
-import { corriger } from "../corriger.js?v=49";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=49";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=49";
-import { BONUS } from "../bonus.js?v=49";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=49";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=49";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=49";
-import { vibrer, son } from "../retours.js?v=49";
+import { esc, md, id, ICONES } from "../ui.js?v=50";
+import { lecon as trouver } from "../position.js?v=50";
+import { EXERCICES } from "../exercices.js?v=50";
+import { corriger } from "../corriger.js?v=50";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=50";
+import { carnetActuel, cartesDuJour, juger, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=50";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=50";
+import { BONUS } from "../bonus.js?v=50";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=50";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=50";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=50";
+import { vibrer, son } from "../retours.js?v=50";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=49";
+} from "../enregistrement.js?v=50";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -59,6 +60,18 @@ export function motsDus(ctx) {
 
 function serieRevision(ctx) {
   return { titre: "Tes mots à revoir", revision: true, faites: ctx.pos.faites, items: cartes(motsDus(ctx).slice(0, PAQUET)) };
+}
+
+// « Mes erreurs » (#/erreurs, chantier 11) : les cartes du jour tirées du carnet du prof, 5 au plus (carnet.js).
+// Une erreur : « Corrige : … », tu écris la bonne forme (accents obligatoires). Une phrase personnalisée : à redire de mémoire.
+// Chaque réponse met à jour la fiche de la carte tout de suite : quitter au milieu garde ce qui est fait.
+function serieErreurs(ctx) {
+  const items = cartesDuJour(carnetActuel(), fichesErreurs(), ctx.jour).map(carte => {
+    if (carte.type === "erreur") return { type: "erreur", carte, es: [carte.bonne] };
+    const l = trouver(carte.lecon);
+    return { type: "dire", phrase: carte, es: carte.es, fr: `Ta phrase de ${carte.lecon}${l ? ` · ${l.titre}` : ""}`, sujet: SUJETS[carte.lecon] || "" };
+  });
+  return { titre: "Mes erreurs", erreurs: true, items };
 }
 
 // La partie écrite du contrôle blanc : les questions tirées au hasard, thème après thème.
@@ -138,7 +151,7 @@ const notes = (question, avecCriteres) => s.indice
 // 1. la règle de la leçon (la grammaire du livre) ; 2. la première lettre de chaque mot (« V··· e· H····· »).
 // Pour une carte, une seule étape : la première lettre.
 
-const reponseDe = it => it.type === "ecrire" ? it.es[0] : it.type === "dire" ? it.es : it.mot.es;
+const reponseDe = it => it.type === "ecrire" || it.type === "erreur" ? it.es[0] : it.type === "dire" ? it.es : it.mot.es;
 const initiales = texte => texte.replace(/\p{L}+/gu, mot => mot[0] + "·".repeat(mot.length - 1));
 
 // La règle de la leçon (la grammaire du livre), avec une majuscule.
@@ -159,6 +172,8 @@ function regleConcerne(it) {
 }
 
 function etapesIndice(it) {
+  // Mes erreurs : un seul indice, la « Règle en une ligne » du carnet.
+  if (it.type === "erreur") return it.carte.regle ? [`<p class="regle">${esc(it.carte.regle)}</p>`] : [];
   const etapes = [];
   const regle = regleDe(it);
   if (regle) etapes.push(`<p class="regle">${md(regle)}</p>`);
@@ -275,8 +290,46 @@ function vueTableau(it, enTete) {
     <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
+// Mes erreurs : la faute telle que le prof l'a notée (en rose), sa note entre parenthèses en petit, et combien de fois.
+function vueErreur(it, enTete) {
+  const c = it.carte;
+  const faute = (taille = "") => `<p class="corrige">Corrige :</p>
+    <p class="faute${taille}" lang="es"><s>${esc(c.erreur)}</s></p>
+    ${c.note ? `<p class="faute-note">${esc(c.note)}</p>` : ""}`;
+  const consigne = sorte("Mes erreurs · à corriger");
+  if (s.phase === "question") {
+    return `<div class="defile">${enTete}${consigne}${faute()}
+        <p class="faute-vue">Notée ${c.vue} fois en séance</p>${zoneIndice(it)}</div>
+      <form class="saisie" data-p-form>
+        <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
+        <button class="primaire" type="submit">Vérifier</button>
+        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </form>`;
+  }
+  const r = s.resultat;
+  const unSeulMot = c.bonne.trim().split(/\s+/).length === 1;
+  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : "Juste") : r.niveau === "passe" ? "La réponse" : r.niveau === "presque" && !unSeulMot ? "Presque : un mot" : "Pas encore";
+  const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
+  const tape = s.saisie ? `<p class="tape" lang="es">${r.tape ? surligne(r.tape, "faux") : esc(s.saisie)}</p>` : "";
+  return `${enTete}${consigne}${faute(" petite")}
+    ${tape}
+    <div class="verdict ${r.ok ? "ok" : r.niveau === "passe" ? "ko passe" : "ko"}" role="status">
+      <b>${titre}</b>
+      <div class="bonne">${ecouter(c.bonne)}<p lang="es">${phraseTouchable(ctxVue, c.bonne, { marques: marquesDe(c.bonne, r.reponse, "bon") })}</p></div>
+      ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
+      ${r.rappel ? `<p>${esc(r.rappel)}</p>` : ""}
+      ${c.regle ? `<p class="explication">${esc(c.regle)}</p>` : ""}
+      <p class="revient">Elle revient ${quandRevient(s.fiche)}.</p>
+    </div>
+    <div class="espace"></div>
+    <button class="primaire" data-p="suivant">Suivant</button>`;
+}
+
 function vueDire(it) {
-  const tete = `${sorte("À dire · à voix haute")}<p class="enonce">${esc(it.fr)}</p>`;
+  const tete = it.phrase
+    ? `${sorte("Mes erreurs · à dire à voix haute")}<p class="enonce">${esc(it.fr)}</p>${it.sujet ? `<p class="sous">${esc(it.sujet)}</p>` : ""}`
+    : `${sorte("À dire · à voix haute")}<p class="enonce">${esc(it.fr)}</p>`;
   if (s.phase === "question") {
     const micro = enregistrementPossible()
       ? `${s.astuce ? `<p class="astuce" role="status">${esc(s.astuce)}</p>` : ""}
@@ -448,7 +501,33 @@ function vueFinPaquet(ctx) {
     ${versAujourdhui(reste ? "secondaire" : "primaire")}`;
 }
 
+// La fin de « Mes erreurs » : chaque carte, et quand elle revient. Les fiches sont déjà notées.
+function vueFinErreurs() {
+  const r = s.resultats;
+  const erreurs = r.filter(x => x.it.type === "erreur");
+  const phrase = r.find(x => x.it.phrase);
+  const resume = [erreurs.length && `${erreurs.filter(x => x.ok).length} corrigée${erreurs.filter(x => x.ok).length > 1 ? "s" : ""} sur ${erreurs.length}`,
+    phrase && "ta phrase redite"].filter(Boolean).join(", et ");
+  const etiquette = x => x.it.phrase ? (x.ok ? ["ok", "Dite"] : ["ko", "À revoir"])
+    : x.aide ? ["mi", "Indice"] : x.ok ? ["ok", "Juste"] : ["ko", "Demain"];
+  const lignes = r.map(x => {
+    const [cls, mot] = etiquette(x);
+    const texte = x.it.phrase ? x.it.es : x.it.carte.bonne;
+    const pourquoi = !x.it.phrase && !x.ok && x.astuce ? x.astuce : `revient ${quandRevient(x.fiche)}`;
+    return `<li><span class="r ${cls}">${mot}</span><span class="t"><span lang="es">${esc(texte)}</span><small>${esc(pourquoi)}</small></span></li>`;
+  }).join("");
+  return `<div class="fin">
+      <p class="sous">Mes erreurs</p>
+      <h1>C'est fait pour aujourd'hui</h1>
+      ${resume ? `<p class="sous">${resume.charAt(0).toUpperCase() + resume.slice(1)}.</p>` : ""}
+      <ul class="bilan-erreurs">${lignes}</ul>
+    </div>
+    <div class="espace"></div>
+    ${versAujourdhui("primaire")}`;
+}
+
 function vueFin(ctx) {
+  if (s.erreurs) return vueFinErreurs();
   if (s.controle) return vueFinControle();
   if (s.revision) return vueFinPaquet(ctx);
   if (s.bonus) return vueFinBonus();
@@ -488,6 +567,10 @@ export function ecranBonus(ctx, idLecon, depuis) {
   return ecranSerie(ctx, `bonus:${lecon}`, () => serieBonus(lecon), retour);
 }
 
+export function ecranErreurs(ctx) {
+  return ecranSerie(ctx, `erreurs:${ctx.jour}`, () => serieErreurs(ctx), "#/", "Rien à corriger aujourd'hui : tes cartes du carnet reviendront les jours suivants.");
+}
+
 export function ecranEcritControle(ctx, idUnite) {
   return ecranSerie(ctx, `controle:${idUnite}`, () => serieControle(ctx, idUnite));
 }
@@ -499,7 +582,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
   if (retour) s.retour = retour;
 
   if (!s.items.length) {
-    const titre = s.revision ? "Rien à revoir" : "Rien à pratiquer";
+    const titre = s.revision ? "Rien à revoir" : s.erreurs ? "Rien à corriger" : "Rien à pratiquer";
     s = null;
     return { onglet: null, html: `<main class="colonne vide"><h1>${titre}</h1>
         <p class="sous">${vide}</p>
@@ -524,8 +607,8 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
 
   const it = s.items[s.i];
   const enTete = `${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}`;
-  const question = (it.type === "ecrire" || it.type === "tableau") && s.phase === "question";
-  const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : it.type === "tableau" ? vueTableau(it, enTete)
+  const question = (it.type === "ecrire" || it.type === "erreur" || it.type === "tableau") && s.phase === "question";
+  const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : it.type === "erreur" ? vueErreur(it, enTete) : it.type === "tableau" ? vueTableau(it, enTete)
     : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
   return {
     onglet: null,
@@ -537,7 +620,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         requestAnimationFrame(() => requestAnimationFrame(() => { if (trait) trait.style.width = `${(s.i / s.items.length) * 100}%`; }));
       }
       // Le clavier monte une fois la nouvelle question arrivée, pas pendant qu'elle glisse.
-      if (it.type === "ecrire" && s.phase === "question") {
+      if ((it.type === "ecrire" || it.type === "erreur") && s.phase === "question") {
         const i = s.i;
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
@@ -563,6 +646,15 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
 }
 
 // ——— les actions ———
+
+// Mes erreurs : la fiche de la carte est notée tout de suite (carnet.js calcule quand elle revient), et gardée pour la fin.
+function noterCarteErreur(ctx, it, resultat, extra = {}) {
+  const carte = it.carte || it.phrase;
+  const fiche = nouvelleFiche(fichesErreurs()[carte.cle], resultat, ctx.jour, carte.vue);
+  noterErreur(carte.cle, fiche);
+  s.fiche = fiche;
+  s.resultats.push({ it, ok: resultat !== "rate", aide: resultat === "aide", fiche, ...extra });
+}
 
 function suivant() {
   effacerEnregistrement();
@@ -595,6 +687,14 @@ export async function actionPratique(ctx, action, el) {
       }
       s.saisie = document.getElementById("reponse")?.value.trim() || "";
       if (!s.saisie) return false;
+      if (it.type === "erreur") {
+        s.resultat = juger(s.saisie, it.carte);
+        const ok = s.resultat.ok;
+        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
+        s.phase = "reponse";
+        vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
+        return true;
+      }
       s.resultat = corriger(s.saisie, it.es);
       const ok = s.resultat.niveau === "juste" || s.resultat.niveau === "accents";
       s.notes.ecrire.push(ok);
@@ -605,6 +705,12 @@ export async function actionPratique(ctx, action, el) {
       return true;
     }
     case "sais-pas":
+      if (it.type === "erreur") {
+        s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0], ok: false };
+        noterCarteErreur(ctx, it, "rate");
+        s.phase = "reponse";
+        return true;
+      }
       if (it.type === "tableau") {
         const lignes = it.es.map(attendu => ({ attendu, saisie: "", ok: false }));
         s.resultat = { lignes, passe: true };
@@ -639,7 +745,10 @@ export async function actionPratique(ctx, action, el) {
       if (s.indice && it.type !== "ecrire") s.notes.aide[it.type]++;
       // Un de mes mots supprimé pendant la série : on ne lui recrée pas de mémoire.
       if (it.type === "carte") { if (!it.mot.moi || monMot(it.mot.id)) noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); }
-      else s.notes.dire.push(n);
+      else {
+        s.notes.dire.push(n);
+        if (it.phrase) noterCarteErreur(ctx, it, n === 3 ? "juste" : n === 2 ? "aide" : "rate");
+      }
       vibrer(); suivant();
       return "suivant";
     }
