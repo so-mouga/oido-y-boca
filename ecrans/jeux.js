@@ -7,25 +7,27 @@
 //   #/jeux/caseta…         la Caseta de tiro, le stand de tir pour l'oreille (ecrans/caseta.js)
 //   #/jeux/chiringuito…    El Chiringuito, le stand de tapas : monter des phrases (ecrans/chiringuito.js)
 //   #/jeux/charla…         La Charla, le défi du jour : une petite conversation (ecrans/charla.js)
+//   #/jeux/mision…         la mission du jour, juste sous La Charla : les noms, el / la, le pluriel (ecrans/missions.js)
 //   #/jeux/deux, #/jeux/bomba…, #/jeux/frente… : les jeux à deux (ecrans/deux.js)
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=59";
-import { UNITES } from "../position.js?v=59";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=59";
-import { mesVerbes, verbesCours } from "../verbes.js?v=59";
-import { motsAMoi, motsAVenir } from "../dico.js?v=59";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=59";
-import { dire, taire } from "../voix.js?v=59";
-import { chispa } from "../mascotte.js?v=59";
-import * as J from "../jeux.js?v=59";
-import { ecranDeux } from "./deux.js?v=59";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=59";
-import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=59";
-import { ecranCharla, standCharla } from "./charla.js?v=59";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=60";
+import { UNITES } from "../position.js?v=60";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=60";
+import { mesVerbes, verbesCours } from "../verbes.js?v=60";
+import { motsAMoi, motsAVenir } from "../dico.js?v=60";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=60";
+import { dire, taire } from "../voix.js?v=60";
+import { chispa } from "../mascotte.js?v=60";
+import * as J from "../jeux.js?v=60";
+import { ecranDeux } from "./deux.js?v=60";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=60";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=60";
+import { ecranCharla, standCharla } from "./charla.js?v=60";
+import { ecranMision, standMision } from "./missions.js?v=60";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -184,6 +186,7 @@ function vueSalle(ctx, d, dv) {
         <div class="s-haut"><a class="s-chispa" href="#/jeux/chispa" aria-label="Voir Chispa">${flamme(message ? "joie" : "idle", 1)}</a><h1>La Feria</h1>${boutonMuet()}</div>
         ${message ? `<p class="s-bulle">${message}</p>` : ""}
         ${standCharla(ctx)}
+        ${standMision(ctx)}
         <div class="s-grille">${tuiles}</div>
         <section class="s-canape"><h2>À deux <small>sur le canapé, avec Blanca ou Dorian</small></h2>
           <div class="s-duos">${duo("bomba", "La Bomba", "Un mot chacun, avant le boum.")}${duo("frente", "En la frente", "Le téléphone sur le front.")}</div></section>
@@ -574,6 +577,7 @@ export function ecranJeux(ctx, quoi, etape, plus) {
   if (quoi === "caseta") return ecranCaseta(ctx, etape);
   if (quoi === "chiringuito") return ecranChiringuito(ctx, etape);
   if (quoi === "charla") return ecranCharla(ctx, etape, plus);
+  if (quoi === "mision") return ecranMision(ctx, etape);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
   if (quoi === "verbes") {

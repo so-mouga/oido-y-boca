@@ -1,0 +1,301 @@
+// Les missions du jour de la Feria (chantier 12, maquette .impeccable/mocks/missions/index.html).
+// Une mission par jour, sous La Charla : la faire (ou faire la Charla) allume l'ampoule du jour.
+// On travaille les noms : el / la / los / las, le pluriel, un / una avec les nombres.
+//   El Repartidor : 6 colis à trier dans les camions EL, LA, LOS, LAS, puis 3 étiquettes à écrire au pluriel.
+//   La lista de Blanca : 6 lignes d'un pense-bête (« 3 · reunión » → tres reuniones), dès que les nombres sont vus (U2-L1).
+// Les mots (décidé avec Kevin, Q12-8) : surtout des mots nouveaux, les prochains noms du livre (les 30 suivants),
+// ceux qu'il a le moins vus d'abord, avec leur sens écrit et la voix ; et 2 mots déjà connus. Un mot nouveau revient
+// deux fois dans le Repartidor (un colis, puis son étiquette). « Je le garde » les fait entrer dans la révision.
+// Ce fichier n'a ni écran ni import : il se teste avec node (outils/test-missions.mjs).
+
+export const NOUVEAUX = 4;      // mots nouveaux par mission
+export const CONNUS = 2;        // mots déjà vus par mission
+export const COLIS = 6, ETIQUETTES = 3, LIGNES = 6;
+export const FENETRE = 30;      // les mots nouveaux viennent des 30 prochains noms du livre
+export const SEUIL = 4;         // il faut au moins 4 noms (connus + à venir) pour une mission
+export const LECON_NOMBRES = "U2-L1";
+
+const ACCENT = { á: "a", é: "e", í: "i", ó: "o", ú: "u" };
+const AJOUT = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
+export const sansAccent = t => String(t || "").replace(/[áéíóú]/g, c => ACCENT[c]);
+const FORTES = "aeoáéóíú";      // les voyelles qui font une syllabe à elles seules (í et ú accentués aussi)
+const estVoyelle = c => "aeiouáéíóúü".includes(c);
+const esc = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+// Les syllabes, pour l'accent : les groupes de voyelles. Deux voyelles fortes se séparent (a-e), une faible non accentuée
+// s'unit à sa voisine (ie, ue, ai). Le u muet de que, qui, gue, gui ne compte pas.
+export function noyaux(mot) {
+  const res = [];
+  for (let k = 0; k < mot.length; k++) {
+    const c = mot[k];
+    if (!estVoyelle(c)) continue;
+    if (c === "u" && "qg".includes(mot[k - 1]) && "eiéí".includes(mot[k + 1] || "")) continue;
+    const prec = res[res.length - 1];
+    if (prec && prec.fin === k - 1 && !(FORTES.includes(c) && FORTES.includes(mot[prec.fin]))) { prec.fin = k; continue; }
+    res.push({ debut: k, fin: k });
+  }
+  return res;
+}
+// Met l'accent sur une syllabe : sur la voyelle forte, ou sur la 2e de deux faibles (ui → uí).
+function accentuer(mot, n) {
+  const s = mot.slice(n.debut, n.fin + 1);
+  let j = [...s].findIndex(c => "aeo".includes(c));
+  if (j < 0) j = s.length - 1;
+  const k = n.debut + j;
+  return mot.slice(0, k) + AJOUT[mot[k]] + mot.slice(k + 1);
+}
+const aAccent = mot => /[áéíóú]/.test(mot);
+// Enlève l'accent écrit de la dernière syllabe, sauf un hiatus (país, baúl) qui le garde.
+function enleverAccentFinal(mot) {
+  const k = mot.search(/[áéíóú][^aeiouáéíóú]*$/);
+  if (k < 0) return mot;
+  if ("íú".includes(mot[k]) && "aeo".includes(mot[k - 1] || "")) return mot;
+  return mot.slice(0, k) + ACCENT[mot[k]] + mot.slice(k + 1);
+}
+
+// Les pluriels écrits à la main (ceux que la règle ne trouve pas), et les noms qu'on ne met pas au pluriel ici
+// (ce qu'on ne compte pas : la gente, el dinero…). Revus sur tout le Sheet (outils/test-missions.mjs).
+export const PLURIELS = { "carácter": "caracteres", "régimen": "regímenes", "jersey": "jerséis", "menú": "menús", "sofá": "sofás", "esquí": "esquís" };
+export const SANS_PLURIEL = new Set(["gente", "dinero", "sed", "hambre", "salud", "basura", "música", "calor", "frío", "tos", "fiebre", "agua", "carne",
+  "leche", "arroz", "sal", "mediodía", "norte", "sur", "tráfico", "ruido", "paciencia", "suerte", "prisa", "miedo", "pena", "ropa", "fútbol", "tenis",
+  "baloncesto", "español", "inglés", "francés", "tiempo", "wifi", "internet"]);
+
+// Le pluriel d'un nom : { forme, regle } ou null quand l'appli ne sait pas (mot étranger : jamais au pluriel ici).
+// regle : voyelle (+s), consonne (+es), accent (+es, l'accent tombe), accentAjoute (+es, un accent apparaît),
+// z (→ ces), invariable (cumpleaños), y (+es), main (écrit à la main).
+export function pluriel(mot) {
+  if (!mot || /\s/.test(mot)) return null;
+  if (PLURIELS[mot]) return { forme: PLURIELS[mot], regle: "main" };
+  const d = mot[mot.length - 1], ns = noyaux(mot);
+  if ("aeoiuáéó".includes(d)) return { forme: mot + "s", regle: "voyelle" };
+  if ("íú".includes(d)) return null;
+  if (d === "z") return { forme: mot.slice(0, -1) + "ces", regle: "z" };
+  if (d === "y") return estVoyelle(mot[mot.length - 2]) ? { forme: mot + "es", regle: "y" } : null;
+  if ("sx".includes(d) && ns.length >= 2 && !aAccent(mot)) return { forme: mot, regle: "invariable" };
+  if (!"nlrdjsx".includes(d)) return null;
+  if (aAccent(mot)) {
+    // L'accent est sur la dernière syllabe (reunión, autobús) : avec -es, il n'a plus besoin d'être écrit.
+    const der = ns[ns.length - 1];
+    if (/[áéíóú]/.test(mot.slice(der.debut, der.fin + 1))) {
+      const f = enleverAccentFinal(mot) + "es";
+      return { forme: f, regle: f === mot + "es" ? "consonne" : "accent" };
+    }
+    return { forme: mot + "es", regle: "consonne" };     // árbol → árboles
+  }
+  // examen → exámenes : on prononce pareil, mais il faut maintenant écrire l'accent.
+  if (d === "n" && ns.length >= 2) return { forme: accentuer(mot, ns[ns.length - 2]) + "es", regle: "accentAjoute" };
+  return { forme: mot + "es", regle: "consonne" };
+}
+
+// Le genre en français, pour repérer les pièges (la mañana / le matin). Les mots en l' : écrits à la main.
+const FR_ELIDE = { "âge": "m", "après-midi": "m", "an": "m", "année": "f", "argent": "m", "heure": "f", "eau": "f", "ordinateur": "m", "entreprise": "f",
+  "appartement": "m", "ami": "m", "amie": "f", "anniversaire": "m", "euro": "m", "école": "f", "enfant": "m", "oncle": "m", "assiette": "f", "addition": "f",
+  "entrée": "f", "ascenseur": "m", "endroit": "m", "homme": "m", "été": "m", "hiver": "m", "automne": "m", "avion": "m", "arbre": "m", "œil": "m", "épaule": "f",
+  "oreille": "f", "histoire": "f", "idée": "f", "église": "f", "hôpital": "m", "examen": "m", "erreur": "f", "équipe": "f", "affaire": "f", "aide": "f",
+  "aéroport": "m", "hôtel": "m", "épouse": "f", "époux": "m", "intérieur": "m", "extérieur": "m", "orage": "m", "ombre": "f", "huile": "f", "œuf": "m", "image": "f" };
+export function genreFrancais(fr) {
+  const t = String(fr || "").replace(/\([^)]*\)/g, "").trim().toLowerCase().split(/[,;]/)[0].trim();
+  if (/^le /.test(t)) return "m";
+  if (/^la /.test(t)) return "f";
+  const m = /^l['’]\s*([^\s]+)/.exec(t);
+  return m ? FR_ELIDE[m[1]] || null : null;
+}
+// Les noms féminins qui prennent « el » au singulier (un a accentué au début) : el agua, las aguas.
+export const FEM_A = new Set(["agua", "hambre", "aula", "área", "alma", "arma", "águila", "hacha", "ave", "hada"]);
+
+// Les noms d'une carte du Sheet. « el hermano / la hermana » → deux noms ; « los suegros » → un nom au pluriel seulement ;
+// sans article (« papá / mamá ») ou en plusieurs mots (« el fin de semana ») : rien (les missions gardent des mots courts).
+export function nomsDe(m) {
+  if ((m.categorie || "").trim().toLowerCase() !== "nom") return [];
+  const es = String(m.es || "").replace(/\([^)]*\)/g, " ").split("/").map(s => s.trim());
+  const fr = String(m.fr || "").replace(/\([^)]*\)/g, " ").split("/").map(s => s.trim());
+  // « le / la pédiatre » : l'article seul reçoit le nom de l'autre morceau.
+  const nomFr = (fr.find(f => /\s/.test(f)) || "").replace(/^(le|la|les|l['’])\s*/, "");
+  fr.forEach((f, k) => { if (/^(le|la|l['’])$/.test(f)) fr[k] = `${f} ${nomFr}`; });
+  const res = [];
+  es.forEach((e, k) => {
+    const x = /^(el|la|los|las)\s+([a-záéíóúñü]+)$/.exec(e.toLowerCase());
+    if (!x) return;
+    const [, art, mot] = x;
+    const plurielSeul = art === "los" || art === "las";
+    const genre = art === "la" || art === "las" || FEM_A.has(mot) ? "f" : "m";
+    const sens = (es.length === fr.length ? fr[k] : fr.join(" / ")).trim();
+    const p = plurielSeul || SANS_PLURIEL.has(mot) ? null : pluriel(mot);
+    res.push({ cle: `${m.id}:${k}`, id: m.id, lecon: m.lecon, mot, art, genre, plurielSeul, pluriel: p, fr: sens, frGenre: es.length === fr.length ? genreFrancais(sens) : null });
+  });
+  return res;
+}
+export const articlePluriel = n => n.genre === "f" ? "las" : "los";
+// Un piège : le français a l'autre genre (la mañana, le matin), la terminaison trompe (el día, la mano), ou el agua.
+export function piege(n) {
+  if (n.plurielSeul) return null;
+  if (FEM_A.has(n.mot)) return "a";
+  if (n.frGenre && n.frGenre !== n.genre) return "francais";
+  if (n.genre === "m" && /a$/.test(n.mot)) return "finA";
+  if (n.genre === "f" && /o$/.test(n.mot)) return "finO";
+  return null;
+}
+
+// ——— les explications (une ligne, l'espagnol en <i>) ———
+const it = t => `<i>${esc(t)}</i>`;
+export function explGenre(n, nombre) {
+  const sing = `${n.art} ${n.mot}`, pl = n.plurielSeul ? sing : n.pluriel ? `${articlePluriel(n)} ${n.pluriel.forme}` : "";
+  const auPl = nombre === "p" && pl && !n.plurielSeul ? ` Au pluriel : ${it(pl)}.` : "";
+  switch (piege(n)) {
+    case "a": return `${it(n.mot)} est féminin, mais on dit ${it("el " + n.mot)} : c'est le a accentué du début.${n.pluriel ? ` Au pluriel : ${it("las " + n.pluriel.forme)}.` : ""}`;
+    case "francais": return `Piège : en français c'est « ${esc(n.fr)} », mais en espagnol ${it(sing)}.${auPl}`;
+    case "finA": return `${it(sing)} finit en -a, mais il est masculin.${auPl}`;
+    case "finO": return `${it(sing)} finit en -o, mais il est féminin.${auPl}`;
+  }
+  if (n.plurielSeul) return `${it(sing)} : ce mot s'emploie au pluriel.`;
+  if (/(dad|tad|ión)$/.test(n.mot)) return `Les mots en ${/ión$/.test(n.mot) ? "-ión" : "-dad"} sont toujours féminins : ${it(sing)}.${auPl}`;
+  if (auPl) return `${it(sing)}, au pluriel ${it(pl)}.`;
+  return `${it(sing)}${/o$/.test(n.mot) && n.genre === "m" ? " : en -o, masculin" : /a$/.test(n.mot) && n.genre === "f" ? " : en -a, féminin" : ""}.`;
+}
+export function explPluriel(n) {
+  const p = n.pluriel, pl = `${articlePluriel(n)} ${p.forme}`;
+  switch (p.regle) {
+    case "voyelle": return `Après une voyelle, on ajoute -s : ${it(pl)}.`;
+    case "consonne": return `Après une consonne, on ajoute -es : ${it(pl)}.`;
+    case "accent": return `On ajoute -es, et <b>l'accent tombe</b> : ${it(pl)}.`;
+    case "accentAjoute": return `On ajoute -es, et <b>un accent apparaît</b> pour garder le même son : ${it(pl)}.`;
+    case "z": return `Le z devient c devant -es : ${it(pl)}.`;
+    case "invariable": return `Ce mot ne change pas au pluriel : ${it(`${n.art} ${n.mot}`)}, ${it(pl)}.`;
+    case "y": return `Après -y, on ajoute -es : ${it(pl)}.`;
+    default: return `Au pluriel : ${it(pl)}.`;
+  }
+}
+
+// ——— les nombres en lettres, de 0 à 100 ———
+const UNITES = ["cero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez", "once", "doce", "trece", "catorce", "quince",
+  "dieciséis", "diecisiete", "dieciocho", "diecinueve", "veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco", "veintiséis",
+  "veintisiete", "veintiocho", "veintinueve"];
+const DIZAINES = { 30: "treinta", 40: "cuarenta", 50: "cincuenta", 60: "sesenta", 70: "setenta", 80: "ochenta", 90: "noventa", 100: "cien" };
+export const enLettres = n => n < 30 ? UNITES[n] : DIZAINES[n] || `${DIZAINES[n - (n % 10)]} y ${UNITES[n % 10]}`;
+
+// ——— le choix du jour ———
+// etat : jeux.missions = { jours: { date: { forme, ok, sur } }, vus: { cle: { n, le } } }.
+// Les mots vus aujourd'hui ne comptent pas pour le tirage d'aujourd'hui : la mission reste la même toute la journée.
+const vusAvant = (etat, cle, jour) => { const v = etat?.vus?.[cle]; return v ? v.n - (v.le === jour ? 1 : 0) : 0; };
+const melanger = (t, h) => { const a = [...t]; for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(h() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
+
+// Les noms à jouer : connus (leçon faite ou appris en avance) et les 30 prochains du livre, dans l'ordre du livre.
+// mots : le vocabulaire du Sheet ; vu : m => bool ; rang : idLecon => rang dans le livre.
+export function nomsMission(mots, vu, rang) {
+  const tous = [], deja = new Set();
+  mots.forEach((m, k) => nomsDe(m).forEach(n => { if (!deja.has(n.mot)) { deja.add(n.mot); tous.push({ ...n, k, vu: vu(m) }); } }));
+  const connus = tous.filter(n => n.vu);
+  const aVenir = tous.filter(n => !n.vu).sort((a, b) => rang(a.lecon) - rang(b.lecon) || a.k - b.k).slice(0, FENETRE);
+  return { connus, aVenir };
+}
+// Les nouveaux du jour : les moins vus dans les missions d'avant, puis les plus proches dans le livre (un piège passe
+// devant les 5 mots suivants). Jamais deux mots de la même carte (el jefe / la jefa) le même jour.
+export const AVANCE_PIEGE = 5;
+function choisirNouveaux(aVenir, etat, jour, n, filtre = () => true) {
+  const ordre = aVenir.filter(filtre).map((x, k) => ({ x, v: vusAvant(etat, x.cle, jour), r: k - (piege(x) ? AVANCE_PIEGE : 0) }))
+    .sort((a, b) => a.v - b.v || a.r - b.r).map(o => o.x);
+  return unParCarte(ordre).slice(0, n);
+}
+const unParCarte = t => { const ids = new Set(); return t.filter(x => !ids.has(x.id) && ids.add(x.id)); };
+
+// La forme du jour : le Repartidor, ou la liste de Blanca une fois les nombres vus (jamais deux jours de suite la même).
+export function formeDuJour({ faites, etat, jour, hasard }) {
+  if (!faites.has(LECON_NOMBRES)) return "repartidor";
+  const avant = Object.keys(etat?.jours || {}).filter(d => d < jour).sort();
+  const hier = avant.length ? etat.jours[avant[avant.length - 1]].forme : null;
+  if (hier === "repartidor") return "lista";
+  if (hier === "lista") return "repartidor";
+  return hasard() < .5 ? "repartidor" : "lista";
+}
+
+// El Repartidor : 6 colis (4 nouveaux + 2 connus, au singulier ou au pluriel), puis 3 étiquettes au pluriel (les nouveaux d'abord).
+export function repartidor({ connus, aVenir }, etat, jour, hasard) {
+  // Peu de mots connus (au tout début) : plus de nouveaux, pour avoir quand même 6 colis.
+  const nouveaux = choisirNouveaux(aVenir, etat, jour, COLIS - Math.min(CONNUS, connus.length));
+  const ids = new Set(nouveaux.map(n => n.id));
+  const deja = unParCarte(melanger(connus.filter(n => !ids.has(n.id)), hasard).sort((a, b) => (piege(b) ? 1 : 0) - (piege(a) ? 1 : 0))).slice(0, COLIS - nouveaux.length);
+  const mots = [...nouveaux, ...deja];
+  if (mots.length < SEUIL) return null;
+  const colis = melanger(mots, hasard).map(n => {
+    const nombre = n.plurielSeul ? "p" : n.pluriel && n.pluriel.forme !== n.mot && hasard() < .5 ? "p" : "s";
+    const camion = (nombre === "p" ? articlePluriel(n) : n.art).toUpperCase();
+    return { n, nombre, texte: nombre === "p" && !n.plurielSeul ? n.pluriel.forme : n.mot, camion, nouveau: !n.vu, expl: explGenre(n, nombre) };
+  });
+  const avecPluriel = n => n.pluriel && !n.plurielSeul && n.pluriel.regle !== "invariable";
+  const etiquettes = [...nouveaux.filter(avecPluriel), ...deja.filter(avecPluriel)].slice(0, ETIQUETTES)
+    .map(n => ({ n, de: `${n.art} ${n.mot}`, art: articlePluriel(n), rep: n.pluriel.forme, nouveau: !n.vu, expl: explPluriel(n) }));
+  return { forme: "repartidor", colis, etiquettes, mots };
+}
+
+// La lista de Blanca : 6 lignes (3 nouveaux + 3 connus). 2 lignes « 1 » (un / una : le genre), 4 avec un nombre (le pluriel).
+// Les nombres : de 2 à 20 (au-delà, la liste devient absurde : « ochenta y tres hijos »).
+export const TITRES = ["Kevin, esta semana:", "No te olvides:", "Para el fin de semana:", "Kevin, para mañana:"];
+export function lista({ connus, aVenir }, etat, jour, hasard) {
+  const ok = n => !!(n.pluriel && !n.plurielSeul && n.pluriel.regle !== "invariable");
+  const nouveaux = choisirNouveaux(aVenir, etat, jour, LIGNES - Math.min(3, connus.filter(ok).length), ok);
+  const ids = new Set(nouveaux.map(n => n.id));
+  const deja = unParCarte(melanger(connus.filter(n => ok(n) && !ids.has(n.id)), hasard)).slice(0, LIGNES - nouveaux.length);
+  const mots = melanger([...nouveaux, ...deja], hasard);
+  if (mots.length < SEUIL) return null;
+  const max = 20, nombres = [];
+  while (nombres.length < mots.length - 2) {
+    const q = 2 + Math.floor(hasard() * (max - 1));
+    if (nombres.includes(q)) continue;
+    nombres.push(q);
+  }
+  const lignes = mots.map((n, k) => {
+    const q = k < 2 ? 1 : nombres[k - 2];
+    const un = n.genre === "f" && !FEM_A.has(n.mot) ? "una" : "un";
+    const rep = q === 1 ? `${un} ${n.mot}` : `${enLettres(q)} ${n.pluriel.forme}`;
+    const expl = q === 1
+      ? `${it(`${n.art} ${n.mot}`)} : ${n.genre === "f" ? "féminin, donc <i>una</i>" : "masculin, donc <i>un</i>"}.${piege(n) === "francais" ? ` (En français : « ${esc(n.fr)} ».)` : ""}`
+      : `${it(enLettres(q))}, puis le pluriel. ${explPluriel(n)}`;
+    return { n, q, rep, nouveau: !n.vu, expl };
+  });
+  return { forme: "lista", titre: TITRES[Math.floor(hasard() * TITRES.length)], lignes: melanger(lignes, hasard), mots };
+}
+
+// La mission du jour, toute prête (la même toute la journée : hasard = hasardDuJour(jour, "mision")).
+export function missionDuJour({ mots, vu, rang, faites, etat, jour, hasard }) {
+  const noms = nomsMission(mots, vu, rang);
+  const forme = formeDuJour({ faites, etat, jour, hasard });
+  const m = forme === "lista" ? lista(noms, etat, jour, hasard) : null;
+  return m || repartidor(noms, etat, jour, hasard);
+}
+
+// ——— corriger ce que Kevin écrit ———
+// Comme les exercices : un accent oublié ou en trop est signalé mais compté juste ; une lettre fausse compte faux.
+const propre = t => String(t || "").toLowerCase().replace(/[.,;:!¡¿?]/g, " ").replace(/\s+/g, " ").trim();
+export function corrigerEtiquette(tape, rep) {
+  const t = propre(tape).replace(/^(los|las)\s+/, "");
+  if (!t) return null;
+  if (t === rep) return { juste: true, accent: false };
+  if (sansAccent(t) === sansAccent(rep)) return { juste: true, accent: true };
+  return { juste: false };
+}
+// Une ligne de la liste : le nombre (en lettres, ou en chiffres avec un rappel), puis le nom.
+// Pour « 1 », un chiffre ne dit pas le genre : on redemande un / una (rien n'est compté).
+export function corrigerLigne(tape, ligne) {
+  const mots = propre(tape).split(" ").filter(Boolean);
+  if (!mots.length) return null;
+  const [nb, ...reste] = mots, [rnb, ...rreste] = ligne.rep.split(" ");
+  if (ligne.q === 1 && nb === "1") return { redemande: true };
+  const chiffre = ligne.q > 1 && nb === String(ligne.q);
+  const nbJuste = chiffre || sansAccent(nb) === sansAccent(rnb);
+  const nomTape = reste.join(" "), nomRep = rreste.join(" ");
+  if (!nbJuste || sansAccent(nomTape) !== sansAccent(nomRep)) return { juste: false };
+  return { juste: true, chiffre, accent: nomTape !== nomRep || (!chiffre && nb !== rnb) };
+}
+
+// ——— la fin : le résultat gardé, l'ampoule du jour (jeux.jours, la guirlande) ———
+// Un seul essai compte par jour ; une mission rejouée ne change rien.
+export function apresMission(jeux, { forme, ok, sur, cles = [] }, jour) {
+  const missions = { jours: {}, vus: {}, ...(jeux.missions || {}) };
+  if (missions.jours[jour]) return { jeux, ampoule: false };
+  const vus = { ...missions.vus };
+  for (const c of cles) vus[c] = { n: (vus[c]?.n || 0) + 1, le: jour };
+  const jours = jeux.jours || [];
+  const ampoule = !jours.includes(jour);
+  return { jeux: { ...jeux, jours: ampoule ? [...jours, jour] : jours, missions: { ...missions, vus, jours: { ...missions.jours, [jour]: { forme, ok, sur } } } }, ampoule };
+}
+export const faiteAujourdhui = (jeux, jour) => jeux?.missions?.jours?.[jour] || null;

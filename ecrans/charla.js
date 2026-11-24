@@ -12,16 +12,16 @@
 // jamais ceux des réponses : la bulle donnerait la réponse.
 // Le moteur (choix du jour, réponses, ampoule) est dans charla.js ; les conversations dans charlas/.
 
-import { esc, ICONES, barreOnglets, id } from "../ui.js?v=59";
-import { LECONS } from "../position.js?v=59";
-import { phraseTouchable } from "../toucher.js?v=59";
-import { etatJeux, garderJeux } from "../progression.js?v=59";
-import { dire, taire } from "../voix.js?v=59";
-import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=59";
-import { chispa } from "../mascotte.js?v=59";
-import * as J from "../jeux.js?v=59";
-import * as C from "../charla.js?v=59";
-import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=59";
+import { esc, ICONES, barreOnglets, id } from "../ui.js?v=60";
+import { LECONS } from "../position.js?v=60";
+import { phraseTouchable } from "../toucher.js?v=60";
+import { etatJeux, garderJeux } from "../progression.js?v=60";
+import { dire, taire } from "../voix.js?v=60";
+import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=60";
+import { chispa } from "../mascotte.js?v=60";
+import * as J from "../jeux.js?v=60";
+import * as C from "../charla.js?v=60";
+import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=60";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -91,7 +91,7 @@ export function standCharla(ctx) {
   }
   const qui = perso(d.charla);
   if (d.faite) return `<a class="s-jour faite" href="#/jeux/charla">${avatar(qui.couleur, "s-av")}<div><small>Charla faite · ${d.faite.ok}/${d.faite.sur}</small><b>${esc(qui.nom)}, ¡hasta mañana!</b><span>La prochaine arrive demain</span></div><em>Revoir</em></a>`;
-  return `<a class="s-jour" href="#/jeux/charla">${avatar(qui.couleur, "s-av")}<div><small>La charla de hoy</small><b>${esc(qui.nom)} t'attend</b><span>${esc(d.charla.lieu)} · ${d.plusDeNouvelle ? "une ancienne, d'autres pièges" : "allume l'ampoule"}</span></div><em>Hablar</em></a>`;
+  return `<a class="s-jour" href="#/jeux/charla">${avatar(qui.couleur, "s-av")}<div><small>La charla de hoy</small><b>${esc(qui.nom)} t'attend</b><span>${esc(d.charla.lieu)} · ${d.plusDeNouvelle ? "une ancienne, d'autres pièges" : (jeux().jours || []).includes(ctx.jour) ? "l'ampoule est déjà allumée" : "allume l'ampoule"}</span></div><em>Hablar</em></a>`;
 }
 
 // ——— l'accueil ———

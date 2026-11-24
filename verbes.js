@@ -3,11 +3,11 @@
 // Pensé pour servir aussi plus tard à la « Course de conjugaison » des jeux (mêmes questions, chronométrées).
 // Seulement le présent pour l'instant : chaque question porte « temps: "present" », pour pouvoir ajouter les autres temps.
 
-import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=59";
-import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=59";
-import { verbesEnCours } from "./progression.js?v=59";
-import { EXERCICES } from "./exercices.js?v=59";
-import { BONUS } from "./bonus.js?v=59";
+import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=60";
+import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=60";
+import { verbesEnCours } from "./progression.js?v=60";
+import { EXERCICES } from "./exercices.js?v=60";
+import { BONUS } from "./bonus.js?v=60";
 
 // ── Les verbes ──
 // Un verbe qu'on peut travailler : l'appli connaît ses 6 formes, et il ne se construit pas comme gustar.

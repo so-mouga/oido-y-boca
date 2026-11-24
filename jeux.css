@@ -783,3 +783,113 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .s-pied .m { width: 36px; height: 36px; flex: none; }
 .s-bientot { margin: 12px 18px 8px; font-size: 12.5px; color: var(--sol-encre); text-align: center; }
 .s-bientot b { font-weight: 600; }
+
+/* ——— Les missions du jour (chantier 12, ecrans/missions.js ; maquette .impeccable/mocks/missions/index.html) ——— */
+/* La carte de la salle : comme la charla du jour, mais à la couleur de la mer, pour qu'on voie que c'est autre chose. */
+.s-jour.mision { border-color: var(--mar-fonce, #0B6C66); }
+.s-jour.mision small { color: var(--mar-fonce, #0B6C66); }
+.s-jour.mision em { background: var(--mar-fonce, #0B6C66); }
+.s-jour.mision.bonus { border-style: dashed; }
+.s-jour.mision.faite { border-color: var(--sage-ink); border-style: solid; }
+.s-jour.mision.faite small { color: var(--sage-ink); }
+.s-jour.mision.faite em { background: var(--sun-deep); color: var(--marine); }
+.s-jour.mision.attend { border-style: dashed; border-color: #B9A57A; }
+.m-pic { width: 52px; height: 52px; flex: none; border-radius: 16px; background: var(--mar); display: grid; place-items: center; }
+.m-pic svg { width: 32px; height: 32px; fill: none; stroke: var(--crema); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.s-jour.mision.faite .m-pic { background: var(--sage-ink); }
+
+/* l'accueil */
+.m-pret .f-tete h1 small { display: block; font-family: var(--font); font-size: 12px; font-weight: 600; color: var(--sol-encre); text-transform: uppercase; letter-spacing: .06em; }
+.m-ex { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.m-ex span { background: var(--sun-deep); border-radius: 10px; padding: 3px 9px; font-size: 13.5px; }
+.m-nuevo { display: inline-block; background: var(--tomate); color: var(--crema); font-family: var(--font); font-size: 11px; font-weight: 600; font-style: normal; border-radius: 999px; padding: 1px 8px; line-height: 1.5; vertical-align: middle; }
+.m-bas { margin-top: auto; }
+
+/* la partie : jamais de défilement de la page, le quai prend la place libre */
+.m-partie { height: 100dvh; overflow: hidden; display: flex; flex-direction: column; }
+/* La hauteur vraiment visible au-dessus du clavier (clavier.js) : le champ et le bouton restent au-dessus du clavier. */
+.m-partie.ecrire-q { height: var(--visible, 100dvh); }
+.clavier .m-partie .m-consigne, .clavier .m-partie .m-etapes, .clavier .m-partie .m-aide { display: none; }
+.clavier .m-partie .m-colis { min-height: 0; padding: 12px 10px 16px; }
+.clavier .m-partie .m-quai { justify-content: flex-start; padding-top: 4px; }
+.m-hud { display: flex; align-items: center; gap: 10px; padding: calc(env(safe-area-inset-top, 0px) + 12px) 14px 8px; flex: none; }
+.m-hud b { flex: 1; font-family: var(--titre); font-weight: 400; font-size: 21px; line-height: 1.1; min-width: 0; }
+.m-compte { font-weight: 600; font-size: 14px; color: var(--sol-encre); font-variant-numeric: tabular-nums; }
+.m-etapes { display: flex; gap: 4px; padding: 0 14px 10px; flex: none; }
+.m-etapes i { flex: 1; height: 6px; border-radius: 3px; background: var(--sol-fonce); }
+.m-etapes i.ok { background: var(--sage-ink); }
+.m-etapes i.ko { background: var(--tomate); }
+.m-etapes i.ici { background: var(--marine); }
+
+.m-quai { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 0 18px; overflow: hidden; }
+.m-consigne { font-size: 13.5px; font-weight: 600; color: var(--sol-encre); text-align: center; }
+.m-colis { position: relative; width: 210px; min-height: 128px; flex: none; background: linear-gradient(to bottom, #C9925A calc(100% - 10px), #9C6A38 0); border-radius: 10px; box-shadow: 0 14px 18px -12px rgba(92, 61, 2, .7);
+  display: flex; align-items: center; justify-content: center; padding: 20px 12px 22px; animation: m-arrive .45s var(--ease, ease) both; }
+.m-colis::before { content: ""; position: absolute; top: 0; bottom: 10px; left: 50%; width: 22px; margin-left: -11px; background: #E3B985; opacity: .7; }
+@keyframes m-arrive { from { transform: translateX(-140%) rotate(-6deg); opacity: 0; } }
+.m-colis.part { animation: m-part .4s ease-in forwards; }
+@keyframes m-part { to { transform: translateY(200px) scale(.4); opacity: 0; } }
+.m-colis.non { animation: m-non .4s; }
+@keyframes m-non { 20%, 60% { transform: translateX(-10px); } 40%, 80% { transform: translateX(10px); } }
+.m-etiq { position: relative; background: #fff; border-radius: 8px; padding: 8px 14px; text-align: center; box-shadow: 0 2px 0 rgba(0, 0, 0, .12); min-width: 130px; max-width: 186px; }
+.m-etiq b { display: block; font-size: 25px; font-weight: 600; line-height: 1.15; overflow-wrap: anywhere; }
+.m-etiq small { display: block; font-size: 12.5px; color: var(--marine-soft); line-height: 1.3; }
+.m-etiq .m-nuevo { position: absolute; top: -11px; right: -16px; transform: rotate(6deg); white-space: nowrap; }
+.m-ecoute { width: 34px; height: 34px; border-radius: 50%; background: var(--crema); display: grid; place-items: center; flex: none; }
+.m-ecoute svg { width: 13px; height: 13px; fill: var(--marine); }
+.m-colis .m-ecoute { position: absolute; top: 8px; left: 8px; z-index: 1; }
+
+.m-bas-jeu { flex: none; padding: 0 14px calc(env(safe-area-inset-bottom, 0px) + 14px); display: flex; flex-direction: column; gap: 10px; }
+.m-camions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 10px; padding-bottom: 8px; }
+.m-camion { position: relative; height: 74px; border-radius: 14px 22px 14px 14px; color: var(--crema); font-family: var(--titre); font-size: 30px; letter-spacing: .04em; box-shadow: 0 5px 0 rgba(0, 0, 0, .25); }
+.m-camion.el { background: var(--marine); } .m-camion.la { background: var(--tomate); } .m-camion.los { background: var(--mar); } .m-camion.las { background: #8A5A2B; }
+.m-camion::before, .m-camion::after { content: ""; position: absolute; bottom: -9px; width: 18px; height: 18px; border-radius: 50%; background: #1b2538; }
+.m-camion::before { left: 16px; } .m-camion::after { right: 16px; }
+.m-camion:active { transform: translateY(2px); }
+.m-camion:disabled { opacity: .4; }
+.m-camion.juste:disabled { opacity: 1; box-shadow: 0 0 0 4px var(--crema), 0 5px 0 rgba(0, 0, 0, .25); }
+.m-verdict { display: flex; gap: 10px; align-items: flex-start; background: var(--crema); border-radius: 16px; padding: 10px 12px; font-size: 14px; line-height: 1.4; animation: m-monte .3s var(--ease, ease) both; }
+.m-verdict.ok { background: #DCEFDF; }
+.m-verdict.ko { background: #FBE0D6; }
+.m-verdict p { flex: 1; min-width: 0; }
+.m-verdict b { font-weight: 600; }
+.m-verdict i { font-style: normal; font-weight: 600; color: var(--marine); }
+@keyframes m-monte { from { transform: translateY(16px); opacity: 0; } }
+.m-valider { flex: none; }
+.m-valider .f-btn { width: 100%; }
+.m-ecrire { display: flex; gap: 8px; align-items: center; width: 100%; max-width: 330px; }
+.m-ecrire label { font-family: var(--titre); font-size: 24px; flex: none; }
+.m-ecrire input, .m-ligne input { flex: 1; min-width: 0; width: 100%; border: 2.5px solid var(--marine); border-radius: 14px; padding: 10px 12px; font: inherit; font-size: 20px; background: #fff; color: var(--marine); }
+.m-ecrire input.ok { border-color: var(--sage-ink); background: #D3ECD6; }
+.m-ecrire input.ko { border-color: var(--tomate); background: #F9D8CD; }
+
+/* La lista de Blanca : un pense-bête aimanté sur le frigo */
+.m-frigo { flex: 1; min-height: 0; overflow-y: auto; padding: 8px 18px 6px; display: flex; flex-direction: column; gap: 12px; }
+.m-post { position: relative; background: #FFF3A8; border-radius: 4px; padding: 24px 16px 12px; box-shadow: 0 16px 24px -16px rgba(92, 61, 2, .7); transform: rotate(-.8deg); margin-top: 6px; }
+.m-post::before { content: ""; position: absolute; top: -8px; left: 50%; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; background: var(--tomate); box-shadow: inset -4px -4px 0 rgba(0, 0, 0, .15); }
+.m-post h2 { font-size: 24px; line-height: 1.05; margin-bottom: 6px; }
+.m-ligne { display: flex; align-items: baseline; gap: 10px; padding: 7px 0; border-bottom: 1.5px dashed rgba(92, 61, 2, .25); font-size: 17px; line-height: 1.3; }
+.m-q { flex: none; min-width: 26px; font-family: var(--titre); font-size: 20px; }
+.m-n { flex: 1; min-width: 0; }
+.m-sens { display: block; font-size: 12.5px; color: var(--marine-soft); }
+.m-ligne.m-ici { background: rgba(255, 255, 255, .6); border-radius: 10px; padding: 8px; margin: 2px -8px; }
+.m-ligne.m-ici input { margin-top: 6px; font-size: 18px; padding: 8px 10px; }
+.m-ligne.m-fait { color: var(--sage-ink); }
+.m-ligne.m-fait .m-q, .m-ligne.m-rate .m-q { font-family: var(--font); font-weight: 600; font-size: 16px; }
+.m-ligne.m-rate .m-q { color: var(--tomate); }
+.m-ligne s { color: #A99C80; font-size: .85em; }
+.m-fleche { color: var(--marine-soft); margin: 0 6px; }
+.m-signe { text-align: right; font-family: var(--titre); font-size: 18px; margin-top: 6px; }
+.m-aide { font-size: 12.5px; color: var(--sol-encre); text-align: center; }
+.m-partie.lista .m-valider { padding: 8px 14px calc(env(safe-area-inset-bottom, 0px) + 14px); }
+
+/* la fin */
+.m-rates li s { display: block; font-size: 13px; color: #A99C80; }
+.m-nouveaux h2 { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--sol-encre); margin-bottom: 8px; }
+.m-nouveaux .m-ecoute { background: var(--sun-deep); }
+@media (max-height: 680px) {
+  .m-colis { min-height: 104px; padding: 14px 10px 18px; }
+  .m-camion { height: 62px; }
+  .m-etiq b { font-size: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .m-colis, .m-colis.part, .m-colis.non, .m-verdict { animation: none; } }
