@@ -13,19 +13,19 @@
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=58";
-import { UNITES } from "../position.js?v=58";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=58";
-import { mesVerbes, verbesCours } from "../verbes.js?v=58";
-import { motsAMoi, motsAVenir } from "../dico.js?v=58";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=58";
-import { dire, taire } from "../voix.js?v=58";
-import { chispa } from "../mascotte.js?v=58";
-import * as J from "../jeux.js?v=58";
-import { ecranDeux } from "./deux.js?v=58";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=58";
-import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=58";
-import { ecranCharla, standCharla } from "./charla.js?v=58";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=59";
+import { UNITES } from "../position.js?v=59";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=59";
+import { mesVerbes, verbesCours } from "../verbes.js?v=59";
+import { motsAMoi, motsAVenir } from "../dico.js?v=59";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=59";
+import { dire, taire } from "../voix.js?v=59";
+import { chispa } from "../mascotte.js?v=59";
+import * as J from "../jeux.js?v=59";
+import { ecranDeux } from "./deux.js?v=59";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=59";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=59";
+import { ecranCharla, standCharla } from "./charla.js?v=59";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
