@@ -530,3 +530,75 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .f-sens { font-size: 15px; color: var(--marine-soft); margin-top: -6px; flex: none; min-height: 1.2em; }
 .fuego .f-sens { color: var(--crema); opacity: .85; }
 .f-ligne small { display: block; font-size: 12px; line-height: 1.2; }
+
+/* ——— El Chiringuito : le stand de tapas (ecrans/chiringuito.js). Reprend le HUD, les points et le pied de la Caseta (c-). ——— */
+.f-stand.chiringuito .f-toile { --a: var(--sage-ink); }
+.h-pret { padding-bottom: 0; }
+.h-niveaux { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.h-niveaux button { background: var(--crema); border-radius: 14px; padding: 9px 4px; font-family: var(--titre); font-size: 18px; line-height: 1.1; display: flex; flex-direction: column; align-items: center; }
+.h-niveaux button small { font-family: var(--font); font-size: 11.5px; font-weight: 600; color: var(--sage-ink); }
+.h-niveaux button[aria-pressed=true] { background: var(--marine); color: var(--crema); }
+.h-niveaux button[aria-pressed=true] small { color: var(--sol); }
+.h-quoi { font-size: 13px; color: var(--sol-encre); line-height: 1.35; margin-top: 8px; }
+.h-ferme { opacity: .55; flex: 1; }
+
+.h-partie { --bois: #8A5A2B; --bois-fonce: #5C3512;
+  height: 100dvh; overflow: hidden; position: relative; display: flex; flex-direction: column; transition: background-color .5s var(--ease);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); user-select: none; -webkit-user-select: none; }
+.h-partie.fuego { background: var(--tomate); }
+.h-partie .f-hud { padding: 14px 16px 0; }
+.h-stand { flex: 1; min-height: 0; margin: 0 10px; display: flex; flex-direction: column; filter: drop-shadow(0 12px 14px rgba(92, 61, 2, .3)); }
+.h-store { height: 32px; flex: none; border-radius: 14px 14px 0 0; position: relative; z-index: 2;
+  background: repeating-linear-gradient(90deg, var(--mar) 0 24px, var(--crema) 24px 48px);
+  -webkit-mask: linear-gradient(#000 0 0) top/100% calc(100% - 11px) no-repeat, radial-gradient(circle at 12px 0, #000 11.5px, transparent 12px) bottom left/24px 12px repeat-x;
+  mask: linear-gradient(#000 0 0) top/100% calc(100% - 11px) no-repeat, radial-gradient(circle at 12px 0, #000 11.5px, transparent 12px) bottom left/24px 12px repeat-x; }
+.h-salle { margin-top: -11px; padding: 22px 12px 14px; flex: none; min-height: 150px; display: flex; align-items: flex-end; gap: 10px; position: relative;
+  background: linear-gradient(90deg, rgba(15, 138, 131, .12) 1px, transparent 1px) 0 0/22px 22px, linear-gradient(rgba(15, 138, 131, .12) 1px, transparent 1px) 0 0/22px 22px, #E7F3F1; }
+.h-client { width: 74px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.h-client svg { width: 64px; height: 76px; display: block; }
+.h-client.arrive { animation: h-arrive .45s var(--ease) both; }
+.h-client.part { animation: h-part .45s ease-in both; }
+@keyframes h-arrive { from { opacity: 0; transform: translateX(-40px); } }
+@keyframes h-part { to { opacity: 0; transform: translateX(60px); } }
+.h-patience { width: 62px; height: 7px; border-radius: 4px; background: rgba(19, 41, 75, .15); overflow: hidden; }
+.h-patience i { display: block; height: 100%; background: var(--mar); transform-origin: left; }
+.h-patience.presse i { background: var(--tomate); }
+.h-commande { flex: 1; margin: 0 58px 28px 0; background: #fff; border-radius: 18px 18px 18px 4px; padding: 11px 14px; font-size: 18px; font-weight: 600; line-height: 1.3; box-shadow: 0 6px 14px -8px rgba(19, 41, 75, .5); }
+.h-commande small { display: block; font-size: 11.5px; font-weight: 600; color: var(--marine-soft); margin-bottom: 2px; }
+.h-dit { display: block; margin-top: 6px; font-size: 15px; color: var(--sage-ink); }
+.h-dit.rate { color: var(--tomate-fonce); }
+.h-grill { position: absolute; right: 14px; top: 18px; display: flex; gap: 4px; }
+.h-grill i { width: 7px; height: 16px; border-radius: 50% 50% 30% 30%; background: var(--sol-fonce); transform-origin: bottom; animation: h-braise 1.1s ease-in-out infinite alternate; }
+.h-grill i:nth-child(2) { animation-delay: -.4s; } .h-grill i:nth-child(3) { animation-delay: -.8s; }
+@keyframes h-braise { to { transform: scaleY(1.35); } }
+.fuego .h-grill i { background: var(--tomate); height: 26px; }
+.h-comptoir { flex: 1; min-height: 0; background: linear-gradient(var(--bois), var(--bois-fonce)); border-radius: 0 0 18px 18px; padding: 12px 12px 14px; display: flex; flex-direction: column; gap: 12px; position: relative; }
+.h-chef { position: absolute; right: 6px; top: -46px; width: 60px; height: 60px; z-index: 2; }
+.h-chef .m { width: 60px; height: 60px; }
+.h-toque { position: absolute; left: 17px; top: -7px; width: 28px; height: 20px; background: #fff; border-radius: 10px 10px 3px 3px; box-shadow: 0 2px 0 rgba(0, 0, 0, .15); z-index: 2; }
+.h-toque::before, .h-toque::after { content: ""; position: absolute; top: -7px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+.h-toque::before { left: 0; } .h-toque::after { right: 0; }
+.h-plateau { flex: none; min-height: 96px; background: #C99A62; border-radius: 14px; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .25), inset 0 -3px 0 rgba(0, 0, 0, .18); padding: 8px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px; }
+.h-vide { color: rgba(92, 53, 18, .7); font-size: 13px; font-weight: 600; padding: 8px 6px; }
+.h-plateau.servi { animation: h-servi .9s var(--ease) both; }
+@keyframes h-servi { 35% { transform: translate(-40px, -56px) scale(.92) rotate(-3deg); opacity: 1; } 70% { transform: translate(-60px, -70px) scale(.85); opacity: 0; } 100% { transform: none; opacity: 0; } }
+.h-mot { background: var(--crema); border-radius: 999px; padding: 8px 13px; font-weight: 600; font-size: 18px; line-height: 1.1; box-shadow: 0 3px 0 rgba(0, 0, 0, .18); animation: h-pose .25s var(--ease) both; }
+@keyframes h-pose { from { opacity: 0; transform: translateY(14px) scale(.8); } }
+.h-assiettes { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-wrap: wrap; justify-content: center; align-content: center; gap: 16px 10px; padding: 4px 0; }
+.h-assiette { min-width: 96px; height: 70px; padding: 0 24px; border-radius: 50%; background: radial-gradient(ellipse at 50% 45%, #fff 0 60%, #E9E0CB 62% 68%, #fff 70%); box-shadow: 0 5px 0 rgba(0, 0, 0, .25); display: grid; place-items: center; font-weight: 600; font-size: 18px; color: var(--marine); touch-action: manipulation; }
+.h-assiette.prise { visibility: hidden; }
+.h-assiette.non { animation: c-vacille .4s ease-in-out; background: radial-gradient(ellipse at 50% 45%, #F9D8CD 0 60%, #E9C2B4 62% 68%, #F9D8CD 70%); }
+.h-assiette.montre { box-shadow: 0 5px 0 rgba(0, 0, 0, .25), 0 0 0 4px var(--sol); }
+.c-envol.or { color: #FFE28A; font-size: 20px; }
+@media (max-width: 380px), (max-height: 700px) {
+  .h-salle { min-height: 112px; padding: 18px 10px 10px; }
+  .h-commande { font-size: 16px; margin-bottom: 18px; }
+  .h-client { width: 60px; } .h-client svg { width: 52px; height: 62px; }
+  .h-plateau { min-height: 68px; }
+  .h-mot { font-size: 16px; padding: 6px 11px; }
+  .h-assiette { min-width: 78px; height: 54px; padding: 0 16px; font-size: 16px; }
+  .h-assiettes { gap: 10px 6px; }
+  .h-comptoir { gap: 8px; padding: 10px 10px 12px; }
+  .h-pret .f-regle { padding: 10px 14px; font-size: 13.5px; }
+}
+@media (prefers-reduced-motion: reduce) { .h-grill i, .h-client, .h-mot, .h-plateau, .h-assiette { animation: none !important; } }

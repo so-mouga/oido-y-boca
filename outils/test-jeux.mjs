@@ -330,5 +330,50 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   egal("un record par niveau", [r.record, r.jeux.records["caseta:normal"], r.jeux.records["caseta:experto"]], [true, 120, 90]);
 }
 
+// 14. El Chiringuito : les phrases des vrais exercices, les mots des assiettes, les pièges, les paquets.
+{
+  const src = fs.readFileSync(path.join(racine, "exercices.js"), "utf8").replace(/^import .*$/m, "const md = s => s;");
+  fs.writeFileSync(path.join(tmp, "exercices.js"), src);
+  const { EXERCICES } = await import(path.join(tmp, "exercices.js"));
+  const toutes = new Set(Object.keys(EXERCICES));
+  const { phrases, propres } = J.phrasesChiringuito(EXERCICES, toutes);
+  if (phrases.length < 150) faux(`Chiringuito : seulement ${phrases.length} phrases`);
+  for (const p of phrases) {
+    if (p.mots.length < 3 || p.mots.length > 7) faux(`Chiringuito : ${p.es} a ${p.mots.length} mots`);
+    if (p.mots.some(w => /[¿?¡!.,]/.test(w))) faux(`Chiringuito : ponctuation sur une assiette (${p.es})`);
+    // Pas de majuscule sur une assiette, sauf un nom propre : la majuscule donnerait le premier mot.
+    if (p.mots.some(w => /^\p{Lu}/u.test(w) && !propres.has(w))) faux(`Chiringuito : majuscule sur une assiette (${p.es})`);
+    if (!toutes.has(p.lecon)) faux(`Chiringuito : leçon inconnue ${p.lecon}`);
+  }
+  for (const w of ["Kevin", "Blanca", "Dorian", "Huesca"]) if (!propres.has(w)) faux(`Chiringuito : ${w} n'est pas reconnu comme nom propre`);
+  for (const w of ["Me", "Nos", "Es", "Tengo"]) if (propres.has(w)) faux(`Chiringuito : ${w} pris pour un nom propre`);
+  const noel = J.phrasesChiringuito(EXERCICES, new Set(["U2-L5"])).phrases.find(p => /^Navidad/.test(p.es));
+  if (noel && noel.mots[0] !== "Navidad") faux("Chiringuito : « Navidad » perd sa majuscule quand seule sa leçon est faite");
+  egal("une phrase sans doublon", new Set(phrases.map(p => p.mots.join(" ").toLowerCase())).size, phrases.length);
+  // Seulement les leçons faites.
+  const debut = J.phrasesChiringuito(EXERCICES, new Set(["U1-L1", "U1-L2"])).phrases;
+  if (debut.some(p => !["U1-L1", "U1-L2"].includes(p.lecon))) faux("Chiringuito : une phrase d'une leçon pas faite");
+  // Les pièges : jamais un mot de la phrase, jamais deux fois le même, au plus n.
+  const formes = new Map([["tengo", ["tienes", "tiene"]], ["tiene", ["tengo", "tienes"]]]);
+  const lexique = new Set(["pequeño", "pequeña", "muchos", "muchas"]);
+  let avec = 0;
+  for (const p of phrases) for (let g = 1; g < 4; g++) {
+    const x = J.piegesPhrase(p.mots, 2, { formes, lexique, hasard: graine(g) });
+    if (x.length > 2 || new Set(x).size !== x.length) faux(`pièges en double ou en trop : ${p.es}`);
+    if (x.some(w => p.mots.some(m => m.toLowerCase() === w.toLowerCase()))) faux(`un piège est dans la phrase : ${p.es} (${x})`);
+    if (g === 1 && x.length) avec++;
+  }
+  if (avec < phrases.length * .7) faux(`Chiringuito : trop peu de phrases avec un piège (${avec} sur ${phrases.length})`);
+  egal("pas de piège en Tranquilo", J.piegesPhrase(["me", "llamo", "Kevin"], 0), []);
+  egal("l'autre genre, s'il existe", J.piegesPhrase(["huesca", "es", "una", "ciudad", "pequeña"].map(w => w), 9, { lexique }).includes("pequeño"), true);
+  egal("l'autre personne du verbe", J.piegesPhrase(["dorian", "tiene", "siete", "años"], 9, { formes }).includes("tengo"), true);
+  // Les paquets : la semaine = les leçons faites ces 7 derniers jours.
+  const pq = J.paquetsChiringuito(debut, { "U1-L1": "2026-11-01", "U1-L2": "2026-11-22" }, "2026-11-24");
+  egal("paquets du Chiringuito", pq.map(p => p.id), ["mes", "semaine"]);
+  if (pq[1].mots.some(p => p.lecon !== "U1-L2")) faux("Chiringuito : une phrase d'une vieille leçon dans « la semaine »");
+  egal("le pourboire", [J.pourboire(.9), J.pourboire(.5)], [J.BONUS_RAPIDE, 0]);
+  console.log(`Chiringuito : ${phrases.length} phrases, ${avec} avec au moins un piège ; ${debut.length} après U1-L2.`);
+}
+
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");
 process.exit(erreurs ? 1 : 0);

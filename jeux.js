@@ -349,3 +349,99 @@ export const piegeMaintenant = (paquet, niveau, hasard = Math.random) =>
   paquet === "pieges" || (niveauCaseta(niveau).pieges && hasard() < PART_PIEGES);
 // Les mots trouvés qui comptent pour les mots attrapés : mes mots seulement (ni les pièges, ni les mots nouveaux).
 export const trouvesCaseta = mots => mots.filter(m => m && m.id && !m.piege && !m.nouveau).map(m => m.id);
+
+// ——— El Chiringuito ———
+// Un client commande en français ; sur le comptoir, les mots espagnols en vrac sur des assiettes, avec des pièges.
+// On touche les assiettes dans l'ordre pour monter la phrase. Les phrases viennent des exercices (« Traduis » et « à dire »)
+// des leçons faites : seulement les courtes (3 à 7 mots), à une seule réponse, donc à un seul ordre.
+export const DUREE_CHIRINGUITO = 90;
+export const BONUS_RAPIDE = 10;      // servi avant que la patience du client descende sous les trois quarts
+export const SEUIL_PHRASES = 5;      // il faut 5 phrases pour ouvrir un paquet
+export const NIVEAUX_CHIRINGUITO = {
+  tranquilo: { nom: "Tranquilo", quoi: "Pas de piège. Les clients attendent autant qu'il faut. Après une erreur, la bonne assiette s'allume.", pieges: 0, patience: 0, aide: true },
+  normal: { nom: "Normal", quoi: "1 piège par commande. Les clients s'impatientent doucement.", pieges: 1, patience: 25, aide: false },
+  experto: { nom: "Experto", quoi: "2 pièges. Les clients sont pressés : s'ils repartent, la commande est ratée.", pieges: 2, patience: 15, aide: false },
+};
+export const niveauChiringuito = id => NIVEAUX_CHIRINGUITO[id] || NIVEAUX_CHIRINGUITO.normal;
+
+// Les noms propres gardent leur majuscule sur les assiettes ; tous les autres mots sont en minuscules (sinon la majuscule
+// donnerait le premier mot). Un nom propre : un mot qui commence par une majuscule ailleurs qu'en début de phrase.
+const nu = es => es.replace(/[¿?¡!.,;:«»"()…]/g, " ").split(/\s+/).filter(Boolean);
+export function nomsPropres(phrases) {
+  const propres = new Set();
+  // Chaque morceau de phrase (après . ! ? ¿ ¡) a son premier mot en majuscule : on ne regarde que les suivants.
+  for (const es of phrases) for (const bout of es.split(/[.!?¿¡]+/)) nu(bout).slice(1).forEach(w => { if (/^\p{Lu}/u.test(w)) propres.add(w); });
+  return propres;
+}
+// Les mots d'une phrase, tels qu'on les écrit sur les assiettes.
+export const motsAssiettes = (es, propres) => nu(es).map(w => propres.has(w) ? w : w.toLowerCase());
+
+// Les phrases des exercices. exercices : EXERCICES (exercices.js) ; lecons : les leçons à prendre (Set), dans l'ordre du livre.
+// Rend [{ id, lecon, fr, es, mots }] sans doublon.
+export function phrasesChiringuito(exercices, lecons) {
+  const brutes = [];
+  for (const [lecon, ex] of Object.entries(exercices)) {
+    for (const q of ex.ecrire || []) if (q.consigne === "Traduis" && Array.isArray(q.es) && q.es.length === 1) brutes.push({ lecon, fr: q.fr, es: q.es[0] });
+    for (const q of ex.dire || []) if (typeof q.es === "string") brutes.push({ lecon, fr: q.fr, es: q.es });
+  }
+  const bonnes = brutes.filter(p => p.fr && p.es && !p.fr.includes("___") && !/[«»()…\/]/.test(p.fr + p.es) && !/\d/.test(p.es));
+  // Les noms propres se cherchent dans tous les exercices (« Navidad » n'est peut-être qu'en début de phrase dans les leçons faites).
+  const propres = nomsPropres(bonnes.map(p => p.es));
+  const vues = new Set(), liste = [];
+  for (const p of bonnes) {
+    if (!lecons.has(p.lecon)) continue;
+    const mots = motsAssiettes(p.es, propres);
+    // Une seule phrase (pas deux collées) de 3 à 7 mots.
+    if (mots.length < 3 || mots.length > 7 || /[.!?].+[.!?¿¡]/.test(p.es.replace(/[.!?]+$/, "").slice(1))) continue;
+    const k = mots.join(" ").toLowerCase();
+    if (vues.has(k)) continue;
+    vues.add(k);
+    liste.push({ id: `${p.lecon}:${liste.length}`, lecon: p.lecon, fr: p.fr, es: p.es, mots });
+  }
+  return { phrases: liste, propres };
+}
+
+// Les 2 paquets : « Mes phrases » (les leçons faites) et « Les phrases de la semaine » (les leçons faites ces 7 derniers jours).
+export function paquetsChiringuito(phrases, dateFaite, jour) {
+  const depuis = new Date(jour + "T12:00:00"); depuis.setDate(depuis.getDate() - 6);
+  const limite = iso(depuis);
+  const semaine = phrases.filter(p => (dateFaite[p.lecon] || "") >= limite);
+  return [
+    { id: "mes", nom: "Mes phrases", mots: phrases, ouvert: phrases.length >= SEUIL_PHRASES,
+      aide: phrases.length >= SEUIL_PHRASES ? `${phrases.length} phrases de tes leçons` : `Il faut ${SEUIL_PHRASES} phrases, tu en as ${phrases.length}` },
+    { id: "semaine", nom: "Les phrases de la semaine", mots: semaine, ouvert: semaine.length >= SEUIL_PHRASES,
+      aide: semaine.length >= SEUIL_PHRASES ? `${semaine.length} phrases des leçons des 7 derniers jours` : "Quand tu auras fait des leçons cette semaine" },
+  ];
+}
+
+// Les pièges : des mots qui ressemblent à un mot de la phrase, mais faux ici. Dans l'ordre de préférence :
+// l'autre article, ser / estar, l'autre petit mot, l'autre personne du verbe, l'autre genre (pequeña / pequeño).
+// formes : Map forme → [autres formes du même verbe, même temps] ; lexique : Set des mots espagnols connus de l'appli.
+// Jamais un mot déjà dans la phrase. Rend au plus n pièges, différents.
+const ECHANGES = {
+  el: ["la", "los"], la: ["el", "las"], los: ["las", "el"], las: ["los", "la"], un: ["una"], una: ["un"], unos: ["unas"], unas: ["unos"],
+  es: ["está"], está: ["es"], soy: ["estoy"], estoy: ["soy"], eres: ["estás"], estás: ["eres"], somos: ["estamos"], estamos: ["somos"], son: ["están"], están: ["son"],
+  a: ["en", "de"], en: ["a", "de"], de: ["en", "a"], al: ["a", "del"], del: ["de", "al"], con: ["de"], por: ["para"], para: ["por"],
+  me: ["te", "se"], te: ["me", "se"], se: ["te", "me"], nos: ["os", "se"], os: ["nos"], mi: ["tu", "su"], tu: ["mi", "su"], su: ["tu", "mi"], mis: ["tus"], tus: ["mis"],
+  muy: ["mucho"], mucho: ["muy"], bien: ["bueno"], bueno: ["bien"],
+};
+export function piegesPhrase(mots, n, { formes = new Map(), lexique = new Set(), hasard = Math.random } = {}) {
+  if (!n) return [];
+  const dedans = new Set(mots.map(w => w.toLowerCase()));
+  const candidats = [];
+  const ajouter = (w, sorte) => { if (w && !dedans.has(w.toLowerCase()) && !candidats.some(c => c.w === w)) candidats.push({ w, sorte }); };
+  for (const m of mots) {
+    const w = m.toLowerCase();
+    for (const x of ECHANGES[w] || []) ajouter(x, "petit");
+    for (const x of formes.get(w) || []) ajouter(x, "verbe");
+    // L'autre genre, seulement s'il existe vraiment (muchas → muchos, pequeña → pequeño).
+    if (w.length > 3 && /[oa]s?$/.test(w)) { const autre = w.replace(/([oa])(s?)$/, (_, v, s) => (v === "o" ? "a" : "o") + s); if (lexique.has(autre)) ajouter(autre, "genre"); }
+  }
+  // D'abord des sortes différentes, au hasard dans chaque sorte.
+  const choisis = [], sortes = new Set();
+  for (const c of melanger(candidats, hasard)) if (choisis.length < n && !sortes.has(c.sorte)) { choisis.push(c.w); sortes.add(c.sorte); }
+  for (const c of melanger(candidats, hasard)) if (choisis.length < n && !choisis.includes(c.w)) choisis.push(c.w);
+  return choisis;
+}
+// Le pourboire : servi alors qu'il reste plus des trois quarts de la patience du client.
+export const pourboire = (resteDePatience) => resteDePatience > .75 ? BONUS_RAPIDE : 0;

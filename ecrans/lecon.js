@@ -5,10 +5,10 @@
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 // Ouverte depuis le Dico (#/lecon/U1-L3/dico) : tout est là, et le lien du haut ramène au mot.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=54";
-import { lecon as trouver } from "../position.js?v=54";
-import { EXERCICES } from "../exercices.js?v=54";
-import { BONUS } from "../bonus.js?v=54";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=55";
+import { lecon as trouver } from "../position.js?v=55";
+import { EXERCICES } from "../exercices.js?v=55";
+import { BONUS } from "../bonus.js?v=55";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;

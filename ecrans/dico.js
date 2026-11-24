@@ -3,15 +3,15 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=54";
-import { lecon as trouver } from "../position.js?v=54";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=54";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=54";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=54";
-import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=54";
-import { verbeEnCours } from "../progression.js?v=54";
-import { tropEnCours } from "./verbes.js?v=54";
-import { phraseTouchable } from "../toucher.js?v=54";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=55";
+import { lecon as trouver } from "../position.js?v=55";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=55";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=55";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=55";
+import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=55";
+import { verbeEnCours } from "../progression.js?v=55";
+import { tropEnCours } from "./verbes.js?v=55";
+import { phraseTouchable } from "../toucher.js?v=55";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";

@@ -5,23 +5,25 @@
 //   #/jeux/montre/fin      le score, le record, le mot apporté par Chispa, les mots attrapés, les trophées
 //   #/jeux/verbes, #/jeux/verbes/partie, #/jeux/verbes/fin : la course de verbes (« venir · tú », 3 formes), même déroulé
 //   #/jeux/caseta…         la Caseta de tiro, le stand de tir pour l'oreille (ecrans/caseta.js)
+//   #/jeux/chiringuito…    El Chiringuito, le stand de tapas : monter des phrases (ecrans/chiringuito.js)
 //   #/jeux/deux, #/jeux/bomba…, #/jeux/frente… : les jeux à deux (ecrans/deux.js)
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=54";
-import { UNITES } from "../position.js?v=54";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=54";
-import { mesVerbes, verbesCours } from "../verbes.js?v=54";
-import { motsAMoi, motsAVenir } from "../dico.js?v=54";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=54";
-import { dire, taire } from "../voix.js?v=54";
-import { chispa } from "../mascotte.js?v=54";
-import * as J from "../jeux.js?v=54";
-import { ecranDeux } from "./deux.js?v=54";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=54";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=55";
+import { UNITES } from "../position.js?v=55";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=55";
+import { mesVerbes, verbesCours } from "../verbes.js?v=55";
+import { motsAMoi, motsAVenir } from "../dico.js?v=55";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=55";
+import { dire, taire } from "../voix.js?v=55";
+import { chispa } from "../mascotte.js?v=55";
+import * as J from "../jeux.js?v=55";
+import { ecranDeux } from "./deux.js?v=55";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=55";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=55";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -157,6 +159,9 @@ function vueSalle(ctx, d, dv) {
   const recC = recordCaseta();
   const standCaseta = `<a class="f-stand caseta" href="#/jeux/caseta"><div class="f-toile"></div><div class="f-comptoir"><h2>La Caseta de tiro</h2><p>La voix dit un mot espagnol : tire sur la bonne cible. Pour l'oreille.</p>
         <div class="f-ligne"><span>${ligneRecord(recC)}</span><span>3 niveaux</span></div><span class="f-btn">Jouer</span></div></a>`;
+  const recH = recordChiringuito();
+  const standChiringuito = `<a class="f-stand chiringuito" href="#/jeux/chiringuito"><div class="f-toile"></div><div class="f-comptoir"><h2>El Chiringuito</h2><p>Un client commande en français : monte sa phrase en espagnol, assiette par assiette.</p>
+        <div class="f-ligne"><span>${ligneRecord(recH)}</span><span>90 secondes</span></div><span class="f-btn">Jouer</span></div></a>`;
   const ferme = (nom, quoi, quand = "Plus tard") => `<div class="f-stand ferme"><div class="f-toile"></div><div class="f-comptoir"><h2>${nom}</h2><p>${quoi}</p><span class="f-pancarte">${quand}</span></div></div>`;
   const bilan = g.s.meilleure > 1 ? `<p class="f-bilan">Ta meilleure semaine : ${g.s.meilleure} jours.</p>` : "";
   return {
@@ -167,9 +172,10 @@ function vueSalle(ctx, d, dv) {
         <div class="f-stands">${stand}
           ${standVerbes}
           ${standCaseta}
+          ${standChiringuito}
           <a class="f-stand deux" href="#/jeux/deux"><div class="f-toile"></div><div class="f-comptoir"><h2>À deux</h2><p>Avec Blanca ou Dorian, sur le canapé : La Bomba et En la frente.</p><span class="f-btn">Jouer</span></div></a>
           ${vitrine()}
-          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues", "Le prochain jeu")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("Le défi du jour", "Un seul essai par jour")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
+          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("Le défi du jour", "Un seul essai par jour")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
         </div>
       </div>${barreOnglets("jeux")}`,
     apres: brancher,
@@ -557,6 +563,7 @@ export function ecranJeux(ctx, quoi, etape) {
   const d = donnees(ctx);
   if (["deux", "bomba", "frente"].includes(quoi)) return ecranDeux(ctx, quoi, etape);
   if (quoi === "caseta") return ecranCaseta(ctx, etape);
+  if (quoi === "chiringuito") return ecranChiringuito(ctx, etape);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
   if (quoi === "verbes") {
