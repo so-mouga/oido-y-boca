@@ -20,7 +20,7 @@ export const EXERCICES = {
     ecrire: [
       { consigne: T, fr: "Je ne comprends pas.", es: ["No entiendo."] },
       { consigne: T, fr: "Tu peux parler plus lentement ?", es: ["¿Puedes hablar más despacio?"] },
-      { consigne: C, fr: "Nosotros ___ francés en casa. (hablar)", es: ["hablamos"], v: "hablar", p: 3 },
+      { consigne: C, fr: "Nosotros ___ francés en casa. (hablar)", es: ["hablamos"], v: "hablar", p: 3, trad: "Nous parlons français à la maison." },
       { consigne: T, fr: "Comment on dit « fourchette » en espagnol ?", es: ["¿Cómo se dice fourchette en español?"] },
     ],
     dire: [
@@ -32,7 +32,7 @@ export const EXERCICES = {
   "U1-L2": {
     ecrire: [
       { consigne: T, fr: "Je m'appelle Kevin.", es: ["Me llamo Kevin."] },
-      { consigne: C, fr: "Blanca ___ española. (ser)", es: ["es"], v: "ser", p: 2 },
+      { consigne: C, fr: "Blanca ___ española. (ser)", es: ["es"], v: "ser", p: 2, trad: "Blanca est espagnole." },
       { consigne: T, fr: "Léo a quatre ans.", es: ["Léo tiene cuatro años."] },
       { consigne: T, fr: "Quel est ton nom de famille ?", es: ["¿Cuál es tu apellido?"] },
     ],
@@ -45,20 +45,20 @@ export const EXERCICES = {
   "U1-L3": {
     ecrire: [
       { consigne: T, fr: "J'habite à Huesca depuis cinq ans.", es: ["Vivo en Huesca desde hace cinco años."] },
-      { consigne: C, fr: "Nosotros ___ en un piso. (vivir)", es: ["vivimos"], v: "vivir", p: 3 },
+      { consigne: C, fr: "Nosotros ___ en un piso. (vivir)", es: ["vivimos"], v: "vivir", p: 3, trad: "Nous habitons dans un appartement." },
       { consigne: T, fr: "Tu habites dans un appartement ou dans une maison ?", es: ["¿Vives en un piso o en una casa?"] },
       { consigne: T, fr: "Huesca est une petite ville.", es: ["Huesca es una ciudad pequeña."] },
     ],
     dire: [
       { fr: "Nous habitons dans un appartement, en ville.", es: "Vivimos en un piso, en la ciudad." },
       { fr: "Où est-ce que tu habites ?", es: "¿Dónde vives?" },
-      { fr: "Mes parents habitent à Paris avec ma petite sœur.", es: "Mis padres viven en París con mi hermana pequeña." },
+      { fr: "Ma petite sœur habite à Paris.", es: "Mi hermana pequeña vive en París." },
     ],
   },
   "U1-L4": {
     ecrire: [
       { consigne: T, fr: "Je travaille à la maison.", es: ["Trabajo desde casa.", "Trabajo en casa."] },
-      { consigne: C, fr: "Hoy ___ muy cansado. (estar, yo)", es: ["estoy"], v: "estar", p: 0 },
+      { consigne: C, fr: "Yo ___ muy cansado. (estar)", es: ["estoy"], v: "estar", p: 0, trad: "Je suis très fatigué." },
       { consigne: T, fr: "J'ai une réunion à dix heures.", es: ["Tengo una reunión a las diez."] },
       { consigne: T, fr: "Je suis dans mon bureau.", es: ["Estoy en mi despacho."] },
     ],
@@ -70,10 +70,10 @@ export const EXERCICES = {
   },
   "U1-L5": {
     ecrire: [
-      { consigne: C, fr: "Nosotros ___ con mi suegro el domingo. (comer)", es: ["comemos"], v: "comer", p: 3 },
+      { consigne: C, fr: "Nosotros ___ con mi suegro el domingo. (comer)", es: ["comemos"], v: "comer", p: 3, trad: "Nous mangeons avec mon beau-père dimanche." },
       { consigne: T, fr: "Tu as des frères et sœurs ?", es: ["¿Tienes hermanos?"] },
       { consigne: T, fr: "Blanca est ma compagne.", es: ["Blanca es mi pareja."] },
-      { consigne: C, fr: "Léo y Dorian ___ en casa hoy. (estar)", es: ["están"], v: "estar", p: 5 },
+      { consigne: C, fr: "Léo y Dorian ___ en casa. (estar)", es: ["están"], v: "estar", p: 5, trad: "Léo et Dorian sont à la maison." },
     ],
     dire: [
       { fr: "Blanca est ma compagne. Nous nous marions en juin.", es: "Blanca es mi pareja. Nos casamos en junio." },
@@ -97,7 +97,7 @@ export const EXERCICES = {
   "U2-L1": {
     ecrire: [
       { consigne: T, fr: "Dorian a sept ans.", es: ["Dorian tiene siete años."] },
-      { consigne: C, fr: "Nosotros ___ dos hijos. (tener)", es: ["tenemos"], v: "tener", p: 3 },
+      { consigne: C, fr: "Nosotros ___ dos hijos. (tener)", es: ["tenemos"], v: "tener", p: 3, sens: "los hijos = les enfants", trad: "Nous avons deux enfants." },
       { consigne: L, fr: "15", es: ["quince"] },
       { consigne: T, fr: "Quand est ton anniversaire ?", es: ["¿Cuándo es tu cumpleaños?"] },
     ],
@@ -125,7 +125,7 @@ export const EXERCICES = {
       { consigne: T, fr: "Quelle heure est-il ?", es: ["¿Qué hora es?"] },
       { consigne: T, fr: "Il est une heure.", es: ["Es la una."] },
       { consigne: T, fr: "Il est huit heures et demie.", es: ["Son las ocho y media."] },
-      { consigne: T, fr: "Je commence à travailler à neuf heures et demie.", es: ["Empiezo a trabajar a las nueve y media."] },
+      { consigne: T, fr: "La réunion est à neuf heures et demie.", es: ["La reunión es a las nueve y media."] },
     ],
     dire: [
       { fr: "Il est trois heures moins le quart.", es: "Son las tres menos cuarto." },
@@ -162,8 +162,8 @@ export const EXERCICES = {
   "U3-L1": {
     ecrire: [
       { consigne: T, fr: "Je me lève à sept heures.", es: ["Me levanto a las siete."] },
-      { consigne: C, fr: "Blanca ___ a las siete y media. (levantarse)", es: ["se levanta"], v: "levantarse", p: 2 },
-      { consigne: C, fr: "Léo y Dorian ___ a las ocho. (vestirse)", es: ["se visten"], v: "vestirse", d: "i", p: 5 },
+      { consigne: C, fr: "Blanca ___ a las siete y media. (levantarse)", es: ["se levanta"], v: "levantarse", p: 2, trad: "Blanca se lève à sept heures et demie." },
+      { consigne: C, fr: "Léo y Dorian ___ a las ocho. (vestirse)", es: ["se visten"], v: "vestirse", d: "i", p: 5, trad: "Léo et Dorian s'habillent à huit heures." },
       { consigne: T, fr: "Je me réveille à sept heures et je me douche.", es: ["Me despierto a las siete y me ducho."] },
     ],
     dire: [
@@ -176,7 +176,7 @@ export const EXERCICES = {
     ecrire: [
       { consigne: T, fr: "Nous déjeunons à deux heures.", es: ["Comemos a las dos."] },
       { consigne: T, fr: "À la maison, nous dînons à neuf heures.", es: ["En casa cenamos a las nueve."] },
-      { consigne: C, fr: "Léo y Dorian ___ a las cinco y media. (merendar)", es: ["meriendan"], v: "merendar", d: "ie", p: 5 },
+      { consigne: C, fr: "Léo y Dorian ___ a las cinco y media. (merendar)", es: ["meriendan"], v: "merendar", d: "ie", p: 5, trad: "Léo et Dorian goûtent à cinq heures et demie." },
       { consigne: T, fr: "Le dîner est à neuf heures et demie.", es: ["La cena es a las nueve y media."] },
     ],
     dire: [
@@ -190,7 +190,7 @@ export const EXERCICES = {
       { consigne: T, fr: "Je me douche avant de prendre le petit-déjeuner.", es: ["Me ducho antes de desayunar."] },
       { consigne: T, fr: "Je me lève tôt.", es: ["Me levanto temprano."] },
       { consigne: T, fr: "Le dimanche (tous les dimanches), nous dînons tard.", es: ["Los domingos cenamos tarde."] },
-      { consigne: T, fr: "Après avoir pris le petit-déjeuner, j'emmène Léo à l'école.", es: ["Después de desayunar, llevo a Léo al cole.", "Después de desayunar, llevo a Léo al colegio."] },
+      { consigne: T, fr: "Après avoir pris le petit-déjeuner, je travaille.", es: ["Después de desayunar, trabajo."] },
     ],
     dire: [
       { fr: "Avant de travailler, je vais à la salle de sport.", es: "Antes de trabajar, voy al gimnasio." },
@@ -201,9 +201,9 @@ export const EXERCICES = {
   "U3-L4": {
     ecrire: [
       { consigne: T, fr: "Je rentre de la salle de sport à une heure et demie.", es: ["Vuelvo del gimnasio a la una y media."] },
-      { consigne: C, fr: "Hoy no ___ ir al gimnasio. (poder, yo)", es: ["puedo"], v: "poder", d: "ue", p: 0 },
-      { consigne: C, fr: "Dorian ___ mucho. (dormir)", es: ["duerme"], v: "dormir", d: "ue", p: 2 },
-      { consigne: C, fr: "Nosotros ___ a las diez. (volver)", es: ["volvemos"], v: "volver", d: "ue", p: 3 },
+      { consigne: C, fr: "Hoy no ___ ir al gimnasio. (poder, yo)", es: ["puedo"], v: "poder", d: "ue", p: 0, trad: "Aujourd'hui, je ne peux pas aller à la salle de sport." },
+      { consigne: C, fr: "Dorian ___ mucho. (dormir)", es: ["duerme"], v: "dormir", d: "ue", p: 2, trad: "Dorian dort beaucoup." },
+      { consigne: C, fr: "Nosotros ___ a las diez. (volver)", es: ["volvemos"], v: "volver", d: "ue", p: 3, trad: "Nous rentrons à dix heures." },
     ],
     dire: [
       { fr: "Aujourd'hui, je ne peux pas aller à la salle de sport.", es: "Hoy no puedo ir al gimnasio." },
@@ -213,9 +213,9 @@ export const EXERCICES = {
   },
   "U3-L5": {
     ecrire: [
-      { consigne: C, fr: "Yo ___ a trabajar a las nueve y media. (empezar)", es: ["empiezo"], v: "empezar", d: "ie", p: 0 },
+      { consigne: C, fr: "Yo ___ a trabajar a las nueve y media. (empezar)", es: ["empiezo"], v: "empezar", d: "ie", p: 0, trad: "Je commence à travailler à neuf heures et demie." },
       { consigne: T, fr: "Je ne dîne jamais tard.", es: ["Nunca ceno tarde.", "No ceno nunca tarde."] },
-      { consigne: C, fr: "Léo ___ comer en casa. (preferir)", es: ["prefiere"], v: "preferir", d: "ie", p: 2 },
+      { consigne: C, fr: "Léo ___ comer en casa. (preferir)", es: ["prefiere"], v: "preferir", d: "ie", p: 2, trad: "Léo préfère manger à la maison." },
       { consigne: T, fr: "D'habitude, je m'entraîne chaque jour.", es: ["Normalmente entreno cada día."] },
     ],
     dire: [
@@ -226,9 +226,9 @@ export const EXERCICES = {
   },
   "U3-L6": {
     ecrire: [
-      { consigne: C, fr: "Blanca y yo ___ al gimnasio. (ir)", es: ["vamos"], v: "ir", p: 3 },
+      { consigne: C, fr: "Blanca y yo ___ al gimnasio. (ir)", es: ["vamos"], v: "ir", p: 3, trad: "Blanca et moi allons à la salle de sport." },
       { consigne: T, fr: "À cinq heures, je vais chercher Léo à l'école.", es: ["A las cinco voy a buscar a Léo al cole.", "A las cinco voy a buscar a Léo al colegio."] },
-      { consigne: C, fr: "Léo y Dorian ___ a las nueve. (acostarse)", es: ["se acuestan"], v: "acostarse", d: "ue", p: 5 },
+      { consigne: C, fr: "Léo y Dorian ___ a las nueve. (acostarse)", es: ["se acuestan"], v: "acostarse", d: "ue", p: 5, trad: "Léo et Dorian se couchent à neuf heures." },
       { consigne: T, fr: "J'arrive à la maison à six heures.", es: ["Llego a casa a las seis."] },
     ],
     dire: [

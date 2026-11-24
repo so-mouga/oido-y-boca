@@ -8,7 +8,7 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=47";
+import { md } from "./ui.js?v=48";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -296,7 +296,7 @@ export const CONTROLES = {
           [
             { fr: "Yo ___ desde casa.", v: "trabajar", p: 0, es: ["trabajo"] },
             { fr: "¿Tú ___ inglés?", v: "hablar", p: 1, es: ["hablas"] },
-            { fr: "Mi vecino ___ en una empresa.", v: "trabajar", p: 2, es: ["trabaja"] },
+            { fr: "Mi amigo ___ en una empresa.", v: "trabajar", p: 2, es: ["trabaja"] },
             { fr: "Vosotros ___ muy rápido.", v: "hablar", p: 4, es: ["habláis"] },
             { fr: "Léo y Dorian ___ español.", v: "hablar", p: 5, es: ["hablan"] },
           ],
@@ -312,7 +312,7 @@ export const CONTROLES = {
             { fr: "¿Dónde ___ tú?", v: "vivir", p: 1, es: ["vives"] },
             { fr: "Mi cuñada ___ en Galicia.", v: "vivir", p: 2, es: ["vive"] },
             { fr: "Vosotros ___ en un piso.", v: "vivir", p: 4, es: ["vivís"] },
-            { fr: "Mis padres ___ en París.", v: "vivir", p: 5, es: ["viven"] },
+            { fr: "Mi hermana pequeña ___ en París.", v: "vivir", p: 2, es: ["vive"] },
           ],
           [
             { fr: "Yo ___ francés.", v: "ser", p: 0, es: ["soy"] },
@@ -325,7 +325,7 @@ export const CONTROLES = {
             { fr: "¿Dónde ___ tú?", v: "estar", p: 1, es: ["estás"] },
             { fr: "Nosotros ___ en casa.", v: "estar", p: 3, es: ["estamos"] },
             { fr: "Vosotros ___ en el despacho.", v: "estar", p: 4, es: ["estáis"] },
-            { fr: "Mis padres ___ en la boda.", v: "estar", p: 5, es: ["están"] },
+            { fr: "Mis padres ___ en la boda.", v: "estar", p: 5, es: ["están"], sens: "los padres = les parents" },
           ],
         ],
       },
@@ -337,8 +337,8 @@ export const CONTROLES = {
           { fr: "Blanca ___ mi pareja.", es: ["es"], expl: "*Ser* : qui est la personne (la relation)." },
           { fr: "Huesca ___ una ciudad pequeña.", es: ["es"], expl: "*Ser* : dire ce qu'est une chose." },
           { fr: "Yo ___ en mi despacho.", es: ["estoy"], expl: ESTAR_LIEU },
-          { fr: "Mis padres ___ en París.", es: ["están"], expl: ESTAR_LIEU },
-          { fr: "Hoy nosotros ___ cansados.", es: ["estamos"], expl: "*Estar* : un état du moment (la fatigue)." },
+          { fr: "Mi hermana ___ en París.", es: ["está"], expl: ESTAR_LIEU },
+          { fr: "Blanca y yo ___ cansados.", es: ["estamos"], expl: "*Estar* : un état du moment (la fatigue)." },
           { fr: "¿Dónde ___ Blanca?", es: ["está"], expl: ESTAR_LIEU },
         ]],
       },
@@ -348,7 +348,7 @@ export const CONTROLES = {
           [
             { fr: "J'habite à Huesca.", es: ["Vivo en Huesca."],
               expl: "« À » + une ville se dit **en** pour être ou habiter quelque part : *vivo en Huesca* (pas « a »)." },
-            { fr: "Mes parents habitent à Paris.", es: ["Mis padres viven en París."], expl: EN_LIEU },
+            { fr: "Ma belle-sœur habite en Galice.", es: ["Mi cuñada vive en Galicia."], expl: EN_LIEU },
             { fr: "Je travaille dans une entreprise française.", es: ["Trabajo en una empresa francesa.", "Trabajo para una empresa francesa."],
               expl: "« Dans » + un lieu se dit **en** (pour être ou habiter quelque part)." },
           ],
@@ -356,7 +356,7 @@ export const CONTROLES = {
             { fr: "Je travaille à la maison depuis un an.",
               es: ["Trabajo en casa desde hace un año.", "Trabajo desde casa desde hace un año.", "Hace un año que trabajo en casa.", "Llevo un año trabajando en casa."],
               expl: "« Depuis » + une durée se dit **desde hace** (pas « durante »)." },
-            { fr: "Mon voisin habite en Espagne depuis un an.", es: ["Mi vecino vive en España desde hace un año."],
+            { fr: "Mon ami habite en Espagne depuis un an.", es: ["Mi amigo vive en España desde hace un año."],
               expl: "« En » + un pays se dit **en**, et « depuis » + une durée se dit **desde hace**." },
           ],
         ],
@@ -407,7 +407,7 @@ export function tirerEcrit(c, motsUnite) {
       choisies = prises.flatMap(g => g.slice(0, parGroupe));
       choisies.push(...melanger(prises.flatMap(g => g.slice(parGroupe))).slice(0, t.nb - choisies.length));
       choisies = melanger(choisies).map(q => q.v
-        ? { fr: `${q.fr} (${q.v})`, es: q.es, expl: explicationConjugaison(q.v, q.p) }
+        ? { fr: `${q.fr} (${q.v})`, es: q.es, expl: explicationConjugaison(q.v, q.p), ...(q.sens && { sens: q.sens }) }
         : q);
     }
     return choisies.map(q => ({ type: "ecrire", controle: true, theme: t.nom, consigne: t.consigne, ...q }));

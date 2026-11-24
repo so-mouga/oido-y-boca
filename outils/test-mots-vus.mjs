@@ -1,5 +1,5 @@
 // Vérifie que les exercices (exercices.js), le bonus (bonus.js) et le contrôle (controles.js) n'utilisent
-// que des mots déjà vus à leur leçon : une carte du Sheet d'une leçon ≤ celle de l'exercice, une forme conjuguée
+// que des mots déjà vus à la fin de leur unité (Q10-12) : une carte du Sheet d'une leçon ≤ celle de l'exercice, une forme conjuguée
 // d'un verbe vu (aux temps déjà vus), un petit mot de grammaire déjà vu (la liste OUTILS de test-lectures.mjs, par unité),
 // un mot de l'exemple d'une carte vue, un exemple de la grammaire du livre d'une leçon vue,
 // ou un mot donné dans la question elle-même (le verbe entre parenthèses, « sens » et « mot » du bonus).
@@ -41,8 +41,10 @@ const OUTILS = {
       mi mis tu tus su sus yo tú él ella nosotros me te se hola adiós gracias favor español española inglés cinco francia`,
   // En plus de test-lectures.mjs : les 6 personnes de la conjugaison, vues dès le présent de U1-L1 (vosotros, ellos).
   "1b": `nosotras vosotros vosotras ellos ellas`,
+  // L'âge de Léo et de Dorian avec « tener … años » (U1-L2), avant les nombres de U2.
+  "1c": `cuatro siete`,
   2: `cero uno una dos tres cuatro cinco seis siete ocho nueve diez once doce trece catorce quince dieciséis diecisiete
-      dieciocho diecinueve veinte veintiuno veintidós veintitrés veinticuatro veinticinco treinta cuarenta cincuenta sesenta
+      dieciocho diecinueve veinte veintiuno veintidós veintitrés veinticuatro veinticinco veintiséis veintisiete veintiocho veintinueve treinta cuarenta cincuenta sesenta
       setenta ochenta noventa cien mil menos cuarto media
       lunes martes miércoles jueves viernes sábado domingo sábados domingos
       enero febrero marzo abril mayo junio julio agosto septiembre octubre noviembre diciembre`,
@@ -53,7 +55,10 @@ const OUTILS = {
   8: `ven pon sal haz di ve ten sé lávate siéntate ponte quítate báñate dúchate vístete acuéstate levántate despiértate date
       toques corras grites hagas lo`,
 };
-const PROPRES = new Set([...NOMS, "galicia", "valencia", "francia", "hyères", "toulon", "marignane", "carpentras", "españa"]);
+// Le pluriel et le singulier d'un mot (« portugués » → portugueses, « español » → españoles, « años » → año).
+const nombres = w => [/[aeiouáéó]$/.test(w) ? w + "s" : /és$/.test(w) ? w.slice(0, -2) + "eses" : w + "es",
+  w.endsWith("s") && w.slice(0, -1), w.endsWith("es") && w.slice(0, -2), w.endsWith("eses") && w.slice(0, -4) + "és"].filter(Boolean);
+const PROPRES = new Set([...NOMS, "navidad", "nochebuena", "galicia", "valencia", "francia", "hyères", "toulon", "marignane", "carpentras", "españa"]);
 
 // Les formes d'un verbe aux temps vus à ce rang (gérondif dès U5, « ducharme » dès U3, comme test-lectures.mjs).
 const GERONDIFS = { dormir: "durmiendo", pedir: "pidiendo", servir: "sirviendo", vestir: "vistiendo", decir: "diciendo", venir: "viniendo", poder: "pudiendo", preferir: "prefiriendo", ir: "yendo" };
@@ -81,27 +86,28 @@ function vusJusqua(rang) {
   const vus = new Set();
   for (const m of mots.filter(m => rangLecon(m.lecon) <= rang)) {
     const es = m.es.replace(/\([^)]*\)/g, " ").replace(/=.*/, " ");
-    for (const w of motsDe(es)) {
+    // Le pluriel d'un nom ou d'un adjectif (« el año » → años), et le singulier d'une carte au pluriel (« los suegros » → suegro,
+    // « tener … años » → año). Pas pour le verbe d'une carte (« tener »).
+    motsDe(es).forEach((w, i) => {
       vus.add(w);
-      // Le pluriel d'un nom ou d'un adjectif (« el año » → años), et le singulier d'une carte au pluriel (« los suegros » → suegro).
-      if (m.categorie !== "verbe") {
-        vus.add(/[aeiouáéó]$/.test(w) ? w + "s" : w + "es");
-        if (w.endsWith("s")) vus.add(w.slice(0, -1));
-        if (w.endsWith("es")) vus.add(w.slice(0, -2));
-      }
-    }
+      if (m.categorie !== "verbe" || i > 0) for (const f of nombres(w)) vus.add(f);
+    });
     // L'exemple de la carte, déjà lu sur la carte (« Me despierto a las siete » avant la règle e → ie).
     for (const w of motsDe(m.ex)) vus.add(w);
     const premier = min(es.trim().split(/[\s…]+/)[0] || "");
     if (!/^\p{L}*[aeií]r(se)?$/u.test(premier)) continue;
     const vb = verbeDe({ ...m, categorie: "verbe" });
     if (!vb) continue;
-    if (vb.regles.some(r => r.lecon && !r.texte.startsWith("Un verbe en -se") && rangLecon(r.lecon) > rang)) continue;
+    // Une carte qui apprend le verbe dans une tournure (« tener … años » en U1-L2) : son présent est vu, même irrégulier.
+    if (vb.regles.some(r => r.lecon && !r.texte.startsWith("Un verbe en -se") && rangLecon(r.lecon) > rang)) {
+      if (/\s/.test(es.trim())) for (let p = 0; p < 6; p++) { try { for (const w of motsDe(conjuguer(vb.v, p, vb.d))) vus.add(w); } catch { /* */ } }
+      continue;
+    }
     for (const w of formes(vb.v, vb.d, rang, u, vb.se)) vus.add(w);
   }
   // La grammaire du livre des leçons vues : ses exemples en italique ou en gras (*tengo … años*, *estoy cansado*, **duele**).
-  for (const l of LECONS.filter(l => rangLecon(l.id) <= rang)) for (const m of (l.grammaire || "").matchAll(/\*+([^*]+)\*+/g)) for (const w of motsDe(m[1])) vus.add(w);
-  for (const [k, v] of Object.entries(OUTILS)) if (parseInt(k) <= u) for (const w of v.split(/\s+/).filter(Boolean)) vus.add(w);
+  for (const l of LECONS.filter(l => rangLecon(l.id) <= rang)) for (const m of (l.grammaire || "").matchAll(/\*+([^*]+)\*+/g)) for (const w of motsDe(m[1])) { vus.add(w); for (const f of nombres(w)) vus.add(f); }
+  for (const [k, v] of Object.entries(OUTILS)) if (parseInt(k) <= u) for (const w of v.split(/\s+/).filter(Boolean)) { vus.add(w); for (const f of nombres(w)) vus.add(f); }
   cache.set(rang, vus);
   return vus;
 }
@@ -110,7 +116,9 @@ function vusJusqua(rang) {
 function donnes(q, rang, u) {
   const d = new Set();
   if (q.v) for (const w of formes(q.v, q.d, Infinity, u, /se$/.test(q.v))) d.add(w);
-  for (const w of motsDe(q.mot)) d.add(w);
+  // Le mot donné par le bonus (« italiano = italien ») : avec son pluriel et son féminin (« italianos », « médica »).
+  for (const w of motsDe((q.mot || "").replace(/=[^·]*/g, " "))) for (const f of [w, ...nombres(w), w.replace(/o$/, "a"), w.replace(/o$/, "as")]) d.add(f);
+  for (const w of motsDe((q.sens || "").replace(/=.*/, ""))) d.add(w);
   for (const m of (q.fr || "").matchAll(/\(([^)]*)\)/g)) for (const w of motsDe(m[1])) d.add(w);
   return d;
 }
@@ -121,7 +129,8 @@ const espagnolDe = (q, phraseEspagnole) => [phraseEspagnole ? sansParentheses(q.
 
 const fautes = []; // { ou, lecon, phrase, mots }
 function verifier(ou, lecon, q, phraseEspagnole) {
-  const rang = rangLecon(lecon);
+  // Un mot de la même unité, même d'une leçon un peu plus loin, est accepté (Q10-12) : l'unité se fait en une semaine avec le prof.
+  const rang = Math.max(rangLecon(lecon), ...LECONS.filter(l => uniteDe(l.id) === uniteDe(lecon)).map(l => rangLecon(l.id)));
   const u = uniteDe(lecon);
   const vus = vusJusqua(rang), d = donnes(q, rang, u);
   const inconnus = [...new Set(motsDe(espagnolDe(q, phraseEspagnole)))].filter(w => !vus.has(w) && !d.has(w) && !PROPRES.has(w));

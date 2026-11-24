@@ -6,13 +6,13 @@
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=47";
-import { UNITES } from "../position.js?v=47";
-import { motsAMoi } from "../dico.js?v=47";
-import { cases, apprisEnAvance, etatJeux, garderJeux } from "../progression.js?v=47";
-import { dire, taire } from "../voix.js?v=47";
-import { chispa } from "../mascotte.js?v=47";
-import * as J from "../jeux.js?v=47";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=48";
+import { UNITES } from "../position.js?v=48";
+import { motsAMoi } from "../dico.js?v=48";
+import { cases, apprisEnAvance, etatJeux, garderJeux } from "../progression.js?v=48";
+import { dire, taire } from "../voix.js?v=48";
+import { chispa } from "../mascotte.js?v=48";
+import * as J from "../jeux.js?v=48";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
