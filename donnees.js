@@ -63,12 +63,35 @@ export function versSuivi(lignes) {
     .filter(s => s.lecon && s.type);
 }
 
+// Une ligne par leçon : misión, 4 questions (la 4e peut manquer), le défi (« reto », peut manquer) et la note pour moi.
+// La copie hors ligne d'avant la v=42 n'a ni « pregunta 4 » ni « reto » : l'écran fait sans.
 export function versSoir(lignes) {
   const soir = {};
-  for (const s of versObjets(lignes, { lecon: "leçon", mision: "misión", q1: "pregunta 1", q2: "pregunta 2", q3: "pregunta 3", kevin: "para kevin" })) {
-    if (s.lecon) soir[s.lecon] = { mision: s.mision, questions: [s.q1, s.q2, s.q3].filter(Boolean), kevin: s.kevin };
+  const colonnes = { lecon: "leçon", mision: "misión", q1: "pregunta 1", q2: "pregunta 2", q3: "pregunta 3", q4: "pregunta 4", reto: "reto", kevin: "para kevin" };
+  for (const s of versObjets(lignes, colonnes)) {
+    if (s.lecon) soir[s.lecon] = { mision: s.mision, questions: [s.q1, s.q2, s.q3, s.q4].filter(Boolean), reto: s.reto, kevin: s.kevin };
   }
   return soir;
+}
+
+// Le défi s'écrit « Nom: consigne » (« Ni sí ni no: Hazle preguntas… »). Sans nom reconnaissable : « El reto ».
+export function lireReto(texte) {
+  const t = (texte || "").trim();
+  if (!t) return null;
+  const m = t.match(/^([^:¿¡«(]{2,30}):\s*(.+)$/s);
+  return m ? { nom: m[1].trim(), consigne: m[2].trim() } : { nom: "El reto", consigne: t };
+}
+
+// « Otra pregunta » : une question au hasard (1 à 4) d'une leçon déjà faite, sauf celle du soir
+// et sauf la dernière tirée. Renvoie { lecon, question } ou null s'il n'y en a pas.
+export function tirerPregunta(soir, faites, ceSoir, avant = null, hasard = Math.random) {
+  const toutes = [];
+  for (const id of faites) {
+    if (id === ceSoir || !soir[id]) continue;
+    for (const question of soir[id].questions || []) toutes.push({ lecon: id, question });
+  }
+  const choix = toutes.length > 1 && avant ? toutes.filter(t => t.question !== avant) : toutes;
+  return choix.length ? choix[Math.floor(hasard() * choix.length)] : null;
 }
 
 async function lireOnglet(nom, signal) {

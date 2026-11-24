@@ -2,15 +2,15 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=41";
-import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=41";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=41";
-import { EXERCICES } from "../exercices.js?v=41";
-import { controlePret, dernierResultat } from "./controle.js?v=41";
-import { motsDus, PAQUET } from "./pratique.js?v=41";
-import { BONUS } from "../bonus.js?v=41";
-import { motsDeLaSemaine } from "./mesmots.js?v=41";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=41";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=42";
+import { cases, cocheCetteSemaine, niveauEcoute, derniereSauvegarde } from "../progression.js?v=42";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=42";
+import { EXERCICES } from "../exercices.js?v=42";
+import { controlePret, dernierResultat } from "./controle.js?v=42";
+import { motsDus, PAQUET } from "./pratique.js?v=42";
+import { BONUS } from "../bonus.js?v=42";
+import { motsDeLaSemaine } from "./mesmots.js?v=42";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=42";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;

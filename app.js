@@ -1,25 +1,25 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=41";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=41";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=41";
-import { ECOUTES } from "./ecoute.js?v=41";
-import { preparerVoix } from "./voix.js?v=41";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=41";
-import { vibrer } from "./retours.js?v=41";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=41";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=41";
-import { ecranLivre } from "./ecrans/livre.js?v=41";
-import { ecranLecon } from "./ecrans/lecon.js?v=41";
-import { ecranSoir, ecranBlanca, ecranGuia } from "./ecrans/soir.js?v=41";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=41";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=41";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=41";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=41";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=41";
-import { ecranLectures } from "./ecrans/lectures.js?v=41";
-import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=41";
+import { chargerTableau } from "./donnees.js?v=42";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=42";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=42";
+import { ECOUTES } from "./ecoute.js?v=42";
+import { preparerVoix } from "./voix.js?v=42";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=42";
+import { vibrer } from "./retours.js?v=42";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=42";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=42";
+import { ecranLivre } from "./ecrans/livre.js?v=42";
+import { ecranLecon } from "./ecrans/lecon.js?v=42";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=42";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=42";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=42";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=42";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=42";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=42";
+import { ecranLectures } from "./ecrans/lectures.js?v=42";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=42";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -136,6 +136,8 @@ app.addEventListener("click", async e => {
     bloc.querySelectorAll("[data-panneau]").forEach(p => { p.hidden = p.dataset.panneau !== onglet.dataset.temps; });
     return;
   }
+  // Para Blanca : « Otra pregunta » tire une question d'une leçon déjà faite, sans redessiner l'écran.
+  if (actionOtra(ctx, e)) { vibrer(); return; }
   // S'entraîner aux verbes : la série, et « Je l'apprends », « + », « Je le sais » dans le Dico.
   const verbe = actionVerbes(ctx, e);
   if (verbe !== null) {
