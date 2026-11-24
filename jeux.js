@@ -117,8 +117,9 @@ export const TROPHEES = [
 
 // Ce que le téléphone garde pour les jeux. « fois » : pour chaque mot, le nombre de parties où il a été trouvé ;
 // « jours » : les jours où une partie a été finie (la guirlande) ; « serie » et « sansFaute » : pour les trophées.
+// « surprises » : pour chaque mot surprise montré, le dernier jour ; « gardes » : le nombre de mots surprise gardés par jour.
 export const JEUX_VIDE = () => ({ records: {}, trophees: {}, trouves: 0, parties: 0, meilleur: 0, serie: 0, sansFaute: false,
-  fois: {}, jours: [], muet: false, paquet: "tout" });
+  fois: {}, jours: [], surprises: {}, gardes: {}, muet: false, paquet: "tout" });
 
 // La fin d'une partie. jeux : ce que le téléphone garde ; partie : { jeu, paquet, score, ok, ko, serie (la meilleure),
 // trouves : les identifiants des mots trouvés }. Renvoie le nouvel état, si le record du paquet est battu, l'ancien record,
@@ -133,6 +134,7 @@ export function apresPartie(jeux, partie, jour, { trophees = true } = {}) {
   const fois = { ...avant.fois };
   for (const id of new Set(partie.trouves || [])) fois[id] = (fois[id] || 0) + 1;
   const ampoule = !avant.jours.includes(jour);
+  const attrapesAvant = attrapes(avant);
   const apres = {
     ...avant,
     records: record ? { ...avant.records, [cleRecord]: partie.score } : avant.records,
@@ -143,6 +145,7 @@ export function apresPartie(jeux, partie, jour, { trophees = true } = {}) {
     sansFaute: avant.sansFaute || (partie.ko === 0 && partie.ok >= 15),
     fois,
     jours: ampoule ? [...avant.jours, jour] : avant.jours,
+    surprises: partie.surprise ? { ...avant.surprises, [partie.surprise]: jour } : avant.surprises,
   };
   const gagne = t => t.id === "premier" ? true
     : t.score ? apres.meilleur >= t.score
@@ -152,7 +155,10 @@ export function apresPartie(jeux, partie, jour, { trophees = true } = {}) {
     : false;
   const nouveaux = trophees ? TROPHEES.filter(t => !avant.trophees[t.id] && gagne(t)) : [];
   if (nouveaux.length) apres.trophees = { ...avant.trophees, ...Object.fromEntries(nouveaux.map(t => [t.id, jour])) };
-  return { jeux: apres, record, ancien, ampoule, trophees: nouveaux };
+  // Les mots attrapés à l'instant (trouvés dans une 3e partie), et Chispa qui change de couleur.
+  const nouveauxAttrapes = [...new Set(partie.trouves || [])].filter(id => fois[id] === ATTRAPE);
+  const mue = etape(attrapes(apres)).i > etape(attrapesAvant).i;
+  return { jeux: apres, record, ancien, ampoule, trophees: nouveaux, attrapes: nouveauxAttrapes, mue };
 }
 
 // La guirlande de la semaine : une ampoule par jour joué, du lundi au dimanche. Rien ne retombe à zéro :
@@ -168,3 +174,42 @@ export function semaine(jours, jour) {
   for (const j of joues) parSemaine[lundiDe(j)] = (parSemaine[lundiDe(j)] || 0) + 1;
   return { ampoules, auj: (midi(jour).getDay() + 6) % 7, n: ampoules.filter(Boolean).length, meilleure: Math.max(0, ...Object.values(parSemaine)) };
 }
+
+// ——— Chispa change de couleur : les mots « attrapés » ———
+// Un mot est attrapé quand il a été trouvé juste dans 3 parties différentes. Pour faire changer Chispa, il faut donc
+// des mots nouveaux, pas rejouer les mêmes. Elle ne redescend jamais. Rien ici ne touche à la révision.
+export const ATTRAPE = 3;
+export const ETAPES = [
+  { nom: "naranja", seuil: 0 }, { nom: "roja", seuil: 40 }, { nom: "fucsia", seuil: 120 },
+  { nom: "violeta", seuil: 250 }, { nom: "azul", seuil: 450 }, { nom: "arcoíris", seuil: 750 },
+];
+export const attrapes = jeux => Object.values(jeux?.fois || {}).filter(n => n >= ATTRAPE).length;
+// L'étape de Chispa pour n mots attrapés : { i, nom, seuil, suivant (l'étape d'après ou null), part (0 à 1 vers la suivante) }.
+export function etape(n) {
+  const i = ETAPES.reduce((r, e, k) => (n >= e.seuil ? k : r), 0);
+  const suivant = ETAPES[i + 1] || null;
+  return { i, ...ETAPES[i], suivant, part: suivant ? (n - ETAPES[i].seuil) / (suivant.seuil - ETAPES[i].seuil) : 1 };
+}
+
+// ——— Le mot surprise ———
+// Une fois par partie, un mot des prochaines leçons du livre, à deviner par élimination parmi des mots connus.
+// Au plus 2 mots gardés par jour : ensuite, plus de mot surprise ce jour-là.
+export const GARDES_PAR_JOUR = 2;
+export const peutSurprendre = (jeux, jour) => ((jeux?.gardes || {})[jour] || 0) < GARDES_PAR_JOUR;
+// aVenir : les mots pas encore vus, de la leçon la plus proche à la plus lointaine ; connus : les mots du paquet.
+// On prend le premier qui n'a pas déjà été montré aujourd'hui, dont le sens ne ressemble à aucun mot connu,
+// et qui a 3 fausses réponses possibles. null s'il n'y en a pas.
+export function motSurprise(aVenir, connus, jeux, jour, hasard = Math.random) {
+  if (!peutSurprendre(jeux, jour) || connus.length < SEUIL) return null;
+  const sens = new Set(connus.map(m => cle(court(m.fr))));
+  const deja = (jeux?.surprises) || {};
+  const possibles = (aVenir || []).slice(0, 40).filter(m => m.es && m.fr && !sens.has(cle(court(m.fr))));
+  const choix = possibles.find(m => deja[m.id] !== jour) || null;
+  return choix && fausses(choix, connus, hasard).length === 3 ? choix : null;
+}
+// « Je le garde » : compte le mot gardé du jour (le mot lui-même passe par apprendreEnAvance, comme dans le Dico).
+export function garderSurprise(jeux, jour) {
+  const avant = { ...JEUX_VIDE(), ...jeux };
+  return { ...avant, gardes: { [jour]: (avant.gardes[jour] || 0) + 1 } };
+}
+export const BONUS_SURPRISE = 30;

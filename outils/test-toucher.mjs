@@ -16,10 +16,10 @@ const memoire = {};
 globalThis.localStorage = { getItem: k => memoire[k] ?? null, setItem: (k, v) => { memoire[k] = String(v); } };
 
 const { lireCsv, versMots } = await import(path.join(tmp, "donnees.js"));
-const T = await import(path.join(tmp, "toucher.js?v=48"));
-const { EXERCICES } = await import(path.join(tmp, "exercices.js?v=48"));
-const { BONUS } = await import(path.join(tmp, "bonus.js?v=48"));
-const { TEXTES } = await import(path.join(tmp, "lectures.js?v=48"));
+const T = await import(path.join(tmp, "toucher.js?v=49"));
+const { EXERCICES } = await import(path.join(tmp, "exercices.js?v=49"));
+const { BONUS } = await import(path.join(tmp, "bonus.js?v=49"));
+const { TEXTES } = await import(path.join(tmp, "lectures.js?v=49"));
 
 const csv = process.argv[2]
   ? fs.readFileSync(process.argv[2], "utf8")

@@ -2,17 +2,19 @@
 //   #/jeux                 la salle : la guirlande de la semaine, Chispa, les stands
 //   #/jeux/montre          avant la partie : avec quels mots ?
 //   #/jeux/montre/partie   le Contre la montre : un mot en espagnol, 4 sens en français, 60 secondes
-//   #/jeux/montre/fin      le score, le record, les mots qui ont échappé
+//   #/jeux/montre/fin      le score, le record, le mot apporté par Chispa, les mots attrapés, les trophées
+//   #/jeux/trophees        les rosettes
+//   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=48";
-import { UNITES } from "../position.js?v=48";
-import { motsAMoi } from "../dico.js?v=48";
-import { cases, apprisEnAvance, etatJeux, garderJeux } from "../progression.js?v=48";
-import { dire, taire } from "../voix.js?v=48";
-import { chispa } from "../mascotte.js?v=48";
-import * as J from "../jeux.js?v=48";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=49";
+import { UNITES } from "../position.js?v=49";
+import { motsAMoi, motsAVenir } from "../dico.js?v=49";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=49";
+import { dire, taire } from "../voix.js?v=49";
+import { chispa } from "../mascotte.js?v=49";
+import * as J from "../jeux.js?v=49";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -20,6 +22,9 @@ let minuteurs = [], image = 0, coupe = null;
 
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const jeux = () => ({ ...J.JEUX_VIDE(), ...etatJeux() });
+// La couleur de Chispa : son étape, selon les mots attrapés.
+const couleur = () => J.etape(J.attrapes(jeux())).i;
+const flamme = (humeur, taille) => chispa(humeur, taille, couleur());
 const $ = (s, r = document) => r.querySelector(s);
 const plusTard = (f, ms) => minuteurs.push(setTimeout(f, ms));
 function arreter() {
@@ -32,6 +37,7 @@ function arreter() {
 
 const svg = corps => `<svg viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const I = {
+  etoile: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.8 1.6 7L12 17.5 5.8 21.1l1.6-7L2 9.3l7.1-.7z"/></svg>',
   son: svg('<path d="M4 9.5v5h4l5 4.5v-14L8 9.5zM16.5 9a4.5 4.5 0 0 1 0 6M19 6.5a8 8 0 0 1 0 11"/>'),
   muet: svg('<path d="M4 9.5v5h4l5 4.5v-14L8 9.5zM17 9.5l5 5M22 9.5l-5 5"/>'),
 };
@@ -118,8 +124,9 @@ function vueSalle(ctx, d) {
     onglet: "jeux",
     html: `<div class="feria f-salle${entree ? " entree" : ""}">${g.html}
         <div class="f-haut"><h1>La Feria</h1>${boutonMuet()}</div>
-        <div class="f-accueil">${chispa(lecon ? "idle" : "joie", 2)}<p class="f-bulle">${bulle}</p></div>${bilan}
+        <div class="f-accueil"><a href="#/jeux/chispa" aria-label="Voir Chispa">${flamme(lecon ? "idle" : "joie", 2)}</a><p class="f-bulle">${bulle}</p></div>${bilan}
         <div class="f-stands">${stand}
+          ${vitrine()}
           <div class="f-petits">${ferme("La course de verbes", "venir · tú : la bonne forme, vite", "Le prochain jeu")}${ferme("Les paires", "5 mots, 5 sens, 3 vagues")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("À deux", "Avec Blanca ou Dorian")}</div>
         </div>
       </div>${barreOnglets("jeux")}`,
@@ -140,7 +147,7 @@ function vuePret(ctx, d) {
         <div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Contre la montre</h1></div>
         <p class="f-regle">Tu entends un mot, tu touches son sens. <b>3 de suite : ×2. 6 : ×3. 10 : ¡FUEGO! ×5.</b> Une erreur, et le compteur repart à ×1.</p>
         <div><h2>Avec quels mots ?</h2><div class="f-paquets">${d.paquets.map(ligne).join("")}</div></div>
-        <div class="f-bas">${chispa("idle", 1)}<a class="f-btn gros" href="#/jeux/montre/partie">¡Vamos!</a></div>
+        <div class="f-bas">${flamme("idle", 1)}<a class="f-btn gros" href="#/jeux/montre/partie">¡Vamos!</a></div>
       </div>`,
     apres: brancher,
   };
@@ -154,7 +161,7 @@ function vuePartie(ctx, d) {
         <div class="f-hud"><a class="f-rond" href="#/jeux/montre" data-arriere aria-label="Arrêter la partie">${ICONES.fermer}</a>
           <div class="f-temps" role="timer" aria-label="Temps restant"><i></i></div>${boutonMuet()}</div>
         <div class="f-points"><div class="f-score" aria-label="Score">0</div><div class="f-combo"><span class="f-multi un">×1</span><span class="f-pions"><i></i><i></i><i></i></span></div></div>
-        <div class="f-carte">${chispa("idle", 0)}<p class="f-mot" lang="es"></p><button class="f-son" data-j="redire" aria-label="Réécouter">${ICONES.play}</button></div>
+        <div class="f-carte"><span class="f-etiquette">${I.etoile}Mot surprise · devine !</span>${flamme("idle", 0)}<p class="f-mot" lang="es"></p><button class="f-son" data-j="redire" aria-label="Réécouter">${ICONES.play}</button></div>
         <div class="f-reponses"></div>
         <div class="f-decompte"><b>3</b></div>
       </div>`,
@@ -173,7 +180,9 @@ function humeur(h, duree) {
 function lancer(ctx, paquet) {
   const racine = $(".f-partie");
   partie = { ctx, racine, paquet, mots: paquet.mots, tirer: J.creerPioche(paquet.mots), q: null,
-    score: 0, combo: 0, serie: 0, ok: 0, ko: 0, rates: [], trouves: [], bloque: true, fin: 0, pause: 0, tics: 5 };
+    score: 0, combo: 0, serie: 0, ok: 0, ko: 0, rates: [], trouves: [], bloque: true, fin: 0, pause: 0, tics: 5,
+    // Le mot surprise : un mot des prochaines leçons, posé une fois, entre la 5e et la 7e question.
+    n: 0, surpriseA: 4 + Math.floor(Math.random() * 3), surprise: J.motSurprise(motsAVenir(ctx), paquet.mots, jeux(), ctx.jour), montre: null, apporte: null, devine: false };
   const p = partie;
   // Si on quitte l'appli (écran éteint, autre appli), le chrono attend.
   coupe = new AbortController();
@@ -200,8 +209,11 @@ function lancer(ctx, paquet) {
 function poser() {
   const p = partie;
   if (!p || !p.racine.isConnected) return;
-  p.q = J.question(p.tirer(), p.mots);
+  const surprise = p.n++ === p.surpriseA && p.surprise;
+  p.q = surprise ? { ...J.question(p.surprise, p.mots), surprise: true } : J.question(p.tirer(), p.mots);
+  if (surprise) p.montre = p.surprise;
   const carte = $(".f-carte", p.racine), mot = $(".f-mot", p.racine);
+  carte.classList.toggle("surprise", !!surprise);
   mot.textContent = p.q.mot.es; mot.classList.toggle("long", p.q.mot.es.length > 16);
   carte.classList.remove("arrive"); void carte.offsetWidth; carte.classList.add("arrive");
   $(".f-reponses", p.racine).innerHTML = p.q.reponses.map((r, i) => `<button class="f-rep" data-j="rep" data-i="${i}">${esc(r.texte)}</button>`).join("");
@@ -234,6 +246,7 @@ function repondre(bouton) {
   const p = partie;
   if (!p || p.bloque || !p.q) return;
   const r = p.q.reponses[Number(bouton.dataset.i)];
+  if (p.q.surprise) return repondreSurprise(bouton, r.juste);
   if (r.juste) {
     const avant = J.multi(p.combo);
     p.combo++; p.ok++; p.serie = Math.max(p.serie, p.combo); p.trouves.push(p.q.mot.id);
@@ -268,14 +281,33 @@ function repondre(bouton) {
   }
 }
 
+// Le mot surprise : un bonus si on devine, et le combo n'est jamais cassé (on ne pouvait pas le savoir).
+// Il ne compte ni dans les erreurs, ni dans les mots qui ont échappé, ni dans les mots attrapés.
+function repondreSurprise(bouton, juste) {
+  const p = partie;
+  p.apporte = p.q.mot; p.devine = juste;
+  p.racine.querySelectorAll(".f-rep").forEach(b => {
+    if (p.q.reponses[Number(b.dataset.i)].juste) b.classList.add("juste"); else b.classList.add(b === bouton ? "faux" : "pale");
+  });
+  if (juste) {
+    p.score += J.BONUS_SURPRISE;
+    const sc = $(".f-score", p.racine);
+    sc.firstChild.textContent = p.score;
+    $(".f-plus", sc)?.remove(); sc.insertAdjacentHTML("beforeend", `<span class="f-plus" aria-hidden="true">+${J.BONUS_SURPRISE} bonus</span>`);
+    humeur("joie", 900); SONS.palier(); vibrer(15);
+  } else SONS.rate();
+  p.bloque = true; plusTard(() => { p.bloque = false; poser(); }, juste ? 600 : 1100);
+}
+
 function finir() {
   const p = partie;
-  // Les compteurs (mots trouvés, séries, jours joués) sont tenus dès maintenant ; les trophées et les couleurs de Chispa
-  // arrivent au lot suivant et s'en serviront.
-  const r = J.apresPartie(jeux(), { jeu: "montre", paquet: p.paquet.id, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, trouves: p.trouves }, p.ctx.jour, { trophees: false });
+  const r = J.apresPartie(jeux(), { jeu: "montre", paquet: p.paquet.id, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, trouves: p.trouves, surprise: p.montre?.id }, p.ctx.jour);
   garderJeux(r.jeux);
-  derniere = { score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, record: r.record, ancien: r.ancien, ampoule: r.ampoule, fete: true,
-    rates: p.rates.filter((m, i, t) => t.indexOf(m) === i).slice(0, 6) };
+  const parId = new Map(p.mots.map(m => [m.id, m]));
+  derniere = { jour: p.ctx.jour, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, record: r.record, ancien: r.ancien, ampoule: r.ampoule, fete: true,
+    rates: p.rates.filter((m, i, t) => t.indexOf(m) === i).slice(0, 6),
+    apporte: p.apporte, devine: p.devine, garde: null,
+    attrapes: r.attrapes.map(id => parId.get(id)?.es).filter(Boolean), mue: r.mue, trophees: r.trophees };
   arreter();
   location.replace("#/jeux/montre/fin");
 }
@@ -290,10 +322,13 @@ function vueFin() {
   return {
     onglet: null,
     html: `<div class="feria f-fin"><div class="f-corps">
-        <div class="f-podium">${chispa(g.record ? "joie" : "idle", g.record ? 3 : 1)}<div><h1>${h1}</h1>${sous ? `<p>${sous}</p>` : ""}</div></div>
+        <div class="f-podium">${flamme(g.record || g.mue ? "joie" : "idle", g.record || g.mue ? 3 : 1)}<div><h1>${h1}</h1>${sous ? `<p>${sous}</p>` : ""}</div></div>
         <div class="f-total">${g.record ? `<span class="f-nouveau">Record battu</span>` : ""}
           <div class="f-gros"><b data-compte>${g.fete ? 0 : g.score}</b><span>ton record<i>${Math.max(g.ancien, g.score)}</i></span></div>
           <div class="f-chiffres"><div><b>${g.ok}</b>mot${g.ok > 1 ? "s" : ""} trouvé${g.ok > 1 ? "s" : ""}</div><div><b>${g.serie}</b>de suite, au mieux</div><div><b>${g.ko}</b>erreur${g.ko > 1 ? "s" : ""}</div></div></div>
+        ${carteApporte(g)}
+        ${braises(g)}
+        ${g.trophees.map(t => `<div class="f-gagne">${rosette(t.couleur)}<div><b>${esc(t.nom)}</b>Nouveau trophée · ${esc(t.quoi)}</div></div>`).join("")}
         ${rates}
       </div><div class="f-bas"><a class="f-btn gros" href="#/jeux/montre/partie" data-remplace>Encore une !</a><a class="f-retour" href="#/jeux" data-remplace>Retour à la Feria</a></div></div>`,
     apres: () => { brancher(); feter(); },
@@ -340,6 +375,83 @@ function confettis() {
   requestAnimationFrame(pas);
 }
 
+// ——— le mot apporté par Chispa, les mots attrapés, les trophées ———
+function carteApporte(g) {
+  const m = g.apporte;
+  if (!m) return "";
+  const suite = g.garde === "oui"
+    ? `<p class="f-suite">Gardé ! Tu le reverras demain dans « Tes mots à revoir », puis dans les jeux.${J.peutSurprendre(jeux(), g.jour) ? "" : " C'était ton 2e mot du jour : le prochain viendra demain."}</p>`
+    : g.garde === "non" ? `<p class="f-suite">D'accord. Tu le verras avec le prof, à sa leçon.</p>`
+    : `<div class="f-deux"><button data-j="garder">Je le garde</button><button data-j="pasgarder">Pas maintenant</button></div>`;
+  return `<div class="f-apporte"><span class="f-k">${I.etoile}${g.devine ? "Bien deviné !" : "Chispa t'a apporté un mot"} · ${id(m.lecon)}</span>
+    <p class="f-es"><span lang="es">${esc(m.es)}</span><button data-dire="${esc(m.es)}" aria-label="Écouter : ${esc(m.es)}" aria-pressed="false">${ICONES.play}</button></p>
+    <p class="f-fr">${esc(m.fr)}</p>${m.ex ? `<p class="f-ex" lang="es">${esc(m.ex)}</p>` : ""}${suite}</div>`;
+}
+
+// « Je le garde » : le mot du livre est appris en avance, comme depuis le Dico (révision dès demain).
+function garder(oui, carte) {
+  const g = derniere;
+  if (!g?.apporte || g.garde) return;
+  g.garde = oui ? "oui" : "non";
+  if (oui) { apprendreEnAvance(g.apporte.id, g.jour); garderJeux(J.garderSurprise(jeux(), g.jour)); vibrer(12); }
+  if (carte) carte.outerHTML = carteApporte(g);
+}
+
+const jauge = part => `<span class="f-jauge"><i style="width:${Math.round(Math.max(0, Math.min(1, part)) * 100)}%"></i></span>`;
+function braises(g) {
+  const n = J.attrapes(jeux()), e = J.etape(n);
+  const titreB = g.mue ? `Chispa devient ${e.nom} !` : g.attrapes.length ? `+${g.attrapes.length} mot${g.attrapes.length > 1 ? "s" : ""} attrapé${g.attrapes.length > 1 ? "s" : ""}` : "Pas de nouveau mot attrapé";
+  const detail = g.attrapes.length ? `<span lang="es">${g.attrapes.slice(0, 4).map(esc).join(", ")}${g.attrapes.length > 4 ? "…" : ""}</span>`
+    : `Un mot est attrapé à la ${J.ATTRAPE}e partie où tu le trouves.`;
+  return `<a class="f-braises${g.mue ? " mue" : ""}" href="#/jeux/chispa">${flamme(g.mue ? "joie" : "idle", 3)}<span><b>${titreB}</b>${detail}
+    ${jauge(e.part)}${e.suivant ? `${n} sur ${e.suivant.seuil} pour Chispa ${e.suivant.nom}` : `${n} mots attrapés`}</span></a>`;
+}
+
+// Une rosette de fête, gagnée (pleine) ou à gagner (en pointillés).
+function rosette(c, gagne = true) {
+  if (!gagne) return `<svg class="f-rosette" viewBox="0 0 44 52" aria-hidden="true"><circle cx="22" cy="20" r="16" fill="none" stroke="#9C8450" stroke-width="2" stroke-dasharray="4 4"/><path d="M15 34l-4 14 8-4 3 6M29 34l4 14-8-4-3 6" fill="none" stroke="#9C8450" stroke-width="2" stroke-dasharray="4 4" stroke-linejoin="round"/></svg>`;
+  const petales = Array.from({ length: 10 }, (_, i) => `<circle cx="${(22 + 15 * Math.cos(i * Math.PI / 5)).toFixed(1)}" cy="${(20 + 15 * Math.sin(i * Math.PI / 5)).toFixed(1)}" r="5.2"/>`).join("");
+  return `<svg class="f-rosette" viewBox="0 0 44 52" aria-hidden="true"><path d="M14 30l-5 20 9-5 4 7 4-18zM30 30l5 20-9-5-4 7-4-18z" fill="${c}" opacity=".75"/><g fill="${c}">${petales}<circle cx="22" cy="20" r="15"/></g><circle cx="22" cy="20" r="10" fill="#FFF6E0"/><path d="M17 20.5l3.5 3.5 6.5-7" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+function vitrine() {
+  const j = jeux(), n = J.TROPHEES.filter(t => j.trophees[t.id]).length;
+  return `<a class="f-vitrine" href="#/jeux/trophees"><span class="f-rosettes">${J.TROPHEES.slice(0, 4).map(t => rosette(t.couleur, !!j.trophees[t.id])).join("")}</span>
+    <span><b>Tes trophées</b>${n} sur ${J.TROPHEES.length}</span>${ICONES.chevron}</a>`;
+}
+
+function vueTrophees() {
+  const j = jeux();
+  const ligne = t => {
+    const ok = !!j.trophees[t.id];
+    const val = t.score ? j.meilleur : t.trouves ? j.trouves : 0, max = t.score || t.trouves;
+    const reste = !ok && max ? ` · ${val.toLocaleString("fr-FR")} sur ${max.toLocaleString("fr-FR")}${jauge(val / max)}` : "";
+    return `<li class="${ok ? "" : "pas"}">${rosette(t.couleur, ok)}<span><b>${esc(t.nom)}</b>${esc(t.quoi)}${reste}</span>${ok ? "<em>gagné</em>" : ""}</li>`;
+  };
+  return {
+    onglet: "jeux",
+    html: `<div class="feria f-page"><div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Tes trophées</h1></div>
+        <p class="f-note">Des rosettes, comme à la feria. Elles se gagnent en jouant.</p>
+        <ul class="f-liste">${J.TROPHEES.map(ligne).join("")}</ul>
+      </div>${barreOnglets("jeux")}`,
+    apres: brancher,
+  };
+}
+
+function vueChispa() {
+  const n = J.attrapes(jeux()), e = J.etape(n);
+  return {
+    onglet: "jeux",
+    html: `<div class="feria f-page"><div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Chispa</h1></div>
+        <div class="f-scene">${flamme("joie", 3)}</div>
+        <div class="f-fiche"><h2>Chispa ${e.nom}</h2><p>${n} mot${n > 1 ? "s" : ""} attrapé${n > 1 ? "s" : ""}${e.suivant ? ` · Chispa ${e.suivant.nom} à ${e.suivant.seuil}` : ""}</p>${jauge(e.part)}</div>
+        <div class="f-etapes">${J.ETAPES.map((x, i) => `<div class="${i === e.i ? "ici" : i > e.i ? "loin" : ""}">${chispa("idle", 3, i)}${x.nom}<br>${x.seuil ? `${x.seuil} mots` : "début"}</div>`).join("")}</div>
+        <p class="f-note">Un mot est « attrapé » quand tu l'as trouvé juste dans ${J.ATTRAPE} parties différentes. Pour faire changer Chispa, il faut donc des mots nouveaux : ceux de tes prochaines leçons. Elle ne redescend jamais, et ta révision n'est pas touchée.</p>
+      </div>${barreOnglets("jeux")}`,
+    apres: brancher,
+  };
+}
+
 // ——— les touchers propres à la Feria (le reste, liens et « écouter », est géré par app.js) ———
 function brancher() {
   document.querySelector('meta[name="theme-color"]').content = "#F7B91C";
@@ -356,6 +468,7 @@ function brancher() {
       b.outerHTML = boutonMuet();
       return;
     }
+    if (quoi === "garder" || quoi === "pasgarder") return garder(quoi === "garder", b.closest(".f-apporte"));
     if (quoi === "paquet") {
       garderJeux({ ...jeux(), paquet: b.dataset.id });
       racine.querySelectorAll('[data-j="paquet"]').forEach(x => x.setAttribute("aria-pressed", String(x === b)));
@@ -366,6 +479,8 @@ function brancher() {
 export function ecranJeux(ctx, quoi, etape) {
   arreter();
   const d = donnees(ctx);
+  if (quoi === "trophees") return vueTrophees();
+  if (quoi === "chispa") return vueChispa();
   if (quoi === "montre" && d.choisi.ouvert) {
     if (etape === "partie") return vuePartie(ctx, d);
     if (etape === "fin" && derniere) return vueFin();

@@ -140,5 +140,50 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   egal("jamais joué", [J.semaine(undefined, "2026-11-25").n, J.semaine([], "2026-11-25").meilleure], [0, 0]);
 }
 
+// 9. Les mots attrapés et les couleurs de Chispa.
+{
+  egal("étapes", [0, 39, 40, 119, 120, 749, 750, 2000].map(n => J.etape(n).nom), ["naranja", "naranja", "roja", "roja", "fucsia", "azul", "arcoíris", "arcoíris"]);
+  egal("vers l'étape suivante", [J.etape(20).part, J.etape(800).suivant, J.etape(800).part], [0.5, null, 1]);
+  let jeux;
+  for (let i = 0; i < 2; i++) jeux = J.apresPartie(jeux, { jeu: "montre", paquet: "tout", score: 10, ok: 1, ko: 0, serie: 1, trouves: ["a", "b"] }, `2026-11-2${i}`).jeux;
+  egal("pas encore attrapé à 2 parties", J.attrapes(jeux), 0);
+  const r = J.apresPartie(jeux, { jeu: "montre", paquet: "tout", score: 10, ok: 1, ko: 0, serie: 1, trouves: ["a", "a", "c"] }, "2026-11-23");
+  egal("attrapé à la 3e partie, une seule fois", [r.attrapes, J.attrapes(r.jeux)], [["a"], 1]);
+  const r2 = J.apresPartie(r.jeux, { jeu: "montre", paquet: "tout", score: 10, ok: 1, ko: 0, serie: 1, trouves: ["a"] }, "2026-11-24");
+  egal("un mot déjà attrapé ne compte pas deux fois", [r2.attrapes, J.attrapes(r2.jeux)], [[], 1]);
+  const fois = Object.fromEntries(Array.from({ length: 39 }, (_, i) => [`m${i}`, 3]));
+  const r3 = J.apresPartie({ fois: { ...fois, x: 2 } }, { jeu: "montre", paquet: "tout", score: 10, ok: 1, ko: 0, serie: 1, trouves: ["x"] }, "2026-11-25");
+  egal("le 40e mot attrapé : Chispa devient roja", [J.attrapes(r3.jeux), r3.mue, J.etape(J.attrapes(r3.jeux)).nom], [40, true, "roja"]);
+  egal("pas de mue sans changement d'étape", r2.mue, false);
+}
+
+// 10. Le mot surprise, sur le vrai livre.
+{
+  const faites = new Set(LECONS.slice(0, 6));
+  const connus = J.motsConnus({ mots, faites });
+  const aVenir = mots.filter(m => !faites.has(m.lecon)).sort((a, b) => LECONS.indexOf(a.lecon) - LECONS.indexOf(b.lecon));
+  const jour = "2026-11-25";
+  const s1 = J.motSurprise(aVenir, connus, {}, jour, graine(1));
+  if (!s1 || faites.has(s1.lecon)) faux("le mot surprise doit venir d'une leçon pas faite", s1?.es);
+  else {
+    egal("le premier mot de la leçon suivante", s1.lecon, LECONS[6]);
+    const q = J.question(s1, connus, graine(2));
+    if (q.reponses.filter(r => r.juste).length !== 1 || q.reponses.some(r => !r.juste && !faites.has(r.mot.lecon))) faux("le mot surprise : 3 fausses réponses connues, une seule juste");
+    const sens = new Set(connus.map(m => J.court(m.fr).toLowerCase()));
+    if (sens.has(J.court(s1.fr).toLowerCase())) faux("le mot surprise a le sens d'un mot connu");
+    // Déjà montré aujourd'hui : on passe au suivant.
+    const r = J.apresPartie(undefined, { jeu: "montre", paquet: "tout", score: 10, ok: 1, ko: 0, serie: 1, trouves: [], surprise: s1.id }, jour);
+    const s2 = J.motSurprise(aVenir, connus, r.jeux, jour, graine(3));
+    if (!s2 || s2 === s1) faux("le même mot surprise deux fois le même jour");
+    egal("le lendemain, il peut revenir", J.motSurprise(aVenir, connus, r.jeux, "2026-11-26", graine(3))?.id, s1.id);
+    // 2 mots gardés : plus de surprise ce jour-là, mais le lendemain si.
+    const g = J.garderSurprise(J.garderSurprise(r.jeux, jour), jour);
+    egal("2 gardés par jour au plus", [J.peutSurprendre(J.garderSurprise(r.jeux, jour), jour), J.motSurprise(aVenir, connus, g, jour), J.peutSurprendre(g, "2026-11-26")], [true, null, true]);
+    egal("garder ne retient que le jour même", J.garderSurprise(g, "2026-11-26").gardes, { "2026-11-26": 1 });
+  }
+  egal("pas assez de mots : pas de surprise", J.motSurprise(aVenir, connus.slice(0, 5), {}, jour), null);
+  egal("plus rien à venir : pas de surprise", J.motSurprise([], connus, {}, jour), null);
+}
+
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");
 process.exit(erreurs ? 1 : 0);

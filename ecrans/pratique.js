@@ -7,21 +7,21 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=48";
-import { lecon as trouver } from "../position.js?v=48";
-import { EXERCICES } from "../exercices.js?v=48";
-import { corriger } from "../corriger.js?v=48";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=48";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=48";
-import { BONUS } from "../bonus.js?v=48";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=48";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=48";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=48";
-import { vibrer, son } from "../retours.js?v=48";
+import { esc, md, id, ICONES } from "../ui.js?v=49";
+import { lecon as trouver } from "../position.js?v=49";
+import { EXERCICES } from "../exercices.js?v=49";
+import { corriger } from "../corriger.js?v=49";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=49";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=49";
+import { BONUS } from "../bonus.js?v=49";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=49";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=49";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=49";
+import { vibrer, son } from "../retours.js?v=49";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=48";
+} from "../enregistrement.js?v=49";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));

@@ -1,6 +1,8 @@
 // Petits outils partagés par les écrans : échappement, mise en forme, icônes dessinées.
 
-import { chispa } from "./mascotte.js?v=48";
+import { chispa } from "./mascotte.js?v=49";
+import { etatJeux } from "./progression.js?v=49";
+import { attrapes, etape } from "./jeux.js?v=49";
 
 export const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
@@ -36,5 +38,5 @@ export function barreOnglets(actif) {
   // « Jeux » : la porte de la Feria, avec Chispa à la place du petit trait.
   const onglet = (cle, href, nom, avant = "") =>
     `<a href="${href}" class="onglet${avant ? ` ${cle}` : ""}${actif === cle ? " on" : ""}"${actif === cle ? ' aria-current="page"' : ""}>${avant}${nom}</a>`;
-  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("dico", "#/dico", "Dico")}${onglet("soir", "#/soir", "Ce soir")}${onglet("jeux", "#/jeux", "Jeux", chispa("idle", 3))}</nav>`;
+  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("dico", "#/dico", "Dico")}${onglet("soir", "#/soir", "Ce soir")}${onglet("jeux", "#/jeux", "Jeux", chispa("idle", 3, etape(attrapes(etatJeux())).i))}</nav>`;
 }

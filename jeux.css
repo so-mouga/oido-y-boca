@@ -197,6 +197,73 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .f-fin .f-bas .f-retour { font-weight: 600; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 4px; }
 .f-confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
+/* le mot surprise : la carte passe au bleu marine */
+.f-etiquette { display: none; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; background: var(--sol); color: var(--marine); border-radius: 999px; padding: 4px 12px 4px 8px; flex: none; }
+.f-etiquette svg { width: 16px; height: 16px; fill: var(--marine); }
+.f-carte.surprise { background: var(--marine); color: var(--crema); }
+.f-carte.surprise .f-etiquette { display: flex; animation: f-feu .5s var(--ease) both; }
+.f-carte.surprise .f-son { background: #2A4268; }
+.f-carte.surprise .f-son svg { fill: var(--crema); }
+
+/* la fin : le mot apporté, les mots attrapés, les trophées gagnés */
+.f-apporte { background: var(--marine); color: var(--crema); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.f-k { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--sol); }
+.f-k svg { width: 16px; height: 16px; fill: var(--sol); flex: none; }
+.f-es { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 26px; font-weight: 600; line-height: 1.15; }
+.f-es button { width: 44px; height: 44px; border-radius: 50%; background: #2A4268; display: grid; place-items: center; flex: none; }
+.f-es button svg { width: 16px; height: 16px; fill: var(--crema); }
+.f-es button.on { box-shadow: 0 0 0 4px var(--sol); }
+.f-fr { font-size: 16px; }
+.f-ex { font-size: 14px; color: #C9D3E4; font-style: italic; }
+.f-deux { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.f-deux button { border-radius: 14px; padding: 13px 8px; font-weight: 600; font-size: 15px; background: var(--sol); color: var(--marine); }
+.f-deux button + button { background: none; box-shadow: inset 0 0 0 1.5px #5A7099; color: var(--crema); }
+.f-suite { font-size: 14px; color: #C9D3E4; margin-top: 4px; }
+.f-braises { display: flex; align-items: center; gap: 12px; background: var(--crema); border-radius: 20px; padding: 12px 16px 12px 10px; }
+.f-braises .m { width: 62px; height: 62px; flex: none; }
+.f-braises.mue .m { animation: f-mue 1s var(--ease) 1.1s both; }
+@keyframes f-mue { 30% { transform: scale(.6) rotate(-8deg); } 60% { transform: scale(1.25) rotate(4deg); } }
+.f-braises > span { flex: 1; font-size: 13px; line-height: 1.35; color: var(--marine-soft); }
+.f-braises b { display: block; font-weight: 600; font-size: 16px; color: var(--marine); }
+.f-jauge { display: block; height: 8px; border-radius: 4px; background: var(--sun-deep); margin: 7px 0 4px; overflow: hidden; }
+.f-jauge i { display: block; height: 100%; background: var(--marine); border-radius: 4px; }
+.f-gagne { display: flex; align-items: center; gap: 12px; background: var(--marine); color: var(--crema); border-radius: 18px; padding: 12px 14px; animation: f-bulle .5s var(--ease) 1.2s both; }
+.f-gagne div { font-size: 13.5px; line-height: 1.35; color: #C9D3E4; }
+.f-gagne b { display: block; font-weight: 600; font-size: 16px; color: var(--crema); }
+.f-rosette { width: 40px; height: 48px; flex: none; }
+
+/* la salle : Chispa se touche, la vitrine des trophées */
+.f-accueil > a { flex: none; border-radius: 50%; }
+.f-vitrine { display: flex; align-items: center; gap: 12px; background: var(--sol-fonce); border-radius: 18px; padding: 12px 14px; }
+.f-rosettes { display: flex; }
+.f-rosettes .f-rosette { width: 34px; height: 40px; margin-right: -8px; }
+.f-vitrine > span:not(.f-rosettes) { flex: 1; font-size: 14px; line-height: 1.3; margin-left: 8px; }
+.f-vitrine b { display: block; font-weight: 600; font-size: 15px; }
+.f-vitrine > svg { width: 20px; height: 20px; }
+
+/* les pages Trophées et Chispa */
+.f-page { padding: calc(env(safe-area-inset-top, 0px) + 18px) 20px 24px; gap: 14px; }
+.f-page .f-tete h1 { font-size: 32px; line-height: 1; }
+.f-note { font-size: 14px; color: var(--sol-encre); line-height: 1.45; }
+.f-liste { background: var(--crema); border-radius: 22px; overflow: hidden; }
+.f-liste li { display: flex; align-items: center; gap: 14px; padding: 12px 16px; border-top: 1px solid var(--hair); }
+.f-liste li:first-child { border-top: 0; }
+.f-liste .f-rosette { width: 44px; height: 52px; }
+.f-liste li > span { flex: 1; font-size: 13.5px; line-height: 1.35; color: var(--marine-soft); }
+.f-liste b { display: block; font-weight: 600; font-size: 16px; color: var(--marine); }
+.f-liste li.pas b { color: var(--marine-soft); }
+.f-liste em { font-style: normal; font-size: 12px; color: var(--sage-ink); font-weight: 600; white-space: nowrap; }
+.f-scene { display: grid; place-items: center; }
+.f-scene .m { width: 150px; height: 150px; }
+.f-fiche { background: var(--crema); border-radius: 22px; padding: 16px; box-shadow: 0 12px 20px -14px rgba(92, 61, 2, .55); }
+.f-fiche h2 { font-size: 24px; line-height: 1.1; }
+.f-fiche p { font-size: 13.5px; color: var(--marine-soft); }
+.f-etapes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.f-etapes div { background: var(--sol-fonce); border-radius: 16px; padding: 8px 2px 7px; text-align: center; font-size: 11.5px; font-weight: 500; color: var(--sol-encre); line-height: 1.25; border: 2.5px solid transparent; }
+.f-etapes div.ici { background: var(--crema); border-color: var(--marine); color: var(--marine); }
+.f-etapes .m { width: 54px; height: 54px; margin: 0 auto 2px; }
+.f-etapes div.loin .m { filter: grayscale(1) opacity(.45); }
+
 /* Chispa */
 .m { display: block; }
 .m svg { width: 100%; height: 100%; overflow: visible; display: block; }
