@@ -6,6 +6,7 @@
 // Les mots (décidé avec Kevin, Q12-8) : surtout des mots nouveaux, les prochains noms du livre (les 30 suivants),
 // ceux qu'il a le moins vus d'abord, avec leur sens écrit et la voix ; et 2 mots déjà connus. Un mot nouveau revient
 // deux fois dans le Repartidor (un colis, puis son étiquette). « Je le garde » les fait entrer dans la révision.
+//   Uno de dos : 8 phrases à trou, deux camions (ser / estar, qué / cuál…) ; les phrases sont dans duos.js.
 // Ce fichier n'a ni écran ni import : il se teste avec node (outils/test-missions.mjs).
 
 export const NOUVEAUX = 4;      // mots nouveaux par mission
@@ -198,14 +199,46 @@ function choisirNouveaux(aVenir, etat, jour, n, filtre = () => true) {
 }
 const unParCarte = t => { const ids = new Set(); return t.filter(x => !ids.has(x.id) && ids.add(x.id)); };
 
-// La forme du jour : le Repartidor, ou la liste de Blanca une fois les nombres vus (jamais deux jours de suite la même).
-export function formeDuJour({ faites, etat, jour, hasard }) {
-  if (!faites.has(LECON_NOMBRES)) return "repartidor";
+// La forme du jour : le Repartidor, la liste de Blanca (une fois les nombres vus), ou Uno de dos (dès que 2 duos sont
+// ouverts). Jamais deux jours de suite la même.
+export function formeDuJour({ faites, etat, jour, hasard, duos = [] }) {
+  const dispo = ["repartidor"];
+  if (faites.has(LECON_NOMBRES)) dispo.push("lista");
+  if (duosOuverts(duos, faites).length >= 2) dispo.push("duos");
+  if (dispo.length === 1) return dispo[0];
   const avant = Object.keys(etat?.jours || {}).filter(d => d < jour).sort();
   const hier = avant.length ? etat.jours[avant[avant.length - 1]].forme : null;
-  if (hier === "repartidor") return "lista";
-  if (hier === "lista") return "repartidor";
-  return hasard() < .5 ? "repartidor" : "lista";
+  const choix = dispo.filter(f => f !== hier);
+  return choix[Math.floor(hasard() * choix.length)];
+}
+
+// ——— Uno de dos : une phrase à trou, deux camions (les phrases écrites à la main sont dans duos.js) ———
+export const PHRASES_DUO = 8;
+// « Yo {soy|estoy} francés. » → { avant: "Yo ", a: "soy", b: "estoy", apres: " francés." }
+export function decouper(es) {
+  const m = /^(.*?)\{([^|}]+)\|([^}]+)\}(.*)$/.exec(es || "");
+  return m ? { avant: m[1], a: m[2], b: m[3], apres: m[4] } : null;
+}
+export const phraseComplete = (p, k = p.juste) => `${p.avant}${k === 0 ? p.a : p.b}${p.apres}`;
+export const duosOuverts = (duos, faites) => duos.filter(d => !d.lecon || faites.has(d.lecon));
+// Un duo jamais joué arrive avec sa carte « La règle » : au plus un nouveau par mission, avec 4 phrases.
+// Les autres : ceux qu'on a le moins vus. Dans chaque duo, les phrases les moins vues d'abord.
+export function unoDeDos(duos, faites, etat, jour, hasard) {
+  const ouverts = duosOuverts(duos, faites);
+  if (ouverts.length < 2) return null;
+  const cle = (d, k) => `duo:${d.id}:${k}`;
+  const vusDuo = d => d.phrases.reduce((t, _, k) => t + vusAvant(etat, cle(d, k), jour), 0);
+  const regles = etat?.regles || {};
+  const nouveau = ouverts.find(d => !regles[d.id] || regles[d.id] === jour) || null;
+  const autres = melanger(ouverts.filter(d => d !== nouveau), hasard).sort((a, b) => vusDuo(a) - vusDuo(b));
+  const choisis = (nouveau ? [nouveau, ...autres.slice(0, 2)] : autres.slice(0, 3));
+  const parts = choisis.length === 2 ? [4, 4] : nouveau ? [4, 2, 2] : [3, 3, 2];
+  const phrases = choisis.flatMap((d, i) => melanger(d.phrases.map((ph, k) => ({ ph, k })), hasard)
+    .sort((x, y) => vusAvant(etat, cle(d, x.k), jour) - vusAvant(etat, cle(d, y.k), jour))
+    .slice(0, parts[i])
+    .map(({ ph, k }) => ({ duo: d.id, nomDuo: d.nom, court: d.court, cle: cle(d, k), ...decouper(ph[0]), juste: ph[1], fr: ph[2], nv: ph[3] || "",
+      regle: d.regle[ph[1]], autre: d.regle[1 - ph[1]] })));
+  return { forme: "duos", phrases: melanger(phrases, hasard), nouveau: nouveau?.id || null, duos: choisis.map(d => d.id), mots: [], cles: phrases.map(p => p.cle) };
 }
 
 // El Repartidor : 6 colis (4 nouveaux + 2 connus, au singulier ou au pluriel), puis 3 étiquettes au pluriel (les nouveaux d'abord).
@@ -256,10 +289,10 @@ export function lista({ connus, aVenir }, etat, jour, hasard) {
 }
 
 // La mission du jour, toute prête (la même toute la journée : hasard = hasardDuJour(jour, "mision")).
-export function missionDuJour({ mots, vu, rang, faites, etat, jour, hasard }) {
+export function missionDuJour({ mots, vu, rang, faites, etat, jour, hasard, duos = [] }) {
   const noms = nomsMission(mots, vu, rang);
-  const forme = formeDuJour({ faites, etat, jour, hasard });
-  const m = forme === "lista" ? lista(noms, etat, jour, hasard) : null;
+  const forme = formeDuJour({ faites, etat, jour, hasard, duos });
+  const m = forme === "lista" ? lista(noms, etat, jour, hasard) : forme === "duos" ? unoDeDos(duos, faites, etat, jour, hasard) : null;
   return m || repartidor(noms, etat, jour, hasard);
 }
 
@@ -289,13 +322,16 @@ export function corrigerLigne(tape, ligne) {
 
 // ——— la fin : le résultat gardé, l'ampoule du jour (jeux.jours, la guirlande) ———
 // Un seul essai compte par jour ; une mission rejouée ne change rien.
-export function apresMission(jeux, { forme, ok, sur, cles = [] }, jour) {
-  const missions = { jours: {}, vus: {}, ...(jeux.missions || {}) };
-  if (missions.jours[jour]) return { jeux, ampoule: false };
+// regles : les duos joués (leur carte « La règle » ne s'affichera plus d'office), gardés même quand la mission est rejouée.
+export function apresMission(jeux, { forme, ok, sur, cles = [], regles = [] }, jour) {
+  const missions = { jours: {}, vus: {}, regles: {}, ...(jeux.missions || {}) };
+  const r = { ...missions.regles };
+  for (const id of regles) r[id] ||= jour;
+  if (missions.jours[jour]) return { jeux: regles.length ? { ...jeux, missions: { ...missions, regles: r } } : jeux, ampoule: false };
   const vus = { ...missions.vus };
   for (const c of cles) vus[c] = { n: (vus[c]?.n || 0) + 1, le: jour };
   const jours = jeux.jours || [];
   const ampoule = !jours.includes(jour);
-  return { jeux: { ...jeux, jours: ampoule ? [...jours, jour] : jours, missions: { ...missions, vus, jours: { ...missions.jours, [jour]: { forme, ok, sur } } } }, ampoule };
+  return { jeux: { ...jeux, jours: ampoule ? [...jours, jour] : jours, missions: { ...missions, vus, regles: r, jours: { ...missions.jours, [jour]: { forme, ok, sur } } } }, ampoule };
 }
 export const faiteAujourdhui = (jeux, jour) => jeux?.missions?.jours?.[jour] || null;

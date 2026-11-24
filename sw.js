@@ -1,5 +1,5 @@
 // Le service worker : garde l'appli sur le téléphone pour qu'elle s'ouvre sans réseau.
-// Son numéro de version vient de son adresse (« sw.js?v=61 », écrite dans index.html) :
+// Son numéro de version vient de son adresse (« sw.js?v=62 », écrite dans index.html) :
 // passer les imports à la version suivante change cette adresse, le navigateur installe
 // le nouveau service worker, qui remplace l'ancien et efface son cache. Rien à vider à la main.
 // Le Google Sheet n'est pas concerné : donnees.js garde déjà sa propre copie.
@@ -15,7 +15,7 @@ const FICHIERS = [
   "ui.js", "voix.js", "controles.js", "bonus.js", "dico.js", "sauvegarde-google.js", "verbes.js", "lectures.js", "clavier.js", "toucher.js", "jeux.js", "mascotte.js", "themes.js", "carnet.js", "style.css", "jeux.css",
   "ecrans/aujourdhui.js", "ecrans/controle.js", "ecrans/dico.js", "ecrans/lecon.js", "ecrans/mesmots.js", "ecrans/livre.js", "ecrans/pratique.js", "ecrans/soir.js", "ecrans/verbes.js", "ecrans/lectures.js", "ecrans/bulle.js", "ecrans/jeux.js", "ecrans/deux.js", "ecrans/caseta.js", "ecrans/chiringuito.js",
   "charla.js", "ecrans/charla.js", "charlas/index.js", "charlas/u01-05.js", "charlas/u06-10.js", "charlas/u11-15.js", "charlas/u16-20.js", "charlas/u21-25.js",
-  "missions.js", "ecrans/missions.js",
+  "missions.js", "ecrans/missions.js", "duos.js",
 ].map(f => `${f}?v=${VERSION}`);
 const AUTRES = ["./", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-masquable-512.png"];
 

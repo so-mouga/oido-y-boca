@@ -6,14 +6,15 @@
 // Pas de chrono, pas de points, pas de record. La voix dit chaque mot nouveau à son arrivée.
 // Le moteur (pluriel, genre, pièges, choix du jour, correction) est dans missions.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=61";
-import { LECONS } from "../position.js?v=61";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=61";
-import { dire, taire } from "../voix.js?v=61";
-import { chispa } from "../mascotte.js?v=61";
-import * as J from "../jeux.js?v=61";
-import { hasardDuJour } from "../charla.js?v=61";
-import * as M from "../missions.js?v=61";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=62";
+import { LECONS } from "../position.js?v=62";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=62";
+import { dire, taire } from "../voix.js?v=62";
+import { chispa } from "../mascotte.js?v=62";
+import * as J from "../jeux.js?v=62";
+import { hasardDuJour } from "../charla.js?v=62";
+import * as M from "../missions.js?v=62";
+import { DUOS } from "../duos.js?v=62";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -23,7 +24,11 @@ const RANG = Object.fromEntries(LECONS.map((l, i) => [l.id, i]));
 const rang = id => RANG[id] ?? 1e6;
 // Les explications du moteur : du texte avec seulement <i>…</i> et <b>…</b>.
 const html = t => esc(t).replace(/&lt;(\/?)([ib])&gt;/g, "<$1$2>");
-const NOMS = { repartidor: "El Repartidor", lista: "La lista de Blanca" };
+const NOMS = { repartidor: "El Repartidor", lista: "La lista de Blanca", duos: "Uno de dos" };
+const DUO = Object.fromEntries(DUOS.map(d => [d.id, d]));
+// La carte « La règle » d'un duo : 2 lignes et 2 exemples.
+const carteRegle = (d, titre = "") => `<div class="m-regle">${titre ? `<small>${titre}</small>` : ""}<h2>${esc(d.nom)}</h2>${d.carte.map(l => `<p>${html(l)}</p>`).join("")}
+  <div class="m-ex">${d.ex.map(e => `<span lang="es">${esc(e)}</span>`).join("")}</div></div>`;
 
 let P = null, derniere = null, minuteurs = [];
 const plusTard = (f, ms) => minuteurs.push(setTimeout(f, ms));
@@ -35,6 +40,7 @@ const I = {
   muet: svg('<path d="M4 9.5v5h4l5 4.5v-14L8 9.5zM17 9.5l5 5M22 9.5l-5 5"/>'),
   camion: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="9" width="16" height="12" rx="1.5"/><path d="M19 13h5l4 4v4h-9z"/><circle cx="9" cy="23" r="2.6"/><circle cx="23" cy="23" r="2.6"/></svg>',
   liste: '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="4" width="18" height="24" rx="2"/><path d="M11 11h10M11 16h10M11 21h6"/></svg>',
+  duo: '<svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 29V17M16 17L7 6M16 17l9-11M7 6h5M7 6v5M25 6h-5M25 6v5"/></svg>',
 };
 const boutonMuet = () => `<button class="f-rond" data-m="muet" aria-label="${jeux().muet ? "Remettre le son" : "Couper le son"}" aria-pressed="${jeux().muet}">${jeux().muet ? I.muet : I.son}</button>`;
 
@@ -60,18 +66,18 @@ const vibrer = ms => { try { navigator.vibrate?.(ms); } catch { /* rien */ } };
 // Un mot gardé aujourd'hui (« Je le garde ») reste « nouveau » jusqu'à demain : la mission ne change pas si on la rejoue.
 export function missionDuJour(ctx) {
   const vu = m => ctx.pos.faites.has(m.lecon) || (apprisEnAvance(m.id) && apprisEnAvance(m.id) < ctx.jour);
-  return M.missionDuJour({ mots: ctx.mots, vu, rang, faites: ctx.pos.faites, etat: jeux().missions, jour: ctx.jour, hasard: hasardDuJour(ctx.jour, "mision") });
+  return M.missionDuJour({ mots: ctx.mots, vu, rang, faites: ctx.pos.faites, etat: jeux().missions, jour: ctx.jour, hasard: hasardDuJour(ctx.jour, "mision"), duos: DUOS });
 }
 const ampouleAllumee = ctx => (jeux().jours || []).includes(ctx.jour);
-const nTaches = m => m.forme === "lista" ? m.lignes.length : m.colis.length + m.etiquettes.length;
+const nTaches = m => m.forme === "lista" ? m.lignes.length : m.forme === "duos" ? m.phrases.length : m.colis.length + m.etiquettes.length;
 
 // La carte de la salle, juste sous La Charla.
 export function standMision(ctx) {
   const m = missionDuJour(ctx);
   if (!m) return `<div class="s-jour mision attend"><span class="m-pic">${I.camion}</span><div><small>Misión del día</small><b>El Repartidor</b><span>S'ouvre quand le livre a assez de noms</span></div></div>`;
-  const faite = M.faiteAujourdhui(jeux(), ctx.jour), pic = m.forme === "lista" ? I.liste : I.camion;
+  const faite = M.faiteAujourdhui(jeux(), ctx.jour), pic = m.forme === "lista" ? I.liste : m.forme === "duos" ? I.duo : I.camion;
   if (faite) return `<a class="s-jour mision faite" href="#/jeux/mision"><span class="m-pic">${pic}</span><div><small>Misión cumplida · ${faite.ok}/${faite.sur}</small><b>${NOMS[faite.forme] || NOMS[m.forme]}</b><span>Une autre mission demain</span></div><em>Revoir</em></a>`;
-  const quoi = m.forme === "lista" ? "6 lignes · un, una, dos, tres…" : `${nTaches(m)} colis · el, la, los, las`;
+  const quoi = m.forme === "lista" ? "6 lignes · un, una, dos, tres…" : m.forme === "duos" ? `${nTaches(m)} phrases · ${m.duos.map(id => DUO[id].court).slice(0, 2).join(", ")}…` : `${nTaches(m)} colis · el, la, los, las`;
   const allumee = ampouleAllumee(ctx);
   return `<a class="s-jour mision${allumee ? " bonus" : ""}" href="#/jeux/mision"><span class="m-pic">${pic}</span><div><small>Misión del día</small><b>${NOMS[m.forme]}</b><span>${quoi} · ${allumee ? "pour le plaisir" : "allume l'ampoule"}</span></div><em>Empezar</em></a>`;
 }
@@ -82,6 +88,7 @@ function vuePret(ctx) {
   if (!m) return { onglet: null, html: `<div class="feria f-pret"><div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Misión del día</h1></div><div class="f-attente"><b>Pas encore de mission.</b> Il faut quelques noms de plus dans le livre.</div></div>`, apres: brancher };
   const faite = M.faiteAujourdhui(jeux(), ctx.jour);
   const nouveaux = m.mots.filter(n => !n.vu).length;
+  if (m.forme === "duos") return vuePretDuos(ctx, m, faite);
   const regle = m.forme === "lista"
     ? `Blanca t'a laissé un pense-bête. <b>Écris chaque ligne en espagnol</b> : le nombre en lettres, puis le mot, au pluriel s'il le faut.
        <span class="m-ex"><span>3 · reunión → tres reuniones</span><span>1 · hora → una hora</span></span>`
@@ -102,6 +109,26 @@ function vuePret(ctx) {
   };
 }
 
+// L'accueil de Uno de dos : la carte « La règle » du duo nouveau (la première fois), et les règles des autres, repliées.
+function vuePretDuos(ctx, m, faite) {
+  const nouveau = m.nouveau ? DUO[m.nouveau] : null;
+  const autres = m.duos.filter(id => id !== m.nouveau).map(id => DUO[id]);
+  const bas = faite
+    ? `<a class="f-btn gros" href="#/jeux/mision/partie">La rejouer</a><small>Déjà faite aujourd'hui (${faite.ok}/${faite.sur}) : rejouée, elle ne change rien. Une autre demain.</small>`
+    : `<a class="f-btn gros" href="#/jeux/mision/partie">${nouveau ? "Compris, ¡vamos!" : "¡Vamos!"}</a><small>${ampouleAllumee(ctx) ? "L'ampoule est déjà allumée : celle-ci, c'est pour le plaisir." : "Un seul essai : il allume l'ampoule du jour."}</small>`;
+  return {
+    onglet: null,
+    html: `<div class="feria f-pret m-pret">
+        <div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1><small>Misión del día</small>Uno de dos</h1></div>
+        <p class="f-regle">Une phrase à trou, <b>deux camions</b> : touche le bon mot. <b>${nTaches(m)} phrases</b>, pas de chrono. Le « ? » remontre la règle pendant la partie.</p>
+        ${nouveau ? carteRegle(nouveau, "Nouveau duo") : ""}
+        ${autres.length ? `<div class="m-autres"><h2>${nouveau ? "Et aussi" : "Les duos du jour"}</h2>${autres.map(d => `<details><summary>${esc(d.nom)}</summary>${carteRegle(d)}</details>`).join("")}</div>` : ""}
+        <div class="c-bas m-bas">${bas}</div>
+      </div>`,
+    apres: brancher,
+  };
+}
+
 // ——— la partie ———
 function vuePartie(ctx) {
   const m = missionDuJour(ctx);
@@ -113,10 +140,11 @@ function vuePartie(ctx) {
         <p class="m-aide">Le nombre en lettres, puis le mot. Entrée pour valider.</p></div>
        <div class="m-valider"><button class="f-btn gros" data-m="noter">C'est noté</button></div>`
     : `<div class="m-quai" aria-live="polite"></div><div class="m-bas-jeu"></div>`;
+  const aide = m.forme === "duos" ? `<button class="f-rond m-aide-btn" data-m="regle" aria-label="Revoir la règle">?</button>` : "";
   return {
     onglet: null,
     html: `<div class="feria m-partie ecrire-q ${m.forme}">
-        <div class="m-hud"><a class="f-rond" href="#/jeux/mision" data-arriere aria-label="Arrêter">${ICONES.fermer}</a><b>${NOMS[m.forme]}</b><span class="m-compte">1 / ${n}</span>${boutonMuet()}</div>
+        <div class="m-hud"><a class="f-rond" href="#/jeux/mision" data-arriere aria-label="Arrêter">${ICONES.fermer}</a><b>${NOMS[m.forme]}</b><span class="m-compte">1 / ${n}</span>${aide}${boutonMuet()}</div>
         <div class="m-etapes">${Array.from({ length: n }, () => "<i></i>").join("")}</div>
         ${corps}
       </div>`,
@@ -127,6 +155,7 @@ function vuePartie(ctx) {
 function lancer(ctx, m, rejoue) {
   P = { ctx, m, rejoue, i: 0, res: [], rates: [], attend: false };
   if (m.forme === "lista") return ligne();
+  if (m.forme === "duos") return poserDuo();
   poser();
 }
 const n = () => nTaches(P.m);
@@ -216,8 +245,49 @@ function suite() {
   p.i++;
   if (p.i >= n()) return finir();
   if (p.m.forme === "lista") return ligne();
+  if (p.m.forme === "duos") return poserDuo();
   const bas = $(".m-bas-jeu"); if (bas) bas.innerHTML = "";
   poser();
+}
+
+// Uno de dos : la phrase à trou, deux camions. Après le choix, les camions restent (le bon entouré), le mot va dans le trou,
+// la voix lit la phrase complète, puis une ligne d'explication et « Suivant ». Le « ? » montre la règle du duo de la phrase,
+// sans rien perdre : on reprend à la même phrase.
+function poserDuo() {
+  const p = P, q = $(".m-quai"), bas = $(".m-bas-jeu");
+  if (!p || !q) return;
+  ici();
+  p.attend = false;
+  const x = p.m.phrases[p.i];
+  q.innerHTML = `<span class="m-duo">${esc(x.nomDuo)}</span>
+    <div class="m-phrase">${ecoute(M.phraseComplete(x))}<p lang="es">${esc(x.avant)}<span class="m-trou">&nbsp;</span>${esc(x.apres)}</p>
+      <small>${esc(x.fr)}</small>${x.nv ? `<span class="m-nuevo">nuevo · ${esc(x.nv)}</span>` : ""}</div>`;
+  bas.innerHTML = `<div class="m-camions deux">${[x.a, x.b].map((t, k) => `<button class="m-camion ${k ? "b" : "a"}" data-m="duo" data-k="${k}" lang="es">${esc(t)}</button>`).join("")}</div>`;
+}
+function choisirDuo(k) {
+  const p = P;
+  if (!p || p.attend) return;
+  p.attend = true;
+  const x = p.m.phrases[p.i], ok = k === x.juste, bonne = M.phraseComplete(x);
+  document.querySelectorAll(".m-camion").forEach(b => { b.disabled = true; const i = Number(b.dataset.k); if (i === x.juste) b.classList.add("juste"); if (i === k && !ok) b.classList.add("faux"); });
+  const trou = $(".m-trou");
+  if (trou) { trou.textContent = x.juste === 0 ? x.a : x.b; trou.classList.add(ok ? "ok" : "ko"); }
+  p.res.push(ok); barre(ok);
+  if (ok) { bien(); vibrer(10); } else { pas(); vibrer([30, 40, 30]); p.rates.push({ forme: bonne, expl: x.regle, tape: M.phraseComplete(x, k) }); }
+  parler(bonne);
+  const choisi = k === 0 ? x.a : x.b;
+  const bas = $(".m-bas-jeu");
+  bas?.insertAdjacentHTML("beforeend", `<div class="m-verdict ${ok ? "ok" : "ko"}"><p>${ok ? "<b>✓</b> " : `<b>Pas <i lang="es">${esc(choisi)}</i>.</b> `}${html(x.regle)}</p></div>
+    <div class="m-valider"><button class="f-btn gros" data-m="suite">${p.i + 1 >= n() ? "Voir la fin" : "Suivant"}</button></div>`);
+  $('[data-m="suite"]', bas)?.focus({ preventScroll: true });
+}
+// Le « ? » : la règle du duo de la phrase en cours, par-dessus ; « Reprendre » la referme.
+function montrerRegle() {
+  const p = P, x = p?.m.phrases?.[p.i];
+  if (!x) return;
+  const vieux = $(".m-voile");
+  if (vieux) return vieux.remove();
+  $(".m-partie")?.insertAdjacentHTML("beforeend", `<div class="m-voile" role="dialog" aria-label="La règle">${carteRegle(DUO[x.duo])}<button class="f-btn gros" data-m="reprendre">Reprendre</button></div>`);
 }
 
 // La lista de Blanca : les lignes faites restent écrites (juste en vert, la correction à côté de l'erreur barrée).
@@ -275,10 +345,10 @@ function finir() {
   const ok = p.res.filter(Boolean).length, sur = n();
   let ampoule = false;
   if (!p.rejoue) {
-    const r = M.apresMission(jeux(), { forme: p.m.forme, ok, sur, cles: p.m.mots.map(x => x.cle) }, p.ctx.jour);
+    const r = M.apresMission(jeux(), { forme: p.m.forme, ok, sur, cles: p.m.forme === "duos" ? p.m.cles : p.m.mots.map(x => x.cle), regles: p.m.duos || [] }, p.ctx.jour);
     garderJeux(r.jeux);
     ampoule = r.ampoule;
-  }
+  } else if (p.m.duos) garderJeux(M.apresMission(jeux(), { forme: p.m.forme, ok, sur, regles: p.m.duos }, p.ctx.jour).jeux);
   derniere = { forme: p.m.forme, ok, sur, rates: p.rates, rejoue: p.rejoue, ampoule, jour: p.ctx.jour,
     nouveaux: p.m.mots.filter(x => !x.vu && !apprisEnAvance(x.id)), gardes: new Set() };
   arreter();
@@ -316,7 +386,7 @@ function vueFin() {
     onglet: null,
     html: `<div class="feria f-fin m-fin"><div class="f-corps">
         <div class="f-podium">${flamme(tout && !g.rejoue ? "joie" : "idle", tout && !g.rejoue ? 3 : 1)}<div><h1>${titre}</h1><p>${NOMS[g.forme]}</p></div></div>
-        <div class="c-total"><b>${g.ok}/${g.sur}</b><span>${g.forme === "lista" ? `ligne${g.ok > 1 ? "s" : ""} juste${g.ok > 1 ? "s" : ""}` : `${unite} bien livré${g.ok > 1 ? "s" : ""}`} du premier coup.<br>Pas de points ici : juste les mots.</span></div>
+        <div class="c-total"><b>${g.ok}/${g.sur}</b><span>${g.forme === "lista" ? `ligne${g.ok > 1 ? "s" : ""} juste${g.ok > 1 ? "s" : ""}` : g.forme === "duos" ? `phrase${g.ok > 1 ? "s" : ""} juste${g.ok > 1 ? "s" : ""}` : `${unite} bien livré${g.ok > 1 ? "s" : ""}`} du premier coup.<br>Pas de points ici : juste ${g.forme === "duos" ? "les réflexes" : "les mots"}.</span></div>
         ${g.rejoue ? "" : `<div class="c-ampoule"><i></i><div><b>${g.ampoule ? "L'ampoule d'aujourd'hui s'allume." : "L'ampoule d'aujourd'hui était déjà allumée."}</b><br>Une autre mission demain.</div></div>`}
         ${rates}
         ${nouveauxFin(g)}
@@ -334,6 +404,8 @@ function brancher() {
     if (!b || b.tagName === "FORM") return;
     const quoi = b.dataset.m;
     if (quoi === "camion") return camion(b.dataset.a);
+    if (quoi === "duo") return choisirDuo(Number(b.dataset.k));
+    if (quoi === "regle" || quoi === "reprendre") return montrerRegle();
     if (quoi === "ecrire") return ecrire();
     if (quoi === "suite") return suite();
     if (quoi === "noter") return noter();

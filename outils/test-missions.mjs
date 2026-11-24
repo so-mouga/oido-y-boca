@@ -17,6 +17,7 @@ const M = await charger("missions.js");
 const { LECONS } = await charger("position.js");
 const { lireCsv, versMots } = await charger("donnees.js");
 const { hasardDuJour } = await charger("charla.js");
+const { DUOS } = await charger("duos.js");
 
 let erreurs = 0;
 const faux = (...t) => { erreurs++; console.log("✗", ...t); };
@@ -86,7 +87,7 @@ for (const ici of ["U1-L1", "U1-L3", "U2-L1", "U4-L2", "U8-L3", "U15-L1", "U25-L
   const faites = jusqua(ici);
   let jeux = { jours: [] }, formes = [];
   for (const jour of jours) {
-    const args = () => ({ mots: vocab, vu: m => faites.has(m.lecon), rang: rangDe, faites, etat: jeux.missions, jour, hasard: hasardDuJour(jour, "mision") });
+    const args = () => ({ mots: vocab, vu: m => faites.has(m.lecon), rang: rangDe, faites, etat: jeux.missions, jour, hasard: hasardDuJour(jour, "mision"), duos: DUOS });
     const mi = M.missionDuJour(args());
     if (!mi) { faux(ici, jour, "pas de mission"); continue; }
     formes.push(mi.forme);
@@ -94,7 +95,10 @@ for (const ici of ["U1-L1", "U1-L3", "U2-L1", "U4-L2", "U8-L3", "U15-L1", "U25-L
     if (nouveaux.length > (ici === "U1-L1" ? 6 : M.NOUVEAUX)) faux(ici, jour, `${nouveaux.length} mots nouveaux`);
     if (new Set(mi.mots.map(n => n.id)).size !== mi.mots.length) faux(ici, jour, "deux mots de la même carte");
     for (const n of nouveaux) if (/\s/.test(n.mot)) faux(ici, jour, "mot nouveau en plusieurs mots", n.mot);
-    if (mi.forme === "repartidor") {
+    if (mi.forme === "duos") {
+      if (mi.phrases.length !== M.PHRASES_DUO) faux(ici, jour, `${mi.phrases.length} phrases de duo`);
+      if (new Set(mi.cles).size !== mi.cles.length) faux(ici, jour, "deux fois la même phrase");
+    } else if (mi.forme === "repartidor") {
       if (mi.colis.length !== M.COLIS) faux(ici, jour, `${mi.colis.length} colis`);
       if (mi.etiquettes.length !== M.ETIQUETTES) faux(ici, jour, `${mi.etiquettes.length} étiquettes`);
       for (const c of mi.colis) {
@@ -112,18 +116,57 @@ for (const ici of ["U1-L1", "U1-L3", "U2-L1", "U4-L2", "U8-L3", "U15-L1", "U25-L
       }
     }
     // La même toute la journée, même après l'avoir faite.
-    const r = M.apresMission(jeux, { forme: mi.forme, ok: 5, sur: 9, cles: mi.mots.map(n => n.cle) }, jour);
+    const cles = mi.forme === "duos" ? mi.cles : mi.mots.map(n => n.cle);
+    const r = M.apresMission(jeux, { forme: mi.forme, ok: 5, sur: 9, cles, regles: mi.duos || [] }, jour);
     if (!r.ampoule) faux(ici, jour, "l'ampoule ne s'allume pas");
     const encore = M.missionDuJour({ ...args(), etat: r.jeux.missions });
-    egal(`${ici} ${jour} : la même toute la journée`, encore.mots.map(n => n.cle), mi.mots.map(n => n.cle));
+    egal(`${ici} ${jour} : la même toute la journée`, encore.forme === "duos" ? encore.cles : encore.mots.map(n => n.cle), cles);
     const r2 = M.apresMission(r.jeux, { forme: mi.forme, ok: 9, sur: 9 }, jour);
     if (r2.ampoule || r2.jeux.missions.jours[jour].ok !== 5) faux(ici, jour, "un 2e essai a compté");
     jeux = r.jeux;
   }
-  for (let k = 1; k < formes.length; k++) if (formes[k] === "lista" && formes[k - 1] === "lista") faux(ici, "deux listes de suite");
+  for (let k = 1; k < formes.length; k++) if (formes[k] === formes[k - 1]) faux(ici, `deux fois de suite : ${formes[k]}`);
+  if (!formes.includes("duos")) faux(ici, "jamais de Uno de dos en 6 jours");
   if (!faites.has(M.LECON_NOMBRES) && formes.includes("lista")) faux(ici, "liste avant U2-L1");
   console.log(`${ici} : ${formes.join(", ")}`);
 }
+// ——— 5. Uno de dos : les phrases écrites à la main (duos.js) ———
+const ids = new Set();
+for (const d of DUOS) {
+  if (ids.has(d.id)) faux("duo en double", d.id); ids.add(d.id);
+  if (!d.court || !d.nom || d.carte?.length !== 2 || d.ex?.length !== 2 || d.regle?.length !== 2) faux(d.id, "il manque court, nom, carte (2), ex (2) ou regle (2)");
+  if (d.lecon && !(d.lecon in rang)) faux(d.id, "leçon inconnue", d.lecon);
+  if (d.phrases.length < 8) faux(d.id, `seulement ${d.phrases.length} phrases`);
+  const vues = new Set();
+  for (const ph of d.phrases) {
+    const [es, juste, fr, nv] = ph, p = M.decouper(es);
+    if (!p) { faux(d.id, "pas de {a|b}", es); continue; }
+    if (/[{}|]/.test(p.avant + p.apres)) faux(d.id, "deux trous", es);
+    if (p.a === p.b) faux(d.id, "les deux choix sont pareils", es);
+    if (juste !== 0 && juste !== 1) faux(d.id, "la bonne réponse doit être 0 ou 1", es);
+    if (!fr) faux(d.id, "pas de français", es);
+    if (nv && !/^[^=]+ = [^=]+$/.test(nv)) faux(d.id, "mot nouveau : « mot = sens »", nv);
+    if (vues.has(es)) faux(d.id, "phrase en double", es); vues.add(es);
+    if (/[<>]/.test(es + fr)) faux(d.id, "pas de HTML dans une phrase", es);
+  }
+  const bonnes = d.phrases.map(ph => ph[1]);
+  if (!bonnes.includes(0) || !bonnes.includes(1)) faux(d.id, "il faut des phrases pour les deux réponses");
+}
+egal("découper", M.decouper("Yo {soy|estoy} francés."), { avant: "Yo ", a: "soy", b: "estoy", apres: " francés." });
+egal("phrase complète", M.phraseComplete({ avant: "¿", a: "Qué", b: "Cuál", apres: " hora es?", juste: 0 }), "¿Qué hora es?");
+// Un seul duo nouveau par mission, avec sa carte ; plus de carte une fois joué.
+{
+  const faites = jusqua("U1-L3"), h = () => hasardDuJour("2026-11-25", "x");
+  const m1 = M.unoDeDos(DUOS, faites, {}, "2026-11-25", h());
+  egal("le 1er duo nouveau", [m1.nouveau, m1.phrases.filter(p => p.duo === m1.nouveau).length], [DUOS[0].id, 4]);
+  const e = M.apresMission({ jours: [] }, { forme: "duos", ok: 8, sur: 8, cles: m1.cles, regles: m1.duos }, "2026-11-25").jeux.missions;
+  const m2 = M.unoDeDos(DUOS, faites, e, "2026-11-26", h());
+  if (m1.duos.includes(m2.nouveau)) faux("un duo déjà joué revient comme nouveau", m2.nouveau);
+  const m3 = M.unoDeDos(DUOS, faites, e, "2026-11-25", h());
+  egal("le même jour, la même mission", m3.cles, m1.cles);
+}
+console.log(`Uno de dos : ${DUOS.length} duos, ${DUOS.reduce((t, d) => t + d.phrases.length, 0)} phrases.`);
+
 // L'ampoule déjà allumée par la Charla : la mission compte, sans 2e ampoule.
 const r = M.apresMission({ jours: ["2026-11-25"] }, { forme: "repartidor", ok: 3, sur: 9 }, "2026-11-25");
 egal("ampoule déjà allumée", [r.ampoule, r.jeux.jours.length, !!M.faiteAujourdhui(r.jeux, "2026-11-25")], [false, 1, true]);

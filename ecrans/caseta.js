@@ -9,14 +9,14 @@
 // Le moteur (paquets, niveaux, points, pièges de l'oreille) est dans jeux.js ; les paires de pièges dans themes.js.
 // Rien ici ne touche à la révision des mots, sauf « Je le garde » sur un mot nouveau, comme dans le Dico.
 
-import { esc, ICONES } from "../ui.js?v=61";
-import { motsAMoi, motsAVenir } from "../dico.js?v=61";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=61";
-import { dire, taire } from "../voix.js?v=61";
-import { chispa } from "../mascotte.js?v=61";
-import { PIEGES } from "../themes.js?v=61";
-import * as J from "../jeux.js?v=61";
-import { rosette, braises, confettis } from "./jeux.js?v=61";
+import { esc, ICONES } from "../ui.js?v=62";
+import { motsAMoi, motsAVenir } from "../dico.js?v=62";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=62";
+import { dire, taire } from "../voix.js?v=62";
+import { chispa } from "../mascotte.js?v=62";
+import { PIEGES } from "../themes.js?v=62";
+import * as J from "../jeux.js?v=62";
+import { rosette, braises, confettis } from "./jeux.js?v=62";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

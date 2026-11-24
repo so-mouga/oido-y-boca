@@ -893,3 +893,32 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
   .m-etiq b { font-size: 22px; }
 }
 @media (prefers-reduced-motion: reduce) { .m-colis, .m-colis.part, .m-colis.non, .m-verdict { animation: none; } }
+
+/* ——— Uno de dos : la 3e forme des missions (phrases à trou, deux camions ; duos.js) ——— */
+.m-duo { align-self: center; font-size: 12.5px; font-weight: 600; background: var(--sun-deep); color: var(--sol-encre); border-radius: 999px; padding: 3px 12px; }
+.m-phrase { position: relative; width: 100%; background: #fff; border-radius: 20px; padding: 42px 16px 16px; text-align: center; box-shadow: 0 12px 20px -14px rgba(92, 61, 2, .6); animation: m-monte .35s var(--ease, ease) both; }
+.m-phrase p { font-size: 23px; font-weight: 600; line-height: 1.35; overflow-wrap: anywhere; }
+.m-phrase small { display: block; font-size: 13.5px; color: var(--marine-soft); margin-top: 8px; line-height: 1.35; }
+.m-phrase .m-nuevo { margin-top: 8px; }
+.m-phrase .m-ecoute { position: absolute; top: 8px; left: 8px; background: var(--sun-deep); width: 30px; height: 30px; }
+.m-trou { display: inline-block; min-width: 76px; border-bottom: 3px solid var(--marine); margin: 0 4px; }
+.m-trou.ok { color: var(--sage-ink); border-color: var(--sage-ink); }
+.m-trou.ko { color: var(--tomate-fonce); border-color: var(--tomate); }
+.m-camions.deux .m-camion { height: 78px; font-size: 24px; line-height: 1.05; padding: 0 10px; text-transform: none; display: grid; place-items: center; text-align: center; }
+.m-camion.a { background: var(--marine); } .m-camion.b { background: var(--tomate); }
+.m-camion.faux:disabled { opacity: .7; text-decoration: line-through; }
+.m-aide-btn { font-family: var(--titre); font-size: 22px; }
+/* la carte « La règle » : à l'accueil (duo nouveau), repliée pour les autres, et par-dessus la partie avec le « ? » */
+.m-regle { background: var(--crema); border-radius: 18px; padding: 14px 16px; }
+.m-regle small { display: block; font-size: 11.5px; font-weight: 600; color: var(--mar-fonce, #0B6C66); text-transform: uppercase; letter-spacing: .06em; }
+.m-regle h2 { font-size: 23px; line-height: 1.1; margin: 2px 0 6px; }
+.m-regle p { font-size: 15px; line-height: 1.4; padding: 6px 0; border-top: 1px solid var(--hair); }
+.m-regle p:first-of-type { border-top: 0; }
+.m-regle i { font-style: normal; font-weight: 600; }
+.m-autres h2 { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--sol-encre); margin-bottom: 6px; }
+.m-autres details { background: var(--crema); border-radius: 14px; margin-bottom: 6px; }
+.m-autres summary { padding: 10px 14px; font-weight: 600; cursor: pointer; }
+.m-autres details .m-regle { padding-top: 0; }
+.m-autres details .m-regle h2 { display: none; }
+.m-voile { position: absolute; inset: 0; z-index: 5; background: rgba(247, 185, 28, .96); display: flex; flex-direction: column; justify-content: center; gap: 16px; padding: 24px 18px calc(env(safe-area-inset-bottom, 0px) + 18px); }
+.m-partie { position: relative; }

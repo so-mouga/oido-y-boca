@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=61";
-import { mesMots, apprisEnAvance } from "./progression.js?v=61";
-import { LECONS } from "./position.js?v=61";
+import { irregulierConnu } from "./controles.js?v=62";
+import { mesMots, apprisEnAvance } from "./progression.js?v=62";
+import { LECONS } from "./position.js?v=62";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
