@@ -33,21 +33,22 @@ export function prononcable(texte) {
   return texte.replace(/…/g, " ").replace(/\s*\/\s*/g, ", ").replace(/\s{2,}/g, " ").trim();
 }
 
-function enonce(texte, lent) {
+function enonce(texte, lent, vitesse) {
   const e = new SpeechSynthesisUtterance(prononcable(texte));
   if (voix) e.voice = voix;
   e.lang = voix ? voix.lang : "es-ES";
-  e.rate = lent ? 0.6 : 0.9;
+  e.rate = vitesse || (lent ? 0.6 : 0.9);
   return e;
 }
 
 // Dit un ou plusieurs textes à la suite. Appelle fin() quand tout est dit.
-export function dire(textes, { lent = false, fin } = {}) {
+// vitesse : pour les jeux (la Caseta de tiro), une vitesse de voix au choix ; sinon 0,9, ou 0,6 si lent.
+export function dire(textes, { lent = false, fin, vitesse } = {}) {
   if (!("speechSynthesis" in window)) return false;
   speechSynthesis.cancel();
   const liste = [].concat(textes).filter(Boolean);
   liste.forEach((t, i) => {
-    const e = enonce(t, lent);
+    const e = enonce(t, lent, vitesse);
     if (i === liste.length - 1 && fin) e.onend = e.onerror = fin;
     speechSynthesis.speak(e);
   });

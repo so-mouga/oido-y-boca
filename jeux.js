@@ -278,3 +278,74 @@ export function tirerGage(gages, partenaire, autre, hasard = Math.random) {
   const liste = [...(gages.tous || []), ...(gages[partenaire] || [])];
   return (liste[Math.floor(hasard() * liste.length)] || "").replace(/\{autre\}/g, autre);
 }
+
+// ——— La Caseta de tiro ———
+// La voix dit un mot espagnol, des cibles défilent sur 3 rails : on tire sur celle qui porte son sens (ou le mot écrit).
+// Un jeu d'oreille. Les cibles, les rails et la voix sont dans ecrans/caseta.js ; ici, les mots, les niveaux et les points.
+export const DUREE_CASETA = 60;
+export const BONUS_OR = 30;        // la cible dorée : 30 points de plus…
+export const TEMPS_OR = 3;         // … et 3 secondes de plus
+export const UN_NOUVEAU_SUR = 5;   // « la suite du livre » : au plus un mot nouveau sur 5 mots entendus
+export const SUITE_CASETA = 30;    // les 30 prochains mots du livre
+export const PART_PIEGES = .4;     // en Experto, environ 4 mots entendus sur 10 sont des pièges de l'oreille
+
+// Les 3 niveaux. vitesse : des cibles ; acc : ce que chaque bonne réponse de suite ajoute (jusqu'à 14) ;
+// aide : la bonne cible s'allume après une erreur ; ecrit : le mot entendu est écrit sur le comptoir dès le début,
+// au 2e « Otra vez », ou jamais ; penalite : secondes perdues par erreur ; voix : vitesse de la voix ; pieges : pièges mêlés.
+export const NIVEAUX_CASETA = {
+  tranquilo: { nom: "Tranquilo", quoi: "Pour s'échauffer. Lent. Après une erreur, la bonne cible s'allume. Le mot est écrit.",
+    vitesse: .75, acc: .05, aide: true, ecrit: "debut", penalite: 0, voix: .85, pieges: false },
+  normal: { nom: "Normal", quoi: "Pas d'aide après une erreur. Le mot s'écrit au 2e « Otra vez ».",
+    vitesse: 1, acc: .07, aide: false, ecrit: "otra", penalite: 0, voix: .9, pieges: false },
+  experto: { nom: "Experto", quoi: "Rapide. Des pièges : des mots qui sonnent presque pareil. Le mot n'est jamais écrit. Une erreur coûte 2 secondes.",
+    vitesse: 1.35, acc: .09, aide: false, ecrit: "jamais", penalite: 2, voix: 1, pieges: true },
+};
+export const niveauCaseta = id => NIVEAUX_CASETA[id] || NIVEAUX_CASETA.normal;
+// La vitesse des cibles : celle du niveau, qui monte avec le combo.
+export const accelCaseta = (id, combo) => niveauCaseta(id).vitesse * (1 + Math.min(combo, 14) * niveauCaseta(id).acc);
+export const pointsCaseta = (combo, or) => points(combo) + (or ? BONUS_OR : 0);
+
+// Les pièges de l'oreille (themes.js) : chaque mot connaît son jumeau ({ es, fr, id, piege, famille, paire }).
+export function motsPieges(pieges) {
+  return pieges.flatMap(([a, fa, b, fb, famille], i) => {
+    const x = { id: `piege:${i}:a`, es: a, fr: fa, famille, piege: true };
+    const y = { id: `piege:${i}:b`, es: b, fr: fb, famille, piege: true };
+    x.paire = y; y.paire = x;
+    return [x, y];
+  });
+}
+
+// Ce qu'on lit sur une cible, et son autre côté (montré quand on tire dessus) : le sens en français ou le mot espagnol.
+export const texteCible = (m, sens) => sens === "es" ? m.es : court(m.fr);
+export const autreCote = (m, sens) => sens === "es" ? court(m.fr) : m.es;
+
+// Les 3 paquets. connus : mes mots ; aVenir : les mots du livre pas encore vus (dans l'ordre du livre) ; pieges : motsPieges(…).
+// « La suite du livre » : les prochains mots, sauf ceux dont le sens ressemble à un mot connu (deux cibles « être »).
+export function paquetsCaseta(connus, aVenir, pieges) {
+  const sens = new Set(connus.map(m => cle(court(m.fr))));
+  const suite = [];
+  for (const m of aVenir || []) {
+    if (suite.length === SUITE_CASETA) break;
+    const k = cle(court(m.fr));
+    if (!m.es || !k || sens.has(k)) continue;
+    sens.add(k);
+    suite.push({ ...m, nouveau: true });
+  }
+  const ouvert = connus.length >= SEUIL;
+  return [
+    { id: "tout", nom: "Tout ce que je sais", mots: connus, ouvert,
+      aide: ouvert ? `${connus.length} mots` : `Il faut ${SEUIL} mots, tu en as ${connus.length}` },
+    { id: "suite", nom: "Mes mots et la suite du livre", mots: [...connus, ...suite], ouvert: ouvert && suite.length > 0,
+      aide: ouvert ? "Avec des mots nouveaux, un sur cinq au plus" : `Il faut ${SEUIL} mots, tu en as ${connus.length}` },
+    { id: "pieges", nom: "Les pièges de l'oreille", mots: pieges, ouvert: pieges.length > 0,
+      aide: "Des mots qui sonnent presque pareil : perro / pero, papá / papa…" },
+  ];
+}
+
+// Peut-on faire entendre un mot nouveau maintenant ? Oui si, avec lui, il reste au plus un mot nouveau sur 5 entendus.
+export const nouveauPermis = (entendus, nouveaux) => (nouveaux + 1) * UN_NOUVEAU_SUR <= entendus + 1;
+// Le mot entendu est-il un piège ? Toujours avec le paquet des pièges ; en Experto, environ 4 fois sur 10.
+export const piegeMaintenant = (paquet, niveau, hasard = Math.random) =>
+  paquet === "pieges" || (niveauCaseta(niveau).pieges && hasard() < PART_PIEGES);
+// Les mots trouvés qui comptent pour les mots attrapés : mes mots seulement (ni les pièges, ni les mots nouveaux).
+export const trouvesCaseta = mots => mots.filter(m => m && m.id && !m.piege && !m.nouveau).map(m => m.id);

@@ -268,5 +268,67 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   if (t !== 15000 || u > 40000) faux("la mèche doit durer entre 15 et 40 secondes");
 }
 
+// 13. La Caseta de tiro : les pièges de l'oreille, les 3 paquets à chaque étape du livre, un mot nouveau sur 5 au plus,
+// les niveaux, les points et le record par niveau.
+{
+  const { PIEGES } = await import(path.join(tmp, "themes.js"));
+  const pieges = J.motsPieges(PIEGES);
+  egal("28 paires de pièges", PIEGES.length, 28);
+  egal("56 mots pièges", pieges.length, 56);
+  const MEMES = [["hola", "ola"], ["vaca", "baca"], ["tuvo", "tubo"], ["valla", "vaya"], ["calló", "cayó"], ["haya", "halla"]];
+  for (const m of pieges) {
+    if (!m.es || !m.fr || !m.famille) faux(`piège ${m.es} : incomplet`);
+    if (m.paire.paire !== m) faux(`piège ${m.es} : son jumeau ne le connaît pas`);
+    if (m.es === m.paire.es) faux(`piège ${m.es} : le même mot deux fois`);
+    if (J.court(m.fr) === J.court(m.paire.fr)) faux(`piège ${m.es} : le même sens que son jumeau`);
+    if (MEMES.some(([a, b]) => [a, b].includes(m.es) && [a, b].includes(m.paire.es))) faux(`piège ${m.es} / ${m.paire.es} : ils sonnent exactement pareil`);
+    if (!m.piege || !m.id.startsWith("piege:")) faux(`piège ${m.es} : mal marqué`);
+  }
+  egal("des identifiants uniques", new Set(pieges.map(m => m.id)).size, pieges.length);
+  let premier = "";
+  for (let n = 1; n <= LECONS.length; n++) {
+    const faites = new Set(LECONS.slice(0, n));
+    const connus = J.motsConnus({ mots, faites });
+    const aVenir = mots.filter(m => !faites.has(m.lecon));
+    const [tout, suite, pq] = J.paquetsCaseta(connus, aVenir, pieges);
+    if (tout.ouvert !== connus.length >= J.SEUIL) faux(`après ${LECONS[n - 1]} : « Tout » ouvert à tort`);
+    if (!pq.ouvert) faux("les pièges doivent toujours être ouverts");
+    const nouveaux = suite.mots.filter(m => m.nouveau);
+    if (nouveaux.length > J.SUITE_CASETA) faux(`après ${LECONS[n - 1]} : trop de mots nouveaux`);
+    if (nouveaux.some(m => faites.has(m.lecon))) faux(`après ${LECONS[n - 1]} : un mot « nouveau » déjà vu`);
+    const sens = suite.mots.map(m => J.court(m.fr).toLowerCase());
+    const sensNouveaux = nouveaux.map(m => J.court(m.fr).toLowerCase());
+    if (sensNouveaux.some(k => sens.filter(x => x === k).length > 1)) faux(`après ${LECONS[n - 1]} : un mot nouveau a le même sens qu'un autre`);
+    if (suite.ouvert && !premier) premier = `${LECONS[n - 1]} (${connus.length} mots + ${nouveaux.length} nouveaux)`;
+    if (connus.some(m => m.nouveau)) faux("les mots du livre ne doivent pas être marqués nouveaux");
+  }
+  console.log(`Caseta : « la suite du livre » s'ouvre après ${premier}.`);
+  // Un mot nouveau sur 5 au plus : même en en prenant un dès que c'est permis.
+  let entendus = 0, nouv = 0;
+  for (let i = 0; i < 200; i++) { if (J.nouveauPermis(entendus, nouv)) nouv++; entendus++; if (nouv * J.UN_NOUVEAU_SUR > entendus) faux(`un mot nouveau sur 5 dépassé : ${nouv} sur ${entendus}`); }
+  egal("40 mots nouveaux sur 200", nouv, 40);
+  egal("jamais un mot nouveau en premier", J.nouveauPermis(0, 0), false);
+  // Les pièges : toujours avec leur paquet ; en Experto, environ 4 fois sur 10 ; jamais en Tranquilo et Normal.
+  let n = 0; const h = graine(7);
+  for (let i = 0; i < 1000; i++) if (J.piegeMaintenant("tout", "experto", h)) n++;
+  if (n < 350 || n > 450) faux(`Experto : ${n} pièges sur 1000`);
+  if (J.piegeMaintenant("tout", "normal", () => 0) || J.piegeMaintenant("suite", "tranquilo", () => 0)) faux("des pièges hors Experto");
+  if (!J.piegeMaintenant("pieges", "tranquilo", () => .99)) faux("le paquet des pièges sans piège");
+  // Les niveaux : Experto plus rapide que Normal, lui-même plus rapide que Tranquilo ; la vitesse monte avec le combo.
+  const v = id => J.accelCaseta(id, 0);
+  if (!(v("tranquilo") < v("normal") && v("normal") < v("experto"))) faux("les niveaux ne sont pas dans l'ordre");
+  if (J.accelCaseta("normal", 20) !== J.accelCaseta("normal", 14)) faux("la vitesse doit plafonner à 14 de suite");
+  egal("un niveau inconnu vaut Normal", J.niveauCaseta("??").nom, "Normal");
+  egal("les points de la Caseta", [J.pointsCaseta(1, false), J.pointsCaseta(3, false), J.pointsCaseta(10, true)], [10, 20, 80]);
+  egal("le côté des cibles", [J.texteCible({ es: "el piso", fr: "l'appartement (le logement)" }, "fr"), J.autreCote({ es: "el piso", fr: "l'appartement" }, "es")], ["l'appartement", "l'appartement"]);
+  // Les mots trouvés qui comptent pour Chispa : ni les pièges, ni les mots nouveaux.
+  egal("mots attrapés de la Caseta", J.trouvesCaseta([{ id: "a" }, { id: "b", nouveau: true }, pieges[0], null]), ["a"]);
+  // Le record est tenu par niveau.
+  let jx = J.JEUX_VIDE();
+  jx = J.apresPartie(jx, { jeu: "caseta", paquet: "normal", score: 120, ok: 10, ko: 1, serie: 6, trouves: [] }, "2026-11-24").jeux;
+  const r = J.apresPartie(jx, { jeu: "caseta", paquet: "experto", score: 90, ok: 7, ko: 3, serie: 4, trouves: [] }, "2026-11-24");
+  egal("un record par niveau", [r.record, r.jeux.records["caseta:normal"], r.jeux.records["caseta:experto"]], [true, 120, 90]);
+}
+
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");
 process.exit(erreurs ? 1 : 0);

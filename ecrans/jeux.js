@@ -4,22 +4,24 @@
 //   #/jeux/montre/partie   le Contre la montre : un mot en espagnol, 4 sens en français, 60 secondes
 //   #/jeux/montre/fin      le score, le record, le mot apporté par Chispa, les mots attrapés, les trophées
 //   #/jeux/verbes, #/jeux/verbes/partie, #/jeux/verbes/fin : la course de verbes (« venir · tú », 3 formes), même déroulé
+//   #/jeux/caseta…         la Caseta de tiro, le stand de tir pour l'oreille (ecrans/caseta.js)
 //   #/jeux/deux, #/jeux/bomba…, #/jeux/frente… : les jeux à deux (ecrans/deux.js)
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=52";
-import { UNITES } from "../position.js?v=52";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=52";
-import { mesVerbes, verbesCours } from "../verbes.js?v=52";
-import { motsAMoi, motsAVenir } from "../dico.js?v=52";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=52";
-import { dire, taire } from "../voix.js?v=52";
-import { chispa } from "../mascotte.js?v=52";
-import * as J from "../jeux.js?v=52";
-import { ecranDeux } from "./deux.js?v=52";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=53";
+import { UNITES } from "../position.js?v=53";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=53";
+import { mesVerbes, verbesCours } from "../verbes.js?v=53";
+import { motsAMoi, motsAVenir } from "../dico.js?v=53";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=53";
+import { dire, taire } from "../voix.js?v=53";
+import { chispa } from "../mascotte.js?v=53";
+import * as J from "../jeux.js?v=53";
+import { ecranDeux } from "./deux.js?v=53";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=53";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -139,6 +141,9 @@ function vueSalle(ctx, d, dv) {
         <div class="f-ligne"><span>${recV ? `Ton record<b>${recV}</b>` : "Pas encore de record"}</span><span>${J.DUREE} secondes</span></div><span class="f-btn">Jouer</span></div></a>`
     : `<div class="f-stand verbes"><div class="f-toile"></div><div class="f-comptoir">${comptoirV}
         <div class="f-attente"><b>Arrive bientôt.</b> ${esc(dv.paquets[0].aide)}.</div></div></div>`;
+  const recC = recordCaseta();
+  const standCaseta = `<a class="f-stand caseta" href="#/jeux/caseta"><div class="f-toile"></div><div class="f-comptoir"><h2>La Caseta de tiro</h2><p>La voix dit un mot espagnol : tire sur la bonne cible. Pour l'oreille.</p>
+        <div class="f-ligne"><span>${recC ? `Ton record<b>${recC}</b>` : "Pas encore de record"}</span><span>3 niveaux</span></div><span class="f-btn">Jouer</span></div></a>`;
   const ferme = (nom, quoi, quand = "Plus tard") => `<div class="f-stand ferme"><div class="f-toile"></div><div class="f-comptoir"><h2>${nom}</h2><p>${quoi}</p><span class="f-pancarte">${quand}</span></div></div>`;
   const bilan = g.s.meilleure > 1 ? `<p class="f-bilan">Ta meilleure semaine : ${g.s.meilleure} jours.</p>` : "";
   return {
@@ -148,6 +153,7 @@ function vueSalle(ctx, d, dv) {
         <div class="f-accueil"><a href="#/jeux/chispa" aria-label="Voir Chispa">${flamme(lecon ? "idle" : "joie", 2)}</a><p class="f-bulle">${bulle}</p></div>${bilan}
         <div class="f-stands">${stand}
           ${standVerbes}
+          ${standCaseta}
           <a class="f-stand deux" href="#/jeux/deux"><div class="f-toile"></div><div class="f-comptoir"><h2>À deux</h2><p>Avec Blanca ou Dorian, sur le canapé : La Bomba et En la frente.</p><span class="f-btn">Jouer</span></div></a>
           ${vitrine()}
           <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues", "Le prochain jeu")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("Le défi du jour", "Un seul essai par jour")}${ferme("L'album", "Des vignettes d'Espagne à collectionner")}</div>
@@ -397,7 +403,7 @@ function feter() {
   else SONS.fin();
 }
 
-function confettis() {
+export function confettis() {
   const hote = $(".f-fin");
   if (calme() || !hote) return;
   const c = document.createElement("canvas"); c.className = "f-confettis"; hote.append(c);
@@ -443,7 +449,7 @@ function garder(oui, carte) {
 }
 
 const jauge = part => `<span class="f-jauge"><i style="width:${Math.round(Math.max(0, Math.min(1, part)) * 100)}%"></i></span>`;
-function braises(g) {
+export function braises(g) {
   const n = J.attrapes(jeux()), e = J.etape(n);
   const titreB = g.mue ? `Chispa devient ${e.nom} !` : g.attrapes.length ? `+${g.attrapes.length} mot${g.attrapes.length > 1 ? "s" : ""} attrapé${g.attrapes.length > 1 ? "s" : ""}` : "Pas de nouveau mot attrapé";
   const detail = g.attrapes.length ? `<span lang="es">${g.attrapes.slice(0, 4).map(esc).join(", ")}${g.attrapes.length > 4 ? "…" : ""}</span>`
@@ -453,7 +459,7 @@ function braises(g) {
 }
 
 // Une rosette de fête, gagnée (pleine) ou à gagner (en pointillés).
-function rosette(c, gagne = true) {
+export function rosette(c, gagne = true) {
   if (!gagne) return `<svg class="f-rosette" viewBox="0 0 44 52" aria-hidden="true"><circle cx="22" cy="20" r="16" fill="none" stroke="#9C8450" stroke-width="2" stroke-dasharray="4 4"/><path d="M15 34l-4 14 8-4 3 6M29 34l4 14-8-4-3 6" fill="none" stroke="#9C8450" stroke-width="2" stroke-dasharray="4 4" stroke-linejoin="round"/></svg>`;
   const petales = Array.from({ length: 10 }, (_, i) => `<circle cx="${(22 + 15 * Math.cos(i * Math.PI / 5)).toFixed(1)}" cy="${(20 + 15 * Math.sin(i * Math.PI / 5)).toFixed(1)}" r="5.2"/>`).join("");
   return `<svg class="f-rosette" viewBox="0 0 44 52" aria-hidden="true"><path d="M14 30l-5 20 9-5 4 7 4-18zM30 30l5 20-9-5-4 7-4-18z" fill="${c}" opacity=".75"/><g fill="${c}">${petales}<circle cx="22" cy="20" r="15"/></g><circle cx="22" cy="20" r="10" fill="#FFF6E0"/><path d="M17 20.5l3.5 3.5 6.5-7" fill="none" stroke="${c}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
@@ -525,6 +531,7 @@ export function ecranJeux(ctx, quoi, etape) {
   arreter();
   const d = donnees(ctx);
   if (["deux", "bomba", "frente"].includes(quoi)) return ecranDeux(ctx, quoi, etape);
+  if (quoi === "caseta") return ecranCaseta(ctx, etape);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
   if (quoi === "verbes") {

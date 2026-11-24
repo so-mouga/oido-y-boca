@@ -32,3 +32,19 @@ export const GAGES = {
     "Dis bonjour à {autre} comme à un roi d'Espagne.", "Saute 5 fois en comptant en espagnol.",
   ],
 };
+
+// La Caseta de tiro : les pièges de l'oreille. Des paires de mots qui sonnent presque pareil (prononciation d'Espagne).
+// Chaque paire : [mot, sens, son jumeau, sens, ce qui les distingue]. Jamais de paires qui sonnent exactement pareil
+// (hola / ola, vaca / baca, b et v, ll et y) : à l'oreille, on ne peut pas les distinguer. À faire relire par Blanca.
+export const PIEGES = [
+  ["pero", "mais", "perro", "le chien", "r ou rr"], ["caro", "cher", "carro", "le chariot", "r ou rr"], ["cero", "zéro", "cerro", "la colline", "r ou rr"],
+  ["pera", "la poire", "perra", "la chienne", "r ou rr"], ["coro", "le chœur", "corro", "la ronde", "r ou rr"],
+  ["papa", "la pomme de terre", "papá", "papa", "l'accent"], ["hablo", "je parle", "habló", "il a parlé", "l'accent"], ["esta", "cette", "está", "il est", "l'accent"],
+  ["tomo", "je prends", "tomó", "il a pris", "l'accent"], ["llego", "j'arrive", "llegó", "il est arrivé", "l'accent"], ["paso", "je passe", "pasó", "il est passé", "l'accent"],
+  ["mesa", "la table", "misa", "la messe", "une voyelle"], ["peso", "le poids", "piso", "l'appartement", "une voyelle"], ["pelo", "les cheveux", "palo", "le bâton", "une voyelle"],
+  ["mano", "la main", "mono", "le singe", "une voyelle"], ["sopa", "la soupe", "sapo", "le crapaud", "une voyelle"], ["lado", "le côté", "lodo", "la boue", "une voyelle"],
+  ["casa", "la maison", "caza", "la chasse", "s ou z"], ["coser", "coudre", "cocer", "cuire", "s ou z"], ["sien", "la tempe", "cien", "cent", "s ou z"],
+  ["seta", "le champignon", "zeta", "la lettre z", "s ou z"], ["masa", "la pâte", "maza", "la massue", "s ou z"],
+  ["pena", "la peine", "peña", "le rocher", "n ou ñ"], ["cana", "le cheveu blanc", "caña", "le demi (de bière)", "n ou ñ"], ["una", "une", "uña", "l'ongle", "n ou ñ"],
+  ["gato", "le chat", "pato", "le canard", "une consonne"], ["boca", "la bouche", "foca", "le phoque", "une consonne"], ["vaso", "le verre", "paso", "le pas", "une consonne"],
+];
