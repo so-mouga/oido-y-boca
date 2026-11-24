@@ -4,16 +4,16 @@
 //    à voix haute (un appui pour commencer, un pour arrêter), la réécouter à côté du modèle.
 // Rien n'est écrit dans le Sheet : c'est le prof qui note le vrai contrôle.
 
-import { esc, md, dateCourte, ICONES, barreOnglets } from "../ui.js?v=46";
-import { UNITES } from "../position.js?v=46";
-import { CONTROLES, nbQuestions } from "../controles.js?v=46";
-import { resultatControle, textePresentation, garderPresentation } from "../progression.js?v=46";
-import { ecranEcritControle } from "./pratique.js?v=46";
+import { esc, md, dateCourte, ICONES, barreOnglets } from "../ui.js?v=47";
+import { UNITES } from "../position.js?v=47";
+import { CONTROLES, nbQuestions } from "../controles.js?v=47";
+import { resultatControle, textePresentation, garderPresentation } from "../progression.js?v=47";
+import { ecranEcritControle } from "./pratique.js?v=47";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement, effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=46";
-import { arreterLecture } from "../lecture.js?v=46";
-import { vibrer, son } from "../retours.js?v=46";
+} from "../enregistrement.js?v=47";
+import { arreterLecture } from "../lecture.js?v=47";
+import { vibrer, son } from "../retours.js?v=47";
 
 const SECURITE = 180; // secondes : l'enregistrement s'arrête tout seul si on oublie de l'arrêter
 const TOUR = 2 * Math.PI * 82; // le périmètre de l'anneau du chrono

@@ -1,5 +1,7 @@
 // Petits outils partagés par les écrans : échappement, mise en forme, icônes dessinées.
 
+import { chispa } from "./mascotte.js?v=47";
+
 export const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 // Le livre écrit en Markdown léger : **gras** et *italique*.
@@ -31,7 +33,8 @@ export const ICONES = {
 };
 
 export function barreOnglets(actif) {
-  const onglet = (cle, href, nom) =>
-    `<a href="${href}" class="onglet${actif === cle ? " on" : ""}"${actif === cle ? ' aria-current="page"' : ""}>${nom}</a>`;
-  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("dico", "#/dico", "Dico")}${onglet("soir", "#/soir", "Ce soir")}</nav>`;
+  // « Jeux » : la porte de la Feria, avec Chispa à la place du petit trait.
+  const onglet = (cle, href, nom, avant = "") =>
+    `<a href="${href}" class="onglet${avant ? ` ${cle}` : ""}${actif === cle ? " on" : ""}"${actif === cle ? ' aria-current="page"' : ""}>${avant}${nom}</a>`;
+  return `<nav class="onglets" aria-label="Navigation">${onglet("jour", "#/", "Aujourd'hui")}${onglet("livre", "#/livre", "Livre")}${onglet("dico", "#/dico", "Dico")}${onglet("soir", "#/soir", "Ce soir")}${onglet("jeux", "#/jeux", "Jeux", chispa("idle", 3))}</nav>`;
 }

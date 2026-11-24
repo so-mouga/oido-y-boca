@@ -6,7 +6,7 @@
 const CLE = "oyb.v2";
 const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
 
-const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {} });
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {} });
 let etat = lire();
 
 function lire() {
@@ -152,6 +152,15 @@ export function noterLecture(idTexte, aujourdhui, score, sur) {
   sauver();
 }
 
+// Les jeux (la Feria) : les records, les compteurs, les jours joués, le son coupé, le paquet choisi.
+// La forme de cet objet est décrite dans jeux.js (JEUX_VIDE), qui calcule aussi le nouvel état à la fin d'une partie.
+// Les jeux ne changent jamais « mots » : la révision reste à part.
+export const etatJeux = () => etat.jeux || {};
+export function garderJeux(jeux) {
+  etat.jeux = jeux;
+  sauver();
+}
+
 // Sauvegarde dans un fichier, à la demande. Le fichier porte sa date pour qu'on la montre avant de restaurer.
 const CLE_SAUVEGARDE = "oyb.sauvegarde"; // la date de la dernière sauvegarde, pour le rappeler à l'écran
 export function exporter(aujourdhui) {
@@ -183,6 +192,7 @@ export function lireSauvegarde(texte) {
     ...(Array.isArray(d.mesMots) && { mesMots: d.mesMots.filter(m => m && m.id && m.es) }),
     ...(objet(d.avance) && { avance: d.avance }),
     ...(objet(d.lectures) && { lectures: d.lectures }),
+    ...(objet(d.jeux) && { jeux: d.jeux }),
     ...(objet(d.verbes) && { verbes: { cours: objet(d.verbes.cours) ? d.verbes.cours : {}, justes: objet(d.verbes.justes) ? d.verbes.justes : {} } }) } };
 }
 
