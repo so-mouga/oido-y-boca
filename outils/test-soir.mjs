@@ -10,7 +10,7 @@ const ici = path.dirname(new URL(import.meta.url).pathname);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "oyb-soir-"));
 fs.copyFileSync(path.join(ici, "..", "donnees.js"), path.join(tmp, "donnees.js"));
 fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
-const { versSoir, lireReto, tirerPregunta } = await import(path.join(tmp, "donnees.js"));
+const { versSoir, lireReto, tirerPregunta, tirerRepaso } = await import(path.join(tmp, "donnees.js"));
 
 let fautes = 0;
 const verifier = (nom, obtenu, attendu) => {
@@ -59,6 +59,30 @@ verifier("seulement les leçons faites, pas celle du soir", [...tirees].sort(), 
 verifier("pas deux fois la même de suite", tirerPregunta(soir, faites, "U1-L2", "q1a", () => 0), { lecon: "U1-L1", question: "q1b" });
 verifier("première leçon : rien à tirer", tirerPregunta(soir, new Set(["U1-L1"]), "U1-L1"), null);
 verifier("une seule question possible : on la garde", tirerPregunta(soir, new Set(["U1-L2", "U1-L3"]), "U1-L3", "q2a"), { lecon: "U1-L2", question: "q2a" });
+
+// 5. Le soir de révision
+const tout = {};
+const types = ["Mímica", "Con prisa", "Ni sí ni no", "Verdad o mentira", "Completa la frase", "Mímica"];
+["L1", "L2", "L3", "L4", "L5", "L6"].forEach((l, i) => {
+  tout[l] = { questions: [`${l}a`, `${l}b`, `${l}c`, `${l}d`], reto: `${types[i]}: consigne ${l}`, kevin: `grammaire ${l} ; autre` };
+});
+const fait6 = new Set(["L1", "L2", "L3", "L4", "L5", "L6"]);
+const r1 = tirerRepaso(tout, fait6, "L6", "2026-11-26");
+verifier("4 questions", r1.questions.length, 4);
+verifier("4 leçons différentes, pas la dernière, dans l'ordre", r1.questions.map(q => q.lecon).filter((l, i, t) => t.indexOf(l) === i && l !== "L6").length, 4);
+verifier("dans l'ordre du livre", r1.questions.map(q => q.lecon), [...r1.questions.map(q => q.lecon)].sort());
+verifier("la question vient de sa leçon", r1.questions.every(q => q.question.startsWith(q.lecon)), true);
+verifier("le même tirage toute la soirée", tirerRepaso(tout, fait6, "L6", "2026-11-26"), r1);
+let differents = 0;
+for (let d = 1; d <= 20; d++) {
+  const j = `2026-12-${String(d).padStart(2, "0")}`;
+  const r = tirerRepaso(tout, fait6, "L6", j);
+  if (JSON.stringify(r.questions) !== JSON.stringify(r1.questions)) differents++;
+  if (r.reto.reto.nom === "Mímica") verifier(`${j} : pas le défi de la veille (Mímica)`, r.reto.reto.nom, "autre");
+}
+verifier("un autre tirage les autres jours", differents >= 15, true);
+verifier("Kevin : 1re ligne de grammaire de chaque leçon", r1.kevin.map(k => k.texte), r1.questions.map(q => `grammaire ${q.lecon}`));
+verifier("moins de 4 autres leçons : pas de révision", tirerRepaso(tout, new Set(["L1", "L2", "L3", "L4"]), "L4", "2026-11-26"), null);
 
 console.log(fautes ? `\n${fautes} faute(s)` : "✓ Le soir : tout est bon");
 process.exit(fautes ? 1 : 0);

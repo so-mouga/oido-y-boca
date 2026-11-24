@@ -129,3 +129,36 @@ export async function chargerTableau() {
     clearTimeout(minuteur);
   }
 }
+
+// Un hasard fixe pour une journée : la même date donne toujours le même tirage (mulberry32 sur la date).
+export function hasardDuJour(jour) {
+  let a = 0;
+  for (const c of jour) a = (Math.imul(a, 31) + c.charCodeAt(0)) | 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// Le soir de révision (« repaso ») : les soirs sans nouvelle fiche, 4 questions de 4 leçons faites différentes
+// (pas la dernière, déjà faite la veille), dans l'ordre du livre, et un défi d'un autre type que celui de la dernière fiche.
+// Fixe pour la journée (hasardDuJour). null s'il y a moins de 4 autres leçons avec des questions.
+export function tirerRepaso(soir, faites, derniere, jour, hasard = hasardDuJour(jour)) {
+  const ordre = [...faites].filter(id => id !== derniere && soir[id]?.questions?.length);
+  if (ordre.length < 4) return null;
+  const melange = ordre.map(id => ({ id, cle: hasard() })).sort((a, b) => a.cle - b.cle).map(x => x.id);
+  const choisies = melange.slice(0, 4).sort((a, b) => ordre.indexOf(a) - ordre.indexOf(b));
+  const questions = choisies.map(id => {
+    const qs = soir[id].questions;
+    return { lecon: id, question: qs[Math.floor(hasard() * qs.length)] };
+  });
+  const typeHier = lireReto(soir[derniere]?.reto)?.nom;
+  const retos = ordre.map(id => ({ lecon: id, reto: lireReto(soir[id].reto) })).filter(r => r.reto && r.reto.nom !== typeHier);
+  const reto = retos.length ? retos[Math.floor(hasard() * retos.length)] : null;
+  const kevin = choisies
+    .map(id => ({ lecon: id, texte: (soir[id].kevin || "").split(";")[0].trim() }))
+    .filter(k => k.texte);
+  return { questions, reto, kevin };
+}

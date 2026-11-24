@@ -2,15 +2,16 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=44";
-import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=44";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=44";
-import { EXERCICES } from "../exercices.js?v=44";
-import { controlePret, dernierResultat } from "./controle.js?v=44";
-import { motsDus, PAQUET } from "./pratique.js?v=44";
-import { BONUS } from "../bonus.js?v=44";
-import { motsDeLaSemaine } from "./mesmots.js?v=44";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=44";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=45";
+import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=45";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=45";
+import { EXERCICES } from "../exercices.js?v=45";
+import { controlePret, dernierResultat } from "./controle.js?v=45";
+import { motsDus, PAQUET } from "./pratique.js?v=45";
+import { BONUS } from "../bonus.js?v=45";
+import { motsDeLaSemaine } from "./mesmots.js?v=45";
+import { soirRepaso } from "./soir.js?v=45";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=45";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
@@ -185,11 +186,14 @@ export function ecranAujourdhui(ctx) {
   // 5. Ce soir avec Blanca : toujours dans la liste, dans la carte seulement à partir de 18 h.
   const leSoir = new Date().getHours() >= HEURE_SOIR;
   if (der) {
-    const aUtiliser = (soir[der.id]?.kevin || der.soir || "").split(";")[0].trim();
+    // Un soir de révision : la première chose à utiliser vient de la 1re leçon tirée.
+    const repaso = soirRepaso(ctx);
+    const aUtiliser = repaso ? (repaso.kevin[0]?.texte || "") : (soir[der.id]?.kevin || der.soir || "").split(";")[0].trim();
     journee.push({
       titre: "Ce soir avec Blanca", fait: !!c.soir, cle: "soir", href: "#/soir",
-      detail: c.soir ? "fait" : leSoir && aUtiliser ? esc(aUtiliser) : `à partir de ${HEURE_SOIR} h`,
-      carte: leSoir ? { titre: "Ce soir avec Blanca", texte: aUtiliser ? `À utiliser : ${esc(aUtiliser)}.` : "Ta fiche du soir est prête.",
+      detail: c.soir ? "fait" : leSoir && repaso ? "soir de révision" : leSoir && aUtiliser ? esc(aUtiliser) : `à partir de ${HEURE_SOIR} h`,
+      carte: leSoir ? { titre: "Ce soir avec Blanca", texte: repaso ? "Soir de révision : 4 questions de tes anciennes leçons et un autre défi."
+          : aUtiliser ? `À utiliser : ${esc(aUtiliser)}.` : "Ta fiche du soir est prête.",
         bouton: "Ouvrir la fiche du soir", href: "#/soir" } : null,
     });
   }
