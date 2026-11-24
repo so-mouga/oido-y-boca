@@ -9,13 +9,13 @@
 // Ici, pas seulement les mots connus : ces jeux servent aussi à apprendre (décidé avec Kevin). Les mots gardés entrent
 // dans « Tes mots à revoir » (5 par jour au plus, tous jeux confondus). Le contenu des thèmes et les gages sont dans themes.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=57";
-import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=57";
-import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=57";
-import { taire } from "../voix.js?v=57";
-import { chispa } from "../mascotte.js?v=57";
-import { THEMES, GAGES } from "../themes.js?v=57";
-import * as J from "../jeux.js?v=57";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=58";
+import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=58";
+import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=58";
+import { taire } from "../voix.js?v=58";
+import { chispa } from "../mascotte.js?v=58";
+import { THEMES, GAGES } from "../themes.js?v=58";
+import * as J from "../jeux.js?v=58";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -98,7 +98,7 @@ function vueBombaPret() {
     : `<p class="f-note">Vous comptez les mots dits à deux avant l'explosion, et vous essayez de battre votre record.</p>`;
   return {
     onglet: null,
-    html: `<div class="feria f-page d-page">${tete("La Bomba", "#/jeux/deux")}
+    html: `<div class="feria f-page d-page">${tete("La Bomba", "#/jeux")}
         <p class="f-regle">Chacun son tour : <b>dis un mot espagnol du thème</b>, touche l'écran, la bombe passe à l'autre. Pas de mot, ou un mot déjà dit ? Tu gardes la bombe. Elle explose quand elle veut…</p>
         <h2>Avec qui ?</h2><div class="d-choix">${choix("partenaire", "Blanca", r.partenaire, "Kevin et Blanca")}${choix("partenaire", "Dorian", r.partenaire, "Kevin et Dorian")}</div>
         <h2>Comment ?</h2><div class="d-choix">${choix("mode", "duel", r.mode, "L'un contre l'autre")}${choix("mode", "ensemble", r.mode, "Ensemble")}</div>
@@ -230,7 +230,7 @@ function vueBoum() {
   return {
     onglet: null,
     html: `<div class="feria d-boum"><span class="d-bum">¡BUM!</span>${corps}
-        <button class="f-btn gros" data-d="encore">Encore une, autre thème !</button><a class="d-lien" href="#/jeux/deux" data-remplace>Changer de jeu</a></div>`,
+        <button class="f-btn gros" data-d="encore">Encore une, autre thème !</button><a class="d-lien" href="#/jeux" data-remplace>Retour à la Feria</a></div>`,
     apres: () => {
       brancher();
       if (!calme()) { const a = document.getElementById("app"); a.classList.remove("d-secoue"); void a.offsetWidth; a.classList.add("d-secoue"); }
@@ -264,7 +264,7 @@ function vueFrentePret(ctx) {
   const paquet = paquets.find(p => p.id === r.paquet && !p.ouvert) ? "suite" : r.paquet;
   return {
     onglet: null,
-    html: `<div class="feria f-page d-page">${tete("En la frente", "#/jeux/deux")}
+    html: `<div class="feria f-page d-page">${tete("En la frente", "#/jeux")}
         <p class="f-regle">Mets le téléphone <b>sur ton front</b>, écran vers l'autre. Il te fait deviner le mot <b>en espagnol</b> : phrases simples ou mimes, jamais de français. Penche la tête en avant : trouvé. En arrière : je passe.</p>
         <h2>Qui devine ?</h2><div class="d-choix">${["Kevin", "Blanca", "Dorian"].map(n => choix("devine", n, r.devine, n)).join("")}</div>
         <h2>Avec quels mots ?</h2>
@@ -388,7 +388,7 @@ function vueFrenteFin() {
         <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus).` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p>` : ""}
         <div class="d-bas"><a class="f-btn gros" href="#/jeux/frente/partie" data-remplace>Encore une !</a>
           <button class="d-lien" data-d="echange" data-v="${esc(echange)}">On échange : ${esc(echange)} devine</button>
-          <a class="d-lien" href="#/jeux/deux" data-remplace>Changer de jeu</a></div>
+          <a class="d-lien" href="#/jeux" data-remplace>Retour à la Feria</a></div>
       </div>`,
     apres: brancher,
   };

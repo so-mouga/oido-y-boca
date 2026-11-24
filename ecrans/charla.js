@@ -12,16 +12,16 @@
 // jamais ceux des réponses : la bulle donnerait la réponse.
 // Le moteur (choix du jour, réponses, ampoule) est dans charla.js ; les conversations dans charlas/.
 
-import { esc, ICONES, barreOnglets, id } from "../ui.js?v=57";
-import { LECONS } from "../position.js?v=57";
-import { phraseTouchable } from "../toucher.js?v=57";
-import { etatJeux, garderJeux } from "../progression.js?v=57";
-import { dire, taire } from "../voix.js?v=57";
-import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=57";
-import { chispa } from "../mascotte.js?v=57";
-import * as J from "../jeux.js?v=57";
-import * as C from "../charla.js?v=57";
-import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=57";
+import { esc, ICONES, barreOnglets, id } from "../ui.js?v=58";
+import { LECONS } from "../position.js?v=58";
+import { phraseTouchable } from "../toucher.js?v=58";
+import { etatJeux, garderJeux } from "../progression.js?v=58";
+import { dire, taire } from "../voix.js?v=58";
+import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=58";
+import { chispa } from "../mascotte.js?v=58";
+import * as J from "../jeux.js?v=58";
+import * as C from "../charla.js?v=58";
+import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=58";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -82,22 +82,16 @@ function duJour(ctx) {
 const premiere = () => [...CHARLAS].sort((a, b) => (RANG[a.lecon] ?? 1e6) - (RANG[b.lecon] ?? 1e6))[0] || null;
 const nEchanges = c => `${c.echanges.length} échanges`;
 
-// Le stand de la salle (ecrans/jeux.js), à la place de la pancarte « Le défi du jour ».
+// La carte du jour, en tête de la salle (ecrans/jeux.js) : le visage de la personne, qui t'attend, et ce que ça allume.
 export function standCharla(ctx) {
   const d = duJour(ctx);
-  const quoi = `<h2>La Charla</h2><p>Le défi du jour : une petite conversation en espagnol avec quelqu'un de Huesca.</p>`;
   if (!d) {
     const p = premiere();
-    return `<div class="f-stand charla"><div class="f-toile"></div><div class="f-comptoir">${quoi}
-      <div class="f-attente"><b>Arrive bientôt.</b> ${p ? `La première charla s'ouvre avec la leçon ${esc(p.lecon)}.` : "Les conversations sont en cours d'écriture."}</div></div></div>`;
+    return `<div class="s-jour attend"><span class="s-picto-jour" aria-hidden="true"></span><div><small>Le défi du jour</small><b>La Charla</b><span>${p ? `S'ouvre avec la leçon ${esc(p.lecon)}` : "Les conversations sont en cours d'écriture"}</span></div></div>`;
   }
   const qui = perso(d.charla);
-  const ligne = d.faite
-    ? `<span>Faite aujourd'hui<b>${d.faite.ok}/${d.faite.sur}</b></span><span>Prochaine charla demain</span>`
-    : `<span>Aujourd'hui<b>${esc(qui.nom)}</b></span><span>Un seul essai</span>`;
-  const plus = d.plusDeNouvelle && !d.faite ? `<p class="c-plus">Plus de nouvelle charla pour ton niveau : on en reprend une.</p>` : "";
-  return `<a class="f-stand charla" href="#/jeux/charla"><div class="f-toile"></div><div class="f-comptoir">${quoi}
-      <div class="f-ligne">${ligne}</div>${plus}<span class="f-btn">${d.faite ? "La revoir" : "¡Hola!"}</span></div></a>`;
+  if (d.faite) return `<a class="s-jour faite" href="#/jeux/charla">${avatar(qui.couleur, "s-av")}<div><small>Charla faite · ${d.faite.ok}/${d.faite.sur}</small><b>${esc(qui.nom)}, ¡hasta mañana!</b><span>La prochaine arrive demain</span></div><em>Revoir</em></a>`;
+  return `<a class="s-jour" href="#/jeux/charla">${avatar(qui.couleur, "s-av")}<div><small>La charla de hoy</small><b>${esc(qui.nom)} t'attend</b><span>${esc(d.charla.lieu)} · ${d.plusDeNouvelle ? "une ancienne, d'autres pièges" : "allume l'ampoule"}</span></div><em>Hablar</em></a>`;
 }
 
 // ——— l'accueil ———

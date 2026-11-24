@@ -717,3 +717,69 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .c-relue svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .c-relue[aria-pressed="true"] { background: var(--sage-ink); border-color: var(--sage-ink); color: var(--crema); }
 @media (prefers-reduced-motion: reduce) { .c-msg, .c-note, .c-compris, .c-rep, .c-ecrit i, .c-ampoule i, .c-ecoute.parle, .c-micro.ecoute { animation: none !important; } }
+
+/* ——— La salle : « la place du village » (ecrans/jeux.js, vueSalle). Tout tient presque dans un écran. ——— */
+.s-salle { padding-bottom: 12px; }
+.s-haut { display: flex; align-items: center; gap: 6px; padding: 0 18px; margin-top: -2px; }
+.s-haut h1 { flex: 1; font-size: 34px; line-height: 1; }
+.s-chispa { width: 46px; height: 46px; flex: none; margin-left: -4px; }
+.s-chispa .m { width: 46px; height: 46px; }
+.s-bulle { margin: 6px 18px 0 60px; background: var(--crema); border-radius: 4px 16px 16px 16px; padding: 8px 12px; font-size: 13.5px; line-height: 1.4; box-shadow: 0 6px 14px -8px rgba(92, 61, 2, .5); }
+.entree .s-bulle { animation: f-bulle .45s var(--ease) .5s both; }
+.s-bulle b { font-weight: 600; }
+.s-bulle a { font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; text-decoration-color: var(--sol); white-space: nowrap; }
+
+/* la charla du jour */
+.s-jour { margin: 12px 18px 0; display: flex; align-items: center; gap: 12px; background: var(--crema); border: 2.5px solid var(--marine); border-radius: 20px; padding: 11px 13px; box-shadow: 0 12px 20px -14px rgba(92, 61, 2, .6); }
+.s-jour .s-av { width: 52px; height: 52px; flex: none; }
+.s-jour > div { flex: 1; min-width: 0; line-height: 1.25; }
+.s-jour small { display: block; font-size: 11px; font-weight: 600; color: var(--tomate-fonce); text-transform: uppercase; letter-spacing: .06em; }
+.s-jour b { font-family: var(--titre); font-weight: 400; font-size: 20px; display: block; }
+.s-jour span { display: block; font-size: 12.5px; color: var(--marine-soft); }
+.s-jour em { font-style: normal; font-weight: 600; background: var(--marine); color: var(--crema); border-radius: 12px; padding: 8px 12px; font-size: 14px; flex: none; }
+.s-jour.faite { border-color: var(--sage-ink); }
+.s-jour.faite small { color: var(--sage-ink); }
+.s-jour.faite em { background: var(--sun-deep); color: var(--marine); }
+.s-jour.attend { border-style: dashed; border-color: var(--sol-encre); box-shadow: none; }
+.s-picto-jour { width: 52px; height: 52px; border-radius: 16px; background: var(--sun-deep); flex: none; }
+
+/* la grille des 4 jeux seul */
+.s-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 12px 18px 0; }
+.s-tuile { --a: var(--tomate); display: flex; flex-direction: column; background: var(--crema); border-radius: 18px; overflow: hidden; box-shadow: 0 10px 16px -12px rgba(92, 61, 2, .55); min-width: 0; }
+.s-tuile.caseta { --a: var(--marine); } .s-tuile.chiringuito { --a: var(--sage-ink); } .s-tuile.montre { --a: var(--tomate); } .s-tuile.verbes { --a: var(--mar); }
+.s-toile { height: 22px; flex: none; background: repeating-linear-gradient(90deg, var(--a) 0 18px, var(--crema) 18px 36px);
+  -webkit-mask: linear-gradient(#000 0 0) top/100% calc(100% - 8px) no-repeat, radial-gradient(circle at 9px 0, #000 8.5px, transparent 9px) bottom left/18px 9px repeat-x;
+  mask: linear-gradient(#000 0 0) top/100% calc(100% - 8px) no-repeat, radial-gradient(circle at 9px 0, #000 8.5px, transparent 9px) bottom left/18px 9px repeat-x; }
+.s-corps { padding: 6px 12px 11px; display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.s-ligne1 { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 2px; }
+.s-quoi { font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--a); background: color-mix(in srgb, var(--a) 14%, #fff); border-radius: 999px; padding: 1px 8px; }
+.s-neuf { flex: none; background: var(--tomate); color: var(--crema); font-size: 10.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; }
+.s-picto { width: 30px; height: 30px; border-radius: 10px; background: var(--a); display: grid; place-items: center; margin-bottom: 2px; flex: none; }
+.s-picto svg { width: 18px; height: 18px; fill: none; stroke: var(--crema); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.s-tuile h3 { font-family: var(--titre); font-weight: 400; font-size: 18px; line-height: 1.05; margin: 2px 0 0; }
+.s-tuile p { font-size: 12px; color: var(--marine-soft); line-height: 1.3; margin: 0; }
+.s-rec { margin-top: auto; padding-top: 6px; display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 11.5px; color: var(--marine-soft); }
+.s-rec span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.s-rec b { flex: none; font-family: var(--titre); font-weight: 400; font-size: 17px; color: var(--marine); }
+.s-tuile.ferme { opacity: .7; }
+.s-tuile.ferme .s-rec span { color: var(--sol-encre); font-weight: 600; }
+
+/* « À deux » : le canapé, à part */
+.s-canape { margin: 14px 18px 0; background: var(--marine); border-radius: 20px; padding: 12px; color: var(--crema); }
+.s-canape h2 { font-size: 19px; display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 8px; margin: 0 2px 8px; color: var(--crema); }
+.s-canape h2 small { font-family: var(--font); font-size: 12px; color: #C9D3E4; font-weight: 500; }
+.s-duos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.s-duo { --a: var(--tomate-fonce); display: flex; align-items: center; gap: 10px; background: rgba(255, 246, 224, .1); border-radius: 14px; padding: 10px; line-height: 1.2; min-width: 0; }
+.s-duo.frente { --a: #7A3F8F; }
+.s-duo .s-picto { width: 34px; height: 34px; margin: 0; }
+.s-duo b { font-family: var(--titre); font-weight: 400; font-size: 17px; display: block; }
+.s-duo small { font-size: 11.5px; color: #C9D3E4; }
+
+/* les trophées et Chispa, puis ce qui arrive bientôt */
+.s-pied { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px 18px 0; }
+.s-pied a { background: var(--sun-deep); border-radius: 16px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-size: 12.5px; line-height: 1.25; color: var(--marine-soft); min-width: 0; }
+.s-pied b { display: block; font-weight: 600; font-size: 14px; color: var(--marine); }
+.s-pied .f-rosette { width: 30px; height: 36px; flex: none; }
+.s-pied .m { width: 36px; height: 36px; flex: none; }
+.s-bientot { margin: 12px 18px 8px; font-size: 12.5px; color: var(--sol-encre); text-align: center; }
+.s-bientot b { font-weight: 600; }
