@@ -7,20 +7,20 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=43";
-import { lecon as trouver } from "../position.js?v=43";
-import { EXERCICES } from "../exercices.js?v=43";
-import { corriger } from "../corriger.js?v=43";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=43";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=43";
-import { BONUS } from "../bonus.js?v=43";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=43";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=43";
-import { vibrer, son } from "../retours.js?v=43";
+import { esc, md, id, ICONES } from "../ui.js?v=44";
+import { lecon as trouver } from "../position.js?v=44";
+import { EXERCICES } from "../exercices.js?v=44";
+import { corriger } from "../corriger.js?v=44";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance } from "../progression.js?v=44";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=44";
+import { BONUS } from "../bonus.js?v=44";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=44";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=44";
+import { vibrer, son } from "../retours.js?v=44";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=43";
+} from "../enregistrement.js?v=44";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -508,7 +508,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
 
   const it = s.items[s.i];
   const enTete = `${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}`;
-  const question = it.type === "ecrire" && s.phase === "question";
+  const question = (it.type === "ecrire" || it.type === "tableau") && s.phase === "question";
   const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : it.type === "tableau" ? vueTableau(it, enTete)
     : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
   return {
@@ -542,7 +542,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
       }
       s.vientDeTourner = false;
     },
-    html: `<main class="colonne exo${question ? " ecrire-q" : ""}">${vue}</main>`,
+    html: `<main class="colonne exo${question ? ` ecrire-q${it.type === "tableau" ? " tableau-q" : ""}` : ""}">${vue}</main>`,
   };
 }
 

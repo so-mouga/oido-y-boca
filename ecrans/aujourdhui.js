@@ -2,15 +2,15 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=43";
-import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=43";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=43";
-import { EXERCICES } from "../exercices.js?v=43";
-import { controlePret, dernierResultat } from "./controle.js?v=43";
-import { motsDus, PAQUET } from "./pratique.js?v=43";
-import { BONUS } from "../bonus.js?v=43";
-import { motsDeLaSemaine } from "./mesmots.js?v=43";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=43";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=44";
+import { cases, niveauEcoute, derniereSauvegarde } from "../progression.js?v=44";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=44";
+import { EXERCICES } from "../exercices.js?v=44";
+import { controlePret, dernierResultat } from "./controle.js?v=44";
+import { motsDus, PAQUET } from "./pratique.js?v=44";
+import { BONUS } from "../bonus.js?v=44";
+import { motsDeLaSemaine } from "./mesmots.js?v=44";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=44";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h

@@ -1,25 +1,26 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=43";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=43";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=43";
-import { ECOUTES } from "./ecoute.js?v=43";
-import { preparerVoix } from "./voix.js?v=43";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=43";
-import { vibrer } from "./retours.js?v=43";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=43";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=43";
-import { ecranLivre } from "./ecrans/livre.js?v=43";
-import { ecranLecon } from "./ecrans/lecon.js?v=43";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=43";
-import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=43";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=43";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=43";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=43";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=43";
-import { ecranLectures } from "./ecrans/lectures.js?v=43";
-import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=43";
+import { chargerTableau } from "./donnees.js?v=44";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=44";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=44";
+import { ECOUTES } from "./ecoute.js?v=44";
+import { preparerVoix } from "./voix.js?v=44";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=44";
+import { vibrer } from "./retours.js?v=44";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=44";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=44";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=44";
+import { ecranLivre } from "./ecrans/livre.js?v=44";
+import { ecranLecon } from "./ecrans/lecon.js?v=44";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=44";
+import { ecranPratique, ecranBonus, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=44";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=44";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=44";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=44";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=44";
+import { ecranLectures } from "./ecrans/lectures.js?v=44";
+import { envoyerGoogle, surveillerGoogle, actionGoogle } from "./sauvegarde-google.js?v=44";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -96,6 +97,7 @@ function dessiner() {
   app.innerHTML = rendu.html;
   window.scrollTo(0, 0);
   rendu.apres?.();
+  marquerDebords();
 }
 
 app.addEventListener("submit", async e => {
@@ -247,6 +249,7 @@ app.addEventListener("change", async e => {
 
 async function demarrer() {
   preparerVoix();
+  suivreClavier();
   // Demande à Chrome de ne jamais effacer la progression pour faire de la place (accordé sans question,
   // surtout quand l'appli est installée).
   navigator.storage?.persist?.().catch(() => {});

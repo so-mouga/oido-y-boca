@@ -308,6 +308,22 @@ body.nuit ::selection { background: var(--sun); color: var(--night); }
 .defile > * { flex: none; }
 .ecrire-q .saisie { flex: none; gap: 8px; }
 .ecrire-q .aides .secondaire { padding: 8px; }
+/* La hauteur vraiment visible au-dessus du clavier (clavier.js), que le navigateur raccourcisse la page ou la fasse glisser. */
+.exo.ecrire-q { height: var(--visible, 100dvh); }
+/* Clavier ouvert : la barre et la petite ligne du type d'exercice laissent leur place à la phrase et au verbe. */
+.clavier .ecrire-q .barre-ex, .clavier .ecrire-q .sorte { display: none; }
+.clavier .exo.ecrire-q { gap: 10px; padding-top: calc(env(safe-area-inset-top, 0px) + 12px); }
+.clavier .ecrire-q .defile { gap: 12px; }
+.clavier .ecrire-q .enonce { font-size: 21px; }
+.clavier .verbes-exo .q-verbe { margin-top: 0; font-size: 28px; }
+.clavier .verbes-exo .q-phrase { margin-top: 0; }
+/* Il reste du texte en dessous dans la zone qui défile : un léger fondu le montre. */
+.deborde { -webkit-mask-image: linear-gradient(#000 calc(100% - 28px), transparent); mask-image: linear-gradient(#000 calc(100% - 28px), transparent); }
+/* Le tableau « tout le verbe » : le verbe reste en haut, seules les 6 cases défilent, « Vérifier » reste en bas. */
+.tableau-q .tableau { flex: 1; min-height: 0; }
+.tableau-q .grille { flex: 0 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; padding: 3px; margin: -3px; }
+.tableau-q > * { flex: none; }
+.tableau-q > .tableau { flex: 1; }
 .barre-ex { display: flex; align-items: center; gap: 14px; }
 .quitter { display: inline-flex; align-items: center; gap: 4px; font-size: 15px; font-weight: 500; color: var(--marine-soft); padding: 6px 0; }
 .quitter .i { width: 18px; height: 18px; }

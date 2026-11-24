@@ -5,14 +5,14 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=43";
-import { corriger } from "../corriger.js?v=43";
-import { PERSONNES, formesSurlignees } from "../controles.js?v=43";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe } from "../verbes.js?v=43";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance } from "../progression.js?v=43";
-import { motVu } from "../dico.js?v=43";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=43";
-import { vibrer, son } from "../retours.js?v=43";
+import { esc, md, ICONES } from "../ui.js?v=44";
+import { corriger } from "../corriger.js?v=44";
+import { PERSONNES, formesSurlignees } from "../controles.js?v=44";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe } from "../verbes.js?v=44";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance } from "../progression.js?v=44";
+import { motVu } from "../dico.js?v=44";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=44";
+import { vibrer, son } from "../retours.js?v=44";
 
 export const LIMITE_COURS = 5;
 let s = null; // la série en cours

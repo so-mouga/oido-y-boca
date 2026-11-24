@@ -1,5 +1,5 @@
 // Le service worker : garde l'appli sur le téléphone pour qu'elle s'ouvre sans réseau.
-// Son numéro de version vient de son adresse (« sw.js?v=43 », écrite dans index.html) :
+// Son numéro de version vient de son adresse (« sw.js?v=44 », écrite dans index.html) :
 // passer les imports à la version suivante change cette adresse, le navigateur installe
 // le nouveau service worker, qui remplace l'ancien et efface son cache. Rien à vider à la main.
 // Le Google Sheet n'est pas concerné : donnees.js garde déjà sa propre copie.
@@ -12,7 +12,7 @@ const CACHE_POLICE = "oyb-police"; // Lexend ne change pas d'une version à l'au
 const FICHIERS = [
   "app.js", "corriger.js", "donnees.js", "ecoute.js", "enregistrement.js", "exercices.js",
   "guide.js", "lecture.js", "livre.js", "position.js", "progression.js", "retours.js",
-  "ui.js", "voix.js", "controles.js", "bonus.js", "dico.js", "sauvegarde-google.js", "verbes.js", "lectures.js", "style.css",
+  "ui.js", "voix.js", "controles.js", "bonus.js", "dico.js", "sauvegarde-google.js", "verbes.js", "lectures.js", "clavier.js", "style.css",
   "ecrans/aujourdhui.js", "ecrans/controle.js", "ecrans/dico.js", "ecrans/lecon.js", "ecrans/mesmots.js", "ecrans/livre.js", "ecrans/pratique.js", "ecrans/soir.js", "ecrans/verbes.js", "ecrans/lectures.js",
 ].map(f => `${f}?v=${VERSION}`);
 const AUTRES = ["./", "manifest.webmanifest", "icone-192.png", "icone-512.png", "icone-masquable-512.png"];
