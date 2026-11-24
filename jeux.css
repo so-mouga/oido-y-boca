@@ -179,7 +179,8 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .f-gros span { font-size: 14px; color: var(--marine-soft); text-align: right; line-height: 1.3; }
 .f-gros span i { font-style: normal; font-family: var(--titre); font-size: 22px; color: var(--marine); display: block; }
 .f-nouveau { align-self: flex-start; font-family: var(--titre); font-size: 20px; background: var(--tomate); color: var(--crema); border-radius: 10px; padding: 2px 12px 4px; transform: rotate(-3deg); animation: f-feu .6s var(--ease) .9s both; }
-.f-chiffres { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1.5px dashed var(--hair); padding-top: 12px; }
+.f-chiffres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; border-top: 1.5px dashed var(--hair); padding-top: 12px; }
+.f-chiffres div + div { border-left: 1.5px solid var(--hair); padding-left: 12px; }
 .f-chiffres div { font-size: 12.5px; color: var(--marine-soft); line-height: 1.3; }
 .f-chiffres b { display: block; font-family: var(--titre); font-weight: 400; font-size: 24px; color: var(--marine); font-variant-numeric: tabular-nums; }
 .f-rates h2 { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--sol-encre); margin-bottom: 8px; }
@@ -193,6 +194,7 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .f-rates button svg { width: 16px; height: 16px; }
 .f-rates button.on { box-shadow: 0 0 0 4px var(--sol); }
 .f-fin .f-bas { position: sticky; bottom: 0; padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 18px); display: flex; flex-direction: column; gap: 10px; align-items: center; background: var(--sol); }
+.f-fin .f-bas::before, .d-bas::before { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 18px; background: linear-gradient(to bottom, transparent, var(--sol)); pointer-events: none; }
 .f-fin .f-bas .f-btn { width: 100%; }
 .f-fin .f-bas .f-retour { font-weight: 600; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 4px; }
 .f-confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
@@ -320,7 +322,8 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .d-theme.petit small { font-size: 11px; }
 /* Les boutons du bas restent visibles, collés au bas de l'écran, au-dessus de ce qui défile. */
 .d-bas { margin-top: auto; position: sticky; bottom: 0; display: flex; flex-direction: column; gap: 4px; align-items: center; background: var(--sol);
-  padding: 12px 0 calc(env(safe-area-inset-bottom, 0px) + 8px); box-shadow: 0 -14px 14px -10px var(--sol); }
+  padding: 12px 0 calc(env(safe-area-inset-bottom, 0px) + 24px); z-index: 2; }
+.d-page:has(> .d-bas) { padding-bottom: 0; }
 .d-bas .f-btn { width: 100%; }
 .d-lien { color: var(--marine); font-weight: 600; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 6px; }
 
@@ -341,12 +344,13 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .d-joker { background: var(--crema); color: var(--marine); border-radius: 999px; padding: 10px 16px; font-weight: 600; font-size: 15px; box-shadow: 0 6px 12px -8px rgba(92, 61, 2, .6); display: flex; align-items: center; gap: 8px; }
 .d-joker span { background: var(--marine); color: var(--sol); border-radius: 999px; font-size: 12px; padding: 1px 8px; }
 .d-joker.vide { background: none; box-shadow: none; color: var(--sol-encre); font-size: 13px; }
-.d-idees { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; animation: f-bulle .35s var(--ease); }
+.d-idees { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: 100%; animation: f-bulle .35s var(--ease); }
 .d-idees button { background: var(--crema); border-radius: 14px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; line-height: 1.2; }
 .d-idees button.vu { background: #E4F1E6; }
 .d-idees b { font-size: 26px; font-weight: 400; }
 .d-idees small { font-size: 11px; color: var(--marine-soft); }
-.d-idees i { font-style: normal; font-weight: 600; font-size: 13.5px; white-space: pre; }
+.d-idees i { font-style: normal; font-weight: 600; font-size: 13.5px; white-space: pre-wrap; text-align: center; max-width: 100%; }
+.d-idees small { text-align: center; overflow-wrap: anywhere; }
 .d-astuce { width: 100%; text-align: center; font-size: 11.5px; color: var(--sol-encre); margin-top: 4px; }
 .d-tour { padding: 0 18px calc(env(safe-area-inset-bottom, 0px) + 18px); }
 .d-passe { width: 100%; min-height: 170px; border-radius: 28px; background: var(--marine); color: var(--crema); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 8px 0 -1px rgba(19, 41, 75, .35); }
@@ -514,3 +518,15 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 @keyframes c-feu { from { opacity: 0; transform: translate(-50%, -50%) rotate(-14deg) scale(2.2); } 70% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -60%) rotate(-6deg) scale(1); } }
 @media (max-height: 640px) { .c-rail { height: 78px; } .c-score { font-size: 38px; } .c-mur { padding-top: 14px; } }
 @media (prefers-reduced-motion: reduce) { .c-feu, .c-impact, .c-envol, .c-partie.secoue .c-stand, .c-consigne.parle b.cache, .c-cible .c-plaque { animation: none !important; } }
+
+/* Contre la montre et course de verbes : les unités rangées ; le sens du verbe ; le paquet du record sur le stand */
+.f-unites { background: var(--sun-deep); border-radius: 16px; padding: 2px 6px; margin-top: 8px; }
+.f-unites summary { list-style: none; cursor: pointer; padding: 11px 10px; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.f-unites summary::-webkit-details-marker { display: none; }
+.f-unites summary small { margin-left: auto; font-weight: 400; font-size: 13px; color: var(--marine-soft); }
+.f-unites summary::after { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: rotate(45deg) translateY(-3px); transition: transform .2s var(--ease); }
+.f-unites[open] summary::after { transform: rotate(-135deg) translateY(-1px); }
+.f-unites .f-paquets { padding: 0 0 6px; }
+.f-sens { font-size: 15px; color: var(--marine-soft); margin-top: -6px; flex: none; min-height: 1.2em; }
+.fuego .f-sens { color: var(--crema); opacity: .85; }
+.f-ligne small { display: block; font-size: 12px; line-height: 1.2; }

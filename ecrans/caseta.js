@@ -9,14 +9,14 @@
 // Le moteur (paquets, niveaux, points, pièges de l'oreille) est dans jeux.js ; les paires de pièges dans themes.js.
 // Rien ici ne touche à la révision des mots, sauf « Je le garde » sur un mot nouveau, comme dans le Dico.
 
-import { esc, ICONES } from "../ui.js?v=53";
-import { motsAMoi, motsAVenir } from "../dico.js?v=53";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=53";
-import { dire, taire } from "../voix.js?v=53";
-import { chispa } from "../mascotte.js?v=53";
-import { PIEGES } from "../themes.js?v=53";
-import * as J from "../jeux.js?v=53";
-import { rosette, braises, confettis } from "./jeux.js?v=53";
+import { esc, ICONES } from "../ui.js?v=54";
+import { motsAMoi, motsAVenir } from "../dico.js?v=54";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=54";
+import { dire, taire } from "../voix.js?v=54";
+import { chispa } from "../mascotte.js?v=54";
+import { PIEGES } from "../themes.js?v=54";
+import * as J from "../jeux.js?v=54";
+import { rosette, braises, confettis } from "./jeux.js?v=54";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -29,8 +29,8 @@ const REGLAGES = { paquet: "tout", niveau: "normal", cibles: "fr" };
 const reglages = () => ({ ...REGLAGES, ...(jeux().caseta || {}) });
 const regler = r => garderJeux({ ...jeux(), caseta: { ...reglages(), ...r } });
 const recordDe = niveau => jeux().records[`caseta:${niveau}`] || 0;
-// Le meilleur record, tous niveaux confondus (pour le stand de la salle).
-export const recordCaseta = () => Math.max(0, ...Object.keys(J.NIVEAUX_CASETA).map(recordDe));
+// Le meilleur record, tous niveaux confondus, et son niveau (pour le stand de la salle).
+export const recordCaseta = () => Object.entries(J.NIVEAUX_CASETA).reduce((r, [id, n]) => recordDe(id) > r.score ? { score: recordDe(id), nom: n.nom } : r, { score: 0, nom: "" });
 const MOTS_PIEGES = J.motsPieges(PIEGES);
 
 let P = null, image = 0, minuteurs = [], coupe = null, derniere = null;

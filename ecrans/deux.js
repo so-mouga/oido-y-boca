@@ -9,13 +9,13 @@
 // Ici, pas seulement les mots connus : ces jeux servent aussi à apprendre (décidé avec Kevin). Les mots gardés entrent
 // dans « Tes mots à revoir » (5 par jour au plus, tous jeux confondus). Le contenu des thèmes et les gages sont dans themes.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=53";
-import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=53";
-import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=53";
-import { taire } from "../voix.js?v=53";
-import { chispa } from "../mascotte.js?v=53";
-import { THEMES, GAGES } from "../themes.js?v=53";
-import * as J from "../jeux.js?v=53";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=54";
+import { motsAMoi, motsAVenir, memeMot } from "../dico.js?v=54";
+import { apprisEnAvance, apprendreEnAvance, ajouterMonMot, etatJeux, garderJeux } from "../progression.js?v=54";
+import { taire } from "../voix.js?v=54";
+import { chispa } from "../mascotte.js?v=54";
+import { THEMES, GAGES } from "../themes.js?v=54";
+import * as J from "../jeux.js?v=54";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -257,8 +257,8 @@ function vueFrentePret(ctx) {
   const r = reglages();
   const mes = motsFrente(ctx, "mes").length;
   const paquets = [
-    { id: "mes", nom: "Seulement mes mots", sous: `${mes} mots`, ouvert: mes >= J.SEUIL },
-    { id: "suite", nom: "Mes mots et la suite du livre", sous: `${mes} mots + les suivants`, ouvert: true },
+    { id: "mes", nom: "Seulement mes mots", sous: `${mes} mot${mes > 1 ? "s" : ""}`, ouvert: mes >= J.SEUIL },
+    { id: "suite", nom: "Mes mots et la suite du livre", sous: `${mes} mot${mes > 1 ? "s" : ""} + les suivants`, ouvert: true },
     { id: "tout", nom: "Tout le livre", sous: "pour quand c'est Blanca qui devine", ouvert: true },
   ];
   const paquet = paquets.find(p => p.id === r.paquet && !p.ouvert) ? "suite" : r.paquet;

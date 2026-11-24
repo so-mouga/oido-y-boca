@@ -2,17 +2,17 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=53";
-import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=53";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=53";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=53";
-import { EXERCICES } from "../exercices.js?v=53";
-import { controlePret, dernierResultat } from "./controle.js?v=53";
-import { motsDus, PAQUET } from "./pratique.js?v=53";
-import { BONUS } from "../bonus.js?v=53";
-import { motsDeLaSemaine } from "./mesmots.js?v=53";
-import { soirRepaso } from "./soir.js?v=53";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=53";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=54";
+import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=54";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=54";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=54";
+import { EXERCICES } from "../exercices.js?v=54";
+import { controlePret, dernierResultat } from "./controle.js?v=54";
+import { motsDus, PAQUET } from "./pratique.js?v=54";
+import { BONUS } from "../bonus.js?v=54";
+import { motsDeLaSemaine } from "./mesmots.js?v=54";
+import { soirRepaso } from "./soir.js?v=54";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=54";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
