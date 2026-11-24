@@ -7,22 +7,22 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=50";
-import { lecon as trouver } from "../position.js?v=50";
-import { EXERCICES } from "../exercices.js?v=50";
-import { corriger } from "../corriger.js?v=50";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=50";
-import { carnetActuel, cartesDuJour, juger, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=50";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=50";
-import { BONUS } from "../bonus.js?v=50";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=50";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=50";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=50";
-import { vibrer, son } from "../retours.js?v=50";
+import { esc, md, id, ICONES } from "../ui.js?v=51";
+import { lecon as trouver } from "../position.js?v=51";
+import { EXERCICES } from "../exercices.js?v=51";
+import { corriger } from "../corriger.js?v=51";
+import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=51";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=51";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=51";
+import { BONUS } from "../bonus.js?v=51";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=51";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=51";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=51";
+import { vibrer, son } from "../retours.js?v=51";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=50";
+} from "../enregistrement.js?v=51";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -67,7 +67,8 @@ function serieRevision(ctx) {
 // Chaque réponse met à jour la fiche de la carte tout de suite : quitter au milieu garde ce qui est fait.
 function serieErreurs(ctx) {
   const items = cartesDuJour(carnetActuel(), fichesErreurs(), ctx.jour).map(carte => {
-    if (carte.type === "erreur") return { type: "erreur", carte, es: [carte.bonne] };
+    // Plusieurs fautes sur une ligne : une case par faute (Q11-11).
+    if (carte.type === "erreur") return { type: "erreur", carte, es: [carte.bonne], cases: decouper(carte) };
     const l = trouver(carte.lecon);
     return { type: "dire", phrase: carte, es: carte.es, fr: `Ta phrase de ${carte.lecon}${l ? ` · ${l.titre}` : ""}`, sujet: SUJETS[carte.lecon] || "" };
   });
@@ -290,8 +291,53 @@ function vueTableau(it, enTete) {
     <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
+// Plusieurs fautes sur une ligne (Q11-11) : la faute à gauche, ta correction à droite ; empilées si un morceau est long.
+// « Entrée » passe à la case suivante. Au verso, chaque case a son ✓ ou la bonne forme.
+const casesEmpilees = it => it.cases.some(x => x.faute.length > 14 || x.bonne.length > 14);
+function vueErreurCases(it, enTete) {
+  const c = it.carte;
+  const consigne = sorte("Mes erreurs · à corriger");
+  const classe = `cases-erreur${casesEmpilees(it) ? " empilees" : ""}`;
+  const titres = casesEmpilees(it) ? "" : `<p class="cases-titres" aria-hidden="true"><span>La faute</span><span>Ta correction</span></p>`;
+  if (s.phase === "question") {
+    const lignes = it.cases.map((x, i) => `<label class="case-erreur" for="case${i}">
+        <s class="f" lang="es">${esc(x.faute)}</s>
+        <input id="case${i}" data-forme lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="${i < it.cases.length - 1 ? "next" : "done"}" value="${esc(s.formes?.[i] || "")}" aria-label="Correction de « ${esc(x.faute)} »">
+      </label>`).join("");
+    return `<div class="defile">${enTete}${consigne}<p class="corrige">Corrige chaque faute :</p>
+        ${c.note ? `<p class="faute-note">${esc(c.note)}</p>` : ""}
+        <form class="${classe}" data-p-form>${titres}${lignes}</form>
+        <p class="faute-vue">Notée ${c.vue} fois en séance</p>${zoneIndice(it)}</div>
+      <div class="saisie">
+        <button class="primaire" type="button" data-p="verifier">Vérifier</button>
+        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </div>`;
+  }
+  const r = s.resultat;
+  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : "Juste") : r.passe ? "La réponse" : `Pas encore : ${r.justes} sur ${it.cases.length}`;
+  const lignes = r.lignes.map(l => `<div class="case-erreur">
+      <s class="f" lang="es">${esc(l.faute)}</s>
+      <p class="c ${l.ok ? "ok" : "ko"}" lang="es">${l.ok ? `${esc(l.saisie)} <span class="coche" aria-label="juste">✓</span>`
+        : `${l.saisie ? `<del>${esc(l.saisie)}</del>` : ""}<b>${esc(l.bonne)}</b>`}</p>
+    </div>`).join("");
+  return `${enTete}${consigne}
+    <div class="${classe}">${lignes}</div>
+    <div class="verdict ${r.ok ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
+      <b>${titre}</b>
+      <div class="bonne">${ecouter(c.bonne)}<p lang="es">${phraseTouchable(ctxVue, c.bonne)}</p></div>
+      ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
+      ${r.rappel ? `<p>${esc(r.rappel)}</p>` : ""}
+      ${c.regle ? `<p class="explication">${esc(c.regle)}</p>` : ""}
+      <p class="revient">Elle revient ${quandRevient(s.fiche)}.</p>
+    </div>
+    <div class="espace"></div>
+    <button class="primaire" data-p="suivant">Suivant</button>`;
+}
+
 // Mes erreurs : la faute telle que le prof l'a notée (en rose), sa note entre parenthèses en petit, et combien de fois.
 function vueErreur(it, enTete) {
+  if (it.cases) return vueErreurCases(it, enTete);
   const c = it.carte;
   const faute = (taille = "") => `<p class="corrige">Corrige :</p>
     <p class="faute${taille}" lang="es"><s>${esc(c.erreur)}</s></p>
@@ -620,7 +666,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         requestAnimationFrame(() => requestAnimationFrame(() => { if (trait) trait.style.width = `${(s.i / s.items.length) * 100}%`; }));
       }
       // Le clavier monte une fois la nouvelle question arrivée, pas pendant qu'elle glisse.
-      if ((it.type === "ecrire" || it.type === "erreur") && s.phase === "question") {
+      if ((it.type === "ecrire" || (it.type === "erreur" && !it.cases)) && s.phase === "question") {
         const i = s.i;
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
@@ -631,10 +677,11 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         if (b) { const tout = b.dataset.dire; b.dataset.dire = it.mot.es; lancerLecture(b); b.dataset.dire = tout; }
       }
       // Le tableau : « Entrée » passe à la personne suivante ; à la dernière, elle vérifie.
-      if (it.type === "tableau" && s.phase === "question") {
+      // Mes erreurs à plusieurs cases : pareil, de case en case.
+      if ((it.type === "tableau" || it.cases) && s.phase === "question") {
         const champs = [...document.querySelectorAll("[data-forme]")];
         champs.forEach((c, i) => c.addEventListener("keydown", e => {
-          if (e.key === "Enter" && i < 5) { e.preventDefault(); champs[i + 1].focus(); }
+          if (e.key === "Enter" && i < champs.length - 1) { e.preventDefault(); champs[i + 1].focus(); }
         }));
         const i = s.i;
         setTimeout(() => { if (s?.i === i && s.phase === "question") champs[0]?.focus({ preventScroll: true }); }, 400);
@@ -670,6 +717,17 @@ export async function actionPratique(ctx, action, el) {
   const it = s.items[s.i];
   switch (action) {
     case "verifier": {
+      if (it.type === "erreur" && it.cases) {
+        const formes = [...document.querySelectorAll("[data-forme]")].map(c => c.value.trim());
+        if (formes.every(f => !f)) return false;
+        s.formes = formes;
+        s.resultat = jugerCases(formes, it.cases);
+        const ok = s.resultat.ok;
+        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
+        s.phase = "reponse";
+        vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
+        return true;
+      }
       if (it.type === "tableau") {
         const formes = [...document.querySelectorAll("[data-forme]")].map(c => c.value.trim());
         if (formes.every(f => !f)) return false;
@@ -705,6 +763,12 @@ export async function actionPratique(ctx, action, el) {
       return true;
     }
     case "sais-pas":
+      if (it.type === "erreur" && it.cases) {
+        s.resultat = { ...jugerCases([], it.cases), passe: true };
+        noterCarteErreur(ctx, it, "rate");
+        s.phase = "reponse";
+        return true;
+      }
       if (it.type === "erreur") {
         s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0], ok: false };
         noterCarteErreur(ctx, it, "rate");

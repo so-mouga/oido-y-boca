@@ -197,6 +197,14 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 .f-fin .f-bas .f-retour { font-weight: 600; font-size: 15px; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; padding: 4px; }
 .f-confettis { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; }
 
+/* la course de verbes : store turquoise, la personne et le temps sous l'infinitif */
+.f-stand.verbes .f-toile { --a: var(--mar); }
+.f-personne { display: flex; flex-direction: column; align-items: center; gap: 2px; flex: none; }
+.f-personne span { font-size: 20px; font-weight: 600; background: var(--sun-deep); color: var(--marine); border-radius: 999px; padding: 4px 16px 5px; }
+.f-personne small { font-size: 14px; color: var(--marine-soft); min-height: 1em; }
+.fuego .f-personne span { background: var(--sol); }
+.f-temps-vus { font-size: 13px; color: var(--sol-encre); margin-top: 8px; }
+
 /* le mot surprise : la carte passe au bleu marine */
 .f-etiquette { display: none; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; background: var(--sol); color: var(--marine); border-radius: 999px; padding: 4px 12px 4px 8px; flex: none; }
 .f-etiquette svg { width: 16px; height: 16px; fill: var(--marine); }

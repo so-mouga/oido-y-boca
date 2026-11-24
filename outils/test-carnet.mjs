@@ -127,5 +127,23 @@ verifier("la note n'est pas à écrire", juge("pero", "pero"), [true, "juste", "
 verifier("deux phrases avec ;", juge("Blanca está en Huesca, sois de Huesca", "Blanca está en Huesca ; sois de Huesca"), [true, "juste", ""]);
 verifier("l'ancienne faute : faux", juge("Blanca es en Huesca ; sois en Huesca", "Blanca está en Huesca ; sois de Huesca")[0], false);
 
+// 6. Plusieurs fautes sur une ligne : une case par faute (Q11-11)
+const cases = bonne => C.decouper(carte(bonne));
+verifier("4 cases", cases("mañana, años, español, mujer"), [
+  { faute: "manana", bonne: "mañana" }, { faute: "anos", bonne: "años" }, { faute: "espagnol", bonne: "español" }, { faute: "murer", bonne: "mujer" }]);
+verifier("3 cases, avec ¿…?", cases("más despacio, ¿cómo…?, ¿qué…?").map(c => c.bonne), ["más despacio", "¿cómo…?", "¿qué…?"]);
+verifier("2 cases sur « ; »", cases("Blanca está en Huesca ; sois de Huesca"), [{ faute: "Blanca es en Huesca", bonne: "Blanca está en Huesca" }, { faute: "sois en Huesca", bonne: "sois de Huesca" }]);
+verifier("2 bouts de phrase", cases("vivo en Huesca, en casa").map(c => c.faute), ["vivo a Huesca", "a la casa"]);
+verifier("2 fautes, 1 bonne forme", cases("trabajo"), [{ faute: "trabojo", bonne: "trabajo" }, { faute: "trobajo", bonne: "trabajo" }]);
+verifier("une seule faute : une case", [cases("vivimos"), cases("¿Habláis francés?"), cases("pero")], [null, null, null]);
+verifier("découpage qui ne tombe pas juste : une case", C.decouper({ erreur: "a, b, c", bonne: "x, y" }), null);
+const jc = (saisies, bonne) => { const r = C.jugerCases(saisies, cases(bonne)); return [r.ok, r.justes, r.astuce || r.rappel]; };
+verifier("4 cases justes", jc(["mañana", " años ", "Español", "mujer"], "mañana, años, español, mujer"), [true, 4, ""]);
+verifier("1 case fausse : 3 sur 4, astuce du ñ", jc(["mañana", "años", "espanol", "mujer"], "mañana, años, español, mujer"),
+  [false, 3, "« español » prend un ñ : sans lui, c'est un autre mot."]);
+verifier("case vide : fausse", jc(["mañana", "", "español", "mujer"], "mañana, años, español, mujer").slice(0, 2), [false, 3]);
+verifier("¿ oublié dans une case : rappel", jc(["más despacio", "cómo", "¿qué?"], "más despacio, ¿cómo…?, ¿qué…?"), [true, 3, "N'oublie pas le ¿ au début d'une question."]);
+verifier("deux mots collés : faux", jc(["Blancaestá en Huesca", "sois de Huesca"], "Blanca está en Huesca ; sois de Huesca").slice(0, 2), [false, 1]);
+
 console.log(fautes ? `\n${fautes} erreur(s) sur ${essais} vérifications.` : `✓ ${essais} vérifications, tout est juste.`);
 process.exit(fautes ? 1 : 0);

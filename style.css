@@ -825,3 +825,18 @@ mark .tx-mot.touche { box-shadow: none; }
 .bilan-erreurs .r.mi { background: var(--sun-deep); color: var(--sun-ink); }
 .bilan-erreurs .t { flex: 1; }
 .bilan-erreurs small { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+/* Mes erreurs, plusieurs fautes sur une ligne (Q11-11) : la faute à gauche, ta correction à droite ; empilées si c'est long. */
+.cases-erreur { display: flex; flex-direction: column; gap: 8px; }
+.cases-titres, .case-erreur { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 10px; align-items: center; }
+.cases-titres { font-size: 12.5px; color: var(--muted); margin: 0; }
+.cases-erreur.empilees .case-erreur { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+.case-erreur .f { justify-self: start; text-decoration: none; background: var(--rose); color: var(--rose-ink); border-radius: 6px; padding: 2px 7px; font-size: 16px; font-weight: 500; }
+.case-erreur input { width: 100%; font: inherit; font-size: 17px; color: var(--marine); background: #fff; border: 2px solid var(--hair); border-radius: 12px; padding: 10px 12px; }
+.case-erreur input:focus { outline: none; border-color: var(--marine); }
+.case-erreur .c { margin: 0; font-size: 16px; border-radius: 12px; padding: 8px 12px; border: 2px solid var(--hair); background: #fff; display: flex; flex-wrap: wrap; gap: 2px 8px; align-items: baseline; }
+.case-erreur .c.ok { border-color: #9CC6A4; background: #F3FAF4; }
+.case-erreur .c.ko { border-color: #E7B3A3; background: #FFF6F3; }
+.case-erreur .c .coche { color: var(--sage-ink); font-weight: 600; }
+.case-erreur .c del { color: var(--rose-ink); }
+.case-erreur .c b { background: var(--sun); color: var(--marine); border-radius: 4px; padding: 0 3px; font-weight: 600; }

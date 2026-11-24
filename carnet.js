@@ -9,7 +9,7 @@
 // La clé vient de la bonne forme (ou de la phrase) : si le prof change la règle ou le nombre de fois, la carte garde ses progrès ;
 // s'il change la bonne forme, c'est une autre carte, qui repart de zéro.
 
-import { corriger } from "./corriger.js?v=50";
+import { corriger } from "./corriger.js?v=51";
 
 const CLE_COPIE = "oyb.carnet";
 export const MAX_PAR_JOUR = 5; // dont 1 phrase à dire au plus
@@ -140,4 +140,31 @@ export function juger(tape, carte) {
   const oubli = ["¿", "¡"].find(s => carte.bonne.includes(s) && !String(tape).includes(s));
   const rappel = ok && oubli ? `N'oublie pas le ${oubli} au début ${oubli === "¿" ? "d'une question" : "d'une exclamation"}.` : "";
   return { ...r, ok, rappel };
+}
+
+// ——— plusieurs fautes sur une ligne (Q11-11) : une case par faute ———
+// « manana, anos, espagnol, murer » → « mañana, años, español, mujer » : 4 cases. On coupe sur « ; », sinon sur les virgules,
+// seulement si les deux côtés donnent le même nombre de morceaux. Une seule bonne forme pour plusieurs fautes
+// (« trabojo, trobajo » → « trabajo ») : chaque case attend cette forme. Sinon (une faute, ou un découpage qui ne tombe pas juste) : null, une seule case.
+const morceaux = (texte, sep) => texte.split(sep).map(t => t.trim()).filter(Boolean);
+export function decouper(carte) {
+  for (const sep of [";", ","]) {
+    const f = morceaux(carte.erreur, sep), b = morceaux(carte.bonne, sep);
+    if (f.length < 2) continue;
+    if (b.length === f.length) return f.map((faute, i) => ({ faute, bonne: b[i] }));
+    if (b.length === 1 && !carte.bonne.includes(sep === ";" ? "," : ";")) return f.map(faute => ({ faute, bonne: b[0] }));
+  }
+  return null;
+}
+
+// Juge chaque case. Renvoie { ok (toutes justes), justes, lignes: [{ faute, bonne, saisie, ok, r }], astuce, rappel }.
+export function jugerCases(saisies, cases) {
+  const lignes = cases.map((c, i) => {
+    const saisie = String(saisies[i] || "").trim();
+    const r = saisie ? juger(saisie, { bonne: c.bonne }) : { ok: false, niveau: "faux" };
+    return { ...c, saisie, ok: r.ok, r };
+  });
+  const premiere = lignes.find(l => !l.ok && l.r.astuce);
+  const rappel = lignes.find(l => l.ok && l.r.rappel)?.r.rappel || "";
+  return { ok: lignes.every(l => l.ok), justes: lignes.filter(l => l.ok).length, lignes, astuce: premiere?.r.astuce || "", rappel };
 }

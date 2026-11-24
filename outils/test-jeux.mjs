@@ -185,5 +185,44 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   egal("plus rien à venir : pas de surprise", J.motSurprise([], connus, {}, jour), null);
 }
 
+// 11. La course de verbes, sur la vraie conjugaison de l'appli (controles.js) et les vrais verbes.
+{
+  const tmpV = fs.mkdtempSync(path.join(os.tmpdir(), "oyb-jeux-verbes-"));
+  for (const f of fs.readdirSync(racine).filter(f => f.endsWith(".js"))) fs.copyFileSync(path.join(racine, f), path.join(tmpV, f));
+  fs.writeFileSync(path.join(tmpV, "package.json"), '{"type":"module"}');
+  const memoire = {};
+  globalThis.localStorage = { getItem: k => memoire[k] ?? null, setItem: (k, v) => { memoire[k] = String(v); } };
+  const version = (fs.readFileSync(path.join(racine, "index.html"), "utf8").match(/app\.js\?v=(\d+)/) || [])[1];
+  const { conjuguer, TEMPS } = await import(path.join(tmpV, `controles.js?v=${version}`));
+  const V = await import(path.join(tmpV, `verbes.js?v=${version}`));
+  const toutes = new Set(LECONS);
+  const verbes = V.verbesConnus({ mots, pos: { faites: toutes } });
+  egal("temps vus au début", J.tempsVus(new Set(["U1-L1"]), TEMPS), ["present"]);
+  egal("tous les temps à la fin du livre", J.tempsVus(toutes, TEMPS), ["present", "pc", "ps", "imp"]);
+  const temps = J.tempsVus(toutes, TEMPS);
+  let n = 0, autreTemps = 0;
+  for (const x of verbes) for (let g = 1; g <= 6; g++) {
+    const q = J.questionVerbe(x, temps, conjuguer, graine(g * 31 + x.v.length));
+    n++;
+    if (q.reponses.length !== 3) faux(`${x.v} : ${q.reponses.length} réponses`);
+    if (new Set(q.reponses.map(r => r.texte)).size !== q.reponses.length) faux(`${x.v} : deux réponses identiques`);
+    if (q.reponses.filter(r => r.juste).length !== 1) faux(`${x.v} : pas une seule bonne réponse`);
+    if (q.bonne !== conjuguer(x.v, q.p, x.d, q.t)) faux(`${x.v} : la bonne réponse n'est pas la forme calculée`);
+    const formesDuTemps = new Set([0, 1, 2, 3, 4, 5].map(p => conjuguer(x.v, p, x.d, q.t)));
+    if (q.reponses.some(r => !r.juste && !formesDuTemps.has(r.texte))) autreTemps++;
+  }
+  console.log(`Course de verbes : ${verbes.length} verbes, ${n} questions vérifiées ; ${Math.round(autreTemps / n * 100)} % ont une fausse réponse à un autre temps.`);
+  // Au présent seulement (le début du livre) : les fausses réponses sont toutes au présent.
+  for (const x of verbes.slice(0, 20)) {
+    const q = J.questionVerbe(x, ["present"], conjuguer, graine(7));
+    const pres = new Set([0, 1, 2, 3, 4, 5].map(p => conjuguer(x.v, p, x.d)));
+    if (q.t !== "present" || q.reponses.some(r => !pres.has(r.texte))) faux(`${x.v} : un autre temps alors que seul le présent est vu`);
+  }
+  const debut = V.mesVerbes({ mots, pos: { faites: new Set(LECONS.slice(0, 2)) } });
+  const pq = J.paquetsVerbes(debut, []);
+  egal("les paquets de verbes", pq.map(p => [p.id, p.ouvert]), [["tous", debut.length >= J.SEUIL_VERBES], ["cours", false]]);
+  console.log(`Après ${LECONS[1]} : ${debut.length} verbes (${debut.map(x => x.v).join(", ")}).`);
+}
+
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");
 process.exit(erreurs ? 1 : 0);

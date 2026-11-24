@@ -119,7 +119,7 @@ export const TROPHEES = [
 // « jours » : les jours où une partie a été finie (la guirlande) ; « serie » et « sansFaute » : pour les trophées.
 // « surprises » : pour chaque mot surprise montré, le dernier jour ; « gardes » : le nombre de mots surprise gardés par jour.
 export const JEUX_VIDE = () => ({ records: {}, trophees: {}, trouves: 0, parties: 0, meilleur: 0, serie: 0, sansFaute: false,
-  fois: {}, jours: [], surprises: {}, gardes: {}, muet: false, paquet: "tout" });
+  fois: {}, jours: [], surprises: {}, gardes: {}, muet: false, paquet: "tout", paquetVerbes: "tous" });
 
 // La fin d'une partie. jeux : ce que le téléphone garde ; partie : { jeu, paquet, score, ok, ko, serie (la meilleure),
 // trouves : les identifiants des mots trouvés }. Renvoie le nouvel état, si le record du paquet est battu, l'ancien record,
@@ -213,3 +213,37 @@ export function garderSurprise(jeux, jour) {
   return { ...avant, gardes: { [jour]: (avant.gardes[jour] || 0) + 1 } };
 }
 export const BONUS_SURPRISE = 30;
+
+// ——— La course de verbes ———
+// Un verbe et une personne (« venir · tú »), et 3 formes : la bonne, le même verbe à une autre personne,
+// et, quand plusieurs temps sont vus, la même personne à un autre temps. Seulement mes verbes et les temps déjà vus.
+// conj(v, p, d, t) est la conjugaison de l'appli (controles.js), passée en paramètre pour que ce fichier reste sans import.
+export const SEUIL_VERBES = 4;
+export const REPONSES_VERBES = 3;
+
+// Les temps vus : le présent, puis chaque temps dont la leçon est faite. temps : TEMPS de controles.js.
+export const tempsVus = (faites, temps) => Object.keys(temps).filter(t => t === "present" || faites.has(temps[t].lecon));
+
+// Les paquets : « Tous mes verbes » et « Mes verbes en cours », chacun ouvert à partir de 4 verbes.
+export function paquetsVerbes(tous, cours) {
+  return [
+    { id: "tous", nom: "Tous mes verbes", mots: tous, ouvert: tous.length >= SEUIL_VERBES, aide: `Il faut ${SEUIL_VERBES} verbes, tu en as ${tous.length}` },
+    { id: "cours", nom: "Mes verbes en cours", mots: cours, ouvert: cours.length >= SEUIL_VERBES,
+      aide: cours.length ? `Il en faut ${SEUIL_VERBES}, tu en as ${cours.length} : ajoute-les depuis le Dico` : "Ajoute des verbes depuis le Dico (« Je l'apprends »)" },
+  ];
+}
+
+// Une question : { verbe, p, t, bonne, reponses: [{ texte, juste }] }. x : { v, d } (un verbe de verbes.js).
+export function questionVerbe(x, temps, conj, hasard = Math.random) {
+  const t = temps[Math.floor(hasard() * temps.length)] || "present";
+  const p = Math.floor(hasard() * 6);
+  const bonne = conj(x.v, p, x.d, t);
+  const pris = new Set([bonne]);
+  const choisis = [];
+  const prendre = f => { if (f && !pris.has(f) && choisis.length < REPONSES_VERBES - 1) { pris.add(f); choisis.push(f); } };
+  // Un autre temps, même personne : seulement s'il y en a un de vu.
+  for (const u of melanger(temps.filter(u => u !== t), hasard)) { const avant = choisis.length; prendre(conj(x.v, p, x.d, u)); if (choisis.length > avant) break; }
+  // Le reste : le même verbe au même temps, à d'autres personnes.
+  for (const q of melanger([0, 1, 2, 3, 4, 5].filter(q => q !== p), hasard)) prendre(conj(x.v, q, x.d, t));
+  return { verbe: x, p, t, bonne, reponses: melanger([bonne, ...choisis], hasard).map(texte => ({ texte, juste: texte === bonne })) };
+}

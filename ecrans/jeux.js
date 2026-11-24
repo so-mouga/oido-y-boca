@@ -3,18 +3,21 @@
 //   #/jeux/montre          avant la partie : avec quels mots ?
 //   #/jeux/montre/partie   le Contre la montre : un mot en espagnol, 4 sens en français, 60 secondes
 //   #/jeux/montre/fin      le score, le record, le mot apporté par Chispa, les mots attrapés, les trophées
+//   #/jeux/verbes, #/jeux/verbes/partie, #/jeux/verbes/fin : la course de verbes (« venir · tú », 3 formes), même déroulé
 //   #/jeux/trophees        les rosettes
 //   #/jeux/chispa          Chispa et ses 6 couleurs
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=50";
-import { UNITES } from "../position.js?v=50";
-import { motsAMoi, motsAVenir } from "../dico.js?v=50";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=50";
-import { dire, taire } from "../voix.js?v=50";
-import { chispa } from "../mascotte.js?v=50";
-import * as J from "../jeux.js?v=50";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=51";
+import { UNITES } from "../position.js?v=51";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=51";
+import { mesVerbes, verbesCours } from "../verbes.js?v=51";
+import { motsAMoi, motsAVenir } from "../dico.js?v=51";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=51";
+import { dire, taire } from "../voix.js?v=51";
+import { chispa } from "../mascotte.js?v=51";
+import * as J from "../jeux.js?v=51";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -78,7 +81,16 @@ function donnees(ctx) {
   const choisi = paquets.find(p => p.id === jeux().paquet && p.ouvert) || paquets[0];
   return { connus, paquets, choisi };
 }
-const recordDe = idPaquet => jeux().records[`montre:${idPaquet}`] || 0;
+const recordDe = (idPaquet, jeu = "montre") => jeux().records[`${jeu}:${idPaquet}`] || 0;
+
+// La course de verbes : mes verbes (vus ou en cours), aux temps déjà vus.
+function donneesVerbes(ctx) {
+  const paquets = J.paquetsVerbes(mesVerbes(ctx), verbesCours(ctx));
+  const choisi = paquets.find(p => p.id === jeux().paquetVerbes && p.ouvert) || paquets[0];
+  return { paquets, choisi, temps: J.tempsVus(ctx.pos.faites, TEMPS) };
+}
+// « au passé composé », « à l'imparfait » ; rien au présent.
+const auTemps = t => t === "present" ? "" : `${t === "imp" ? "à l'" : "au "}${TEMPS[t].nom}`;
 
 // La leçon du jour pas encore faite : Chispa le dit gentiment, sans rien bloquer.
 function leconEnAttente(ctx) {
@@ -99,7 +111,7 @@ function guirlande(ctx, vient) {
   return { s, html: `<svg class="f-semaine" viewBox="0 0 390 96" role="img" aria-label="${dit}"><path d="M0 8Q195 66 390 8"/>${amp}</svg>` };
 }
 
-function vueSalle(ctx, d) {
+function vueSalle(ctx, d, dv) {
   const entree = document.getElementById("app")?.dataset.ecran !== "jeux";
   const vient = !!derniere?.ampoule;
   if (derniere) derniere.ampoule = false;
@@ -118,6 +130,13 @@ function vueSalle(ctx, d) {
         <div class="f-ligne"><span>${rec ? `Ton record<b>${rec}</b>` : "Pas encore de record"}</span><span>${J.DUREE} secondes</span></div><span class="f-btn">Jouer</span></div></a>`
     : `<div class="f-stand"><div class="f-toile"></div><div class="f-comptoir">${comptoir}
         <div class="f-attente"><b>Arrive bientôt.</b> Il faut ${J.SEUIL} mots pour jouer, tu en as ${n}.</div></div></div>`;
+  const recV = recordDe("tous", "verbes");
+  const comptoirV = `<h2>La course de verbes</h2><p>Un verbe, une personne : trouve la bonne forme parmi 3.</p>`;
+  const standVerbes = dv.paquets[0].ouvert
+    ? `<a class="f-stand verbes" href="#/jeux/verbes"><div class="f-toile"></div><div class="f-comptoir">${comptoirV}
+        <div class="f-ligne"><span>${recV ? `Ton record<b>${recV}</b>` : "Pas encore de record"}</span><span>${J.DUREE} secondes</span></div><span class="f-btn">Jouer</span></div></a>`
+    : `<div class="f-stand verbes"><div class="f-toile"></div><div class="f-comptoir">${comptoirV}
+        <div class="f-attente"><b>Arrive bientôt.</b> ${esc(dv.paquets[0].aide)}.</div></div></div>`;
   const ferme = (nom, quoi, quand = "Plus tard") => `<div class="f-stand ferme"><div class="f-toile"></div><div class="f-comptoir"><h2>${nom}</h2><p>${quoi}</p><span class="f-pancarte">${quand}</span></div></div>`;
   const bilan = g.s.meilleure > 1 ? `<p class="f-bilan">Ta meilleure semaine : ${g.s.meilleure} jours.</p>` : "";
   return {
@@ -126,8 +145,9 @@ function vueSalle(ctx, d) {
         <div class="f-haut"><h1>La Feria</h1>${boutonMuet()}</div>
         <div class="f-accueil"><a href="#/jeux/chispa" aria-label="Voir Chispa">${flamme(lecon ? "idle" : "joie", 2)}</a><p class="f-bulle">${bulle}</p></div>${bilan}
         <div class="f-stands">${stand}
+          ${standVerbes}
           ${vitrine()}
-          <div class="f-petits">${ferme("La course de verbes", "venir · tú : la bonne forme, vite", "Le prochain jeu")}${ferme("Les paires", "5 mots, 5 sens, 3 vagues")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("À deux", "Avec Blanca ou Dorian")}</div>
+          <div class="f-petits">${ferme("Les paires", "5 mots, 5 sens, 3 vagues", "Le prochain jeu")}${ferme("La Tómbola", "Des boletos, une roue, des tenues pour Chispa")}${ferme("À deux", "Avec Blanca ou Dorian")}${ferme("Le défi du jour", "Un seul essai par jour")}</div>
         </div>
       </div>${barreOnglets("jeux")}`,
     apres: brancher,
@@ -135,37 +155,43 @@ function vueSalle(ctx, d) {
 }
 
 // ——— avant la partie ———
-function vuePret(ctx, d) {
+const JEUX = {
+  montre: { titre: "Contre la montre", regle: "Tu entends un mot, tu touches son sens.", unite: "mots", cle: "paquet" },
+  verbes: { titre: "La course de verbes", regle: "Un verbe et une personne : touche la bonne forme.", unite: "verbes", cle: "paquetVerbes" },
+};
+function vuePret(ctx, d, jeu = "montre") {
+  const J0 = JEUX[jeu];
   const ligne = p => {
-    const rec = recordDe(p.id);
-    const sous = p.ouvert ? [p.titre ? titre(p.titre) : "", `${p.mots.length} mots`].filter(Boolean).join(" · ") : esc(p.aide);
-    return `<button class="f-paquet" data-j="paquet" data-id="${esc(p.id)}" aria-pressed="${p === d.choisi}"${p.ouvert ? "" : " disabled"}><i></i><span>${esc(p.nom)}<small>${sous}</small></span>${p.ouvert && rec ? `<em aria-label="record ${rec}">${rec}</em>` : ""}</button>`;
+    const rec = recordDe(p.id, jeu);
+    const sous = p.ouvert ? [p.titre ? titre(p.titre) : "", `${p.mots.length} ${J0.unite}`].filter(Boolean).join(" · ") : esc(p.aide);
+    return `<button class="f-paquet" data-j="paquet" data-jeu="${jeu}" data-id="${esc(p.id)}" aria-pressed="${p === d.choisi}"${p.ouvert ? "" : " disabled"}><i></i><span>${esc(p.nom)}<small>${sous}</small></span>${p.ouvert && rec ? `<em aria-label="record ${rec}">${rec}</em>` : ""}</button>`;
   };
+  const temps = jeu === "verbes" ? `<p class="f-temps-vus">Temps : ${d.temps.map(t => TEMPS[t].nom).join(", ")}.</p>` : "";
   return {
     onglet: null,
     html: `<div class="feria f-pret">
-        <div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Contre la montre</h1></div>
-        <p class="f-regle">Tu entends un mot, tu touches son sens. <b>3 de suite : ×2. 6 : ×3. 10 : ¡FUEGO! ×5.</b> Une erreur, et le compteur repart à ×1.</p>
-        <div><h2>Avec quels mots ?</h2><div class="f-paquets">${d.paquets.map(ligne).join("")}</div></div>
-        <div class="f-bas">${flamme("idle", 1)}<a class="f-btn gros" href="#/jeux/montre/partie">¡Vamos!</a></div>
+        <div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>${J0.titre}</h1></div>
+        <p class="f-regle">${J0.regle} <b>3 de suite : ×2. 6 : ×3. 10 : ¡FUEGO! ×5.</b> Une erreur, et le compteur repart à ×1.</p>
+        <div><h2>Avec quels ${J0.unite} ?</h2><div class="f-paquets">${d.paquets.map(ligne).join("")}</div>${temps}</div>
+        <div class="f-bas">${flamme("idle", 1)}<a class="f-btn gros" href="#/jeux/${jeu}/partie">¡Vamos!</a></div>
       </div>`,
     apres: brancher,
   };
 }
 
 // ——— la partie ———
-function vuePartie(ctx, d) {
+function vuePartie(ctx, d, jeu = "montre") {
   return {
     onglet: null,
     html: `<div class="feria f-partie">
-        <div class="f-hud"><a class="f-rond" href="#/jeux/montre" data-arriere aria-label="Arrêter la partie">${ICONES.fermer}</a>
+        <div class="f-hud"><a class="f-rond" href="#/jeux/${jeu}" data-arriere aria-label="Arrêter la partie">${ICONES.fermer}</a>
           <div class="f-temps" role="timer" aria-label="Temps restant"><i></i></div>${boutonMuet()}</div>
         <div class="f-points"><div class="f-score" aria-label="Score">0</div><div class="f-combo"><span class="f-multi un">×1</span><span class="f-pions"><i></i><i></i><i></i></span></div></div>
-        <div class="f-carte"><span class="f-etiquette">${I.etoile}Mot surprise · devine !</span>${flamme("idle", 0)}<p class="f-mot" lang="es"></p><button class="f-son" data-j="redire" aria-label="Réécouter">${ICONES.play}</button></div>
+        <div class="f-carte"><span class="f-etiquette">${I.etoile}Mot surprise · devine !</span>${flamme("idle", 0)}<p class="f-mot" lang="es"></p>${jeu === "verbes" ? `<p class="f-personne"><span lang="es"></span><small></small></p>` : `<button class="f-son" data-j="redire" aria-label="Réécouter">${ICONES.play}</button>`}</div>
         <div class="f-reponses"></div>
         <div class="f-decompte"><b>3</b></div>
       </div>`,
-    apres: () => { brancher(); lancer(ctx, d.choisi); },
+    apres: () => { brancher(); lancer(ctx, d.choisi, jeu, d.temps); },
   };
 }
 
@@ -177,12 +203,12 @@ function humeur(h, duree) {
   if (duree) humeur.t = setTimeout(() => { if (m.isConnected) m.dataset.h = "idle"; }, duree);
 }
 
-function lancer(ctx, paquet) {
+function lancer(ctx, paquet, jeu = "montre", temps = ["present"]) {
   const racine = $(".f-partie");
-  partie = { ctx, racine, paquet, mots: paquet.mots, tirer: J.creerPioche(paquet.mots), q: null,
+  partie = { ctx, racine, jeu, temps, paquet, mots: paquet.mots, tirer: J.creerPioche(paquet.mots), q: null,
     score: 0, combo: 0, serie: 0, ok: 0, ko: 0, rates: [], trouves: [], bloque: true, fin: 0, pause: 0, tics: 5,
     // Le mot surprise : un mot des prochaines leçons, posé une fois, entre la 5e et la 7e question.
-    n: 0, surpriseA: 4 + Math.floor(Math.random() * 3), surprise: J.motSurprise(motsAVenir(ctx), paquet.mots, jeux(), ctx.jour), montre: null, apporte: null, devine: false };
+    n: 0, surpriseA: 4 + Math.floor(Math.random() * 3), surprise: jeu === "montre" ? J.motSurprise(motsAVenir(ctx), paquet.mots, jeux(), ctx.jour) : null, montre: null, apporte: null, devine: false };
   const p = partie;
   // Si on quitte l'appli (écran éteint, autre appli), le chrono attend.
   coupe = new AbortController();
@@ -209,15 +235,30 @@ function lancer(ctx, paquet) {
 function poser() {
   const p = partie;
   if (!p || !p.racine.isConnected) return;
+  const carte = $(".f-carte", p.racine), mot = $(".f-mot", p.racine);
+  if (p.jeu === "verbes") return poserVerbe(carte, mot);
   const surprise = p.n++ === p.surpriseA && p.surprise;
   p.q = surprise ? { ...J.question(p.surprise, p.mots), surprise: true } : J.question(p.tirer(), p.mots);
   if (surprise) p.montre = p.surprise;
-  const carte = $(".f-carte", p.racine), mot = $(".f-mot", p.racine);
   carte.classList.toggle("surprise", !!surprise);
   mot.textContent = p.q.mot.es; mot.classList.toggle("long", p.q.mot.es.length > 16);
   carte.classList.remove("arrive"); void carte.offsetWidth; carte.classList.add("arrive");
   $(".f-reponses", p.racine).innerHTML = p.q.reponses.map((r, i) => `<button class="f-rep" data-j="rep" data-i="${i}">${esc(r.texte)}</button>`).join("");
   direMot(p.q.mot.es);
+}
+
+// La course de verbes : l'infinitif en grand, la personne (et le temps s'il n'est pas le présent) dessous.
+// La voix dit la bonne forme une fois la réponse donnée. q.mot sert aux mots attrapés (un verbe) et aux formes ratées.
+function poserVerbe(carte, mot) {
+  const p = partie, x = p.tirer();
+  const q = J.questionVerbe(x, p.temps, conjuguer);
+  p.q = { ...q, mot: { id: `verbe:${x.v}`, es: q.bonne, fr: `${x.v} · ${PERSONNES[q.p]}${q.t === "present" ? "" : ` · ${TEMPS[q.t].nom}`}` } };
+  mot.textContent = x.v; mot.classList.toggle("long", x.v.length > 16);
+  const per = $(".f-personne", p.racine);
+  per.firstElementChild.textContent = PERSONNES[q.p];
+  per.lastElementChild.textContent = auTemps(q.t);
+  carte.classList.remove("arrive"); void carte.offsetWidth; carte.classList.add("arrive");
+  $(".f-reponses", p.racine).innerHTML = q.reponses.map((r, i) => `<button class="f-rep" data-j="rep" data-i="${i}" lang="es">${esc(r.texte)}</button>`).join("");
 }
 
 function tourner(t) {
@@ -247,6 +288,7 @@ function repondre(bouton) {
   if (!p || p.bloque || !p.q) return;
   const r = p.q.reponses[Number(bouton.dataset.i)];
   if (p.q.surprise) return repondreSurprise(bouton, r.juste);
+  if (p.jeu === "verbes") direMot(p.q.bonne);
   if (r.juste) {
     const avant = J.multi(p.combo);
     p.combo++; p.ok++; p.serie = Math.max(p.serie, p.combo); p.trouves.push(p.q.mot.id);
@@ -266,7 +308,7 @@ function repondre(bouton) {
       if (monte) { SONS.palier(); humeur("joie", 900); }
       SONS.juste(p.combo); vibrer(10);
     }
-    p.bloque = true; plusTard(() => { p.bloque = false; poser(); }, 230);
+    p.bloque = true; plusTard(() => { p.bloque = false; poser(); }, p.jeu === "verbes" ? 450 : 230);
   } else {
     p.ko++; p.rates.push(p.q.mot); p.combo = 0;
     bouton.classList.add("faux");
@@ -301,15 +343,15 @@ function repondreSurprise(bouton, juste) {
 
 function finir() {
   const p = partie;
-  const r = J.apresPartie(jeux(), { jeu: "montre", paquet: p.paquet.id, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, trouves: p.trouves, surprise: p.montre?.id }, p.ctx.jour);
+  const r = J.apresPartie(jeux(), { jeu: p.jeu, paquet: p.paquet.id, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, trouves: p.trouves, surprise: p.montre?.id }, p.ctx.jour);
   garderJeux(r.jeux);
-  const parId = new Map(p.mots.map(m => [m.id, m]));
-  derniere = { jour: p.ctx.jour, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, record: r.record, ancien: r.ancien, ampoule: r.ampoule, fete: true,
+  const parId = new Map(p.jeu === "verbes" ? p.mots.map(x => [`verbe:${x.v}`, { es: x.v }]) : p.mots.map(m => [m.id, m]));
+  derniere = { jeu: p.jeu, jour: p.ctx.jour, score: p.score, ok: p.ok, ko: p.ko, serie: p.serie, record: r.record, ancien: r.ancien, ampoule: r.ampoule, fete: true,
     rates: p.rates.filter((m, i, t) => t.indexOf(m) === i).slice(0, 6),
     apporte: p.apporte, devine: p.devine, garde: null,
     attrapes: r.attrapes.map(id => parId.get(id)?.es).filter(Boolean), mue: r.mue, trophees: r.trophees };
   arreter();
-  location.replace("#/jeux/montre/fin");
+  location.replace(`#/jeux/${derniere.jeu}/fin`);
 }
 
 // ——— la fin ———
@@ -317,7 +359,7 @@ function vueFin() {
   const g = derniere;
   const h1 = g.record ? "Nouveau record !" : g.ancien && g.score >= g.ancien * .8 ? "Tout près du record." : g.ok ? "Belle partie !" : "On s'échauffe.";
   const sous = g.record ? (g.ancien ? `L'ancien était à ${g.ancien}.` : "Le premier d'une longue série.") : g.ancien ? `Record à battre : ${g.ancien}.` : "";
-  const rates = g.rates.length ? `<div class="f-rates"><h2>Les mots qui t'ont échappé</h2><ul>${g.rates.map(m =>
+  const rates = g.rates.length ? `<div class="f-rates"><h2>${g.jeu === "verbes" ? "Les formes qui t'ont échappé" : "Les mots qui t'ont échappé"}</h2><ul>${g.rates.map(m =>
     `<li><div><b lang="es">${esc(m.es)}</b><span>${esc(m.fr)}</span></div><button data-dire="${esc(m.es)}" aria-label="Écouter : ${esc(m.es)}" aria-pressed="false">${ICONES.play}</button></li>`).join("")}</ul></div>` : "";
   return {
     onglet: null,
@@ -325,12 +367,12 @@ function vueFin() {
         <div class="f-podium">${flamme(g.record || g.mue ? "joie" : "idle", g.record || g.mue ? 3 : 1)}<div><h1>${h1}</h1>${sous ? `<p>${sous}</p>` : ""}</div></div>
         <div class="f-total">${g.record ? `<span class="f-nouveau">Record battu</span>` : ""}
           <div class="f-gros"><b data-compte>${g.fete ? 0 : g.score}</b><span>ton record<i>${Math.max(g.ancien, g.score)}</i></span></div>
-          <div class="f-chiffres"><div><b>${g.ok}</b>mot${g.ok > 1 ? "s" : ""} trouvé${g.ok > 1 ? "s" : ""}</div><div><b>${g.serie}</b>de suite, au mieux</div><div><b>${g.ko}</b>erreur${g.ko > 1 ? "s" : ""}</div></div></div>
+          <div class="f-chiffres"><div><b>${g.ok}</b>${g.jeu === "verbes" ? `forme${g.ok > 1 ? "s" : ""} trouvée${g.ok > 1 ? "s" : ""}` : `mot${g.ok > 1 ? "s" : ""} trouvé${g.ok > 1 ? "s" : ""}`}</div><div><b>${g.serie}</b>de suite, au mieux</div><div><b>${g.ko}</b>erreur${g.ko > 1 ? "s" : ""}</div></div></div>
         ${carteApporte(g)}
         ${braises(g)}
         ${g.trophees.map(t => `<div class="f-gagne">${rosette(t.couleur)}<div><b>${esc(t.nom)}</b>Nouveau trophée · ${esc(t.quoi)}</div></div>`).join("")}
         ${rates}
-      </div><div class="f-bas"><a class="f-btn gros" href="#/jeux/montre/partie" data-remplace>Encore une !</a><a class="f-retour" href="#/jeux" data-remplace>Retour à la Feria</a></div></div>`,
+      </div><div class="f-bas"><a class="f-btn gros" href="#/jeux/${g.jeu}/partie" data-remplace>Encore une !</a><a class="f-retour" href="#/jeux" data-remplace>Retour à la Feria</a></div></div>`,
     apres: () => { brancher(); feter(); },
   };
 }
@@ -470,7 +512,7 @@ function brancher() {
     }
     if (quoi === "garder" || quoi === "pasgarder") return garder(quoi === "garder", b.closest(".f-apporte"));
     if (quoi === "paquet") {
-      garderJeux({ ...jeux(), paquet: b.dataset.id });
+      garderJeux({ ...jeux(), [JEUX[b.dataset.jeu || "montre"].cle]: b.dataset.id });
       racine.querySelectorAll('[data-j="paquet"]').forEach(x => x.setAttribute("aria-pressed", String(x === b)));
     }
   });
@@ -481,10 +523,18 @@ export function ecranJeux(ctx, quoi, etape) {
   const d = donnees(ctx);
   if (quoi === "trophees") return vueTrophees();
   if (quoi === "chispa") return vueChispa();
+  if (quoi === "verbes") {
+    const dv = donneesVerbes(ctx);
+    if (dv.choisi.ouvert) {
+      if (etape === "partie") return vuePartie(ctx, dv, "verbes");
+      if (etape === "fin" && derniere?.jeu === "verbes") return vueFin();
+      return vuePret(ctx, dv, "verbes");
+    }
+  }
   if (quoi === "montre" && d.choisi.ouvert) {
     if (etape === "partie") return vuePartie(ctx, d);
-    if (etape === "fin" && derniere) return vueFin();
+    if (etape === "fin" && derniere?.jeu === "montre") return vueFin();
     return vuePret(ctx, d);
   }
-  return vueSalle(ctx, d);
+  return vueSalle(ctx, d, donneesVerbes(ctx));
 }
