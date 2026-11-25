@@ -7,15 +7,15 @@
 // (jeux.js, phrasesChiringuito) ; les pièges sont fabriqués tout seuls (article, ser / estar, petit mot, personne du verbe, genre).
 // Rien ici ne touche à la révision des mots.
 
-import { esc, ICONES } from "../ui.js?v=67";
-import { EXERCICES } from "../exercices.js?v=67";
-import { conjuguer, TEMPS } from "../controles.js?v=67";
-import { tousLesVerbes } from "../verbes.js?v=67";
-import { etatJeux, garderJeux } from "../progression.js?v=67";
-import { dire, taire } from "../voix.js?v=67";
-import { chispa } from "../mascotte.js?v=67";
-import * as J from "../jeux.js?v=67";
-import { rosette } from "./jeux.js?v=67";
+import { esc, ICONES } from "../ui.js?v=68";
+import { EXERCICES } from "../exercices.js?v=68";
+import { conjuguer, TEMPS } from "../controles.js?v=68";
+import { tousLesVerbes } from "../verbes.js?v=68";
+import { etatJeux, garderJeux } from "../progression.js?v=68";
+import { dire, taire } from "../voix.js?v=68";
+import { chispa } from "../mascotte.js?v=68";
+import * as J from "../jeux.js?v=68";
+import { rosette } from "./jeux.js?v=68";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

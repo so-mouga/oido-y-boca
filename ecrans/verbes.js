@@ -1,18 +1,18 @@
-// S'entraîner aux verbes (#/verbes/cours, #/verbes/tous, #/verbes/un/VERBE/ID-DU-MOT/DEPUIS) : une série de 10 questions,
+// S'entraîner aux verbes (#/verbes/cours, #/verbes/tous, #/verbes/un/VERBE/ID-DU-MOT/DEPUIS/TEMPS) : une série de 10 questions,
 // pour sortir la bonne forme vite, dans n'importe quel ordre. Le moteur (quels verbes, quelles questions) est dans verbes.js.
 // Trois sortes de questions notées (trouve la forme, dans une phrase, à l'envers) et un tableau à dire, pas noté.
 // À la fin : le score, « À retenir », et « Tu le sais ? » pour un verbe en cours tout juste sur 2 séries de suite.
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=67";
-import { corriger } from "../corriger.js?v=67";
-import { PERSONNES, formesSurlignees } from "../controles.js?v=67";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe } from "../verbes.js?v=67";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=67";
-import { motVu } from "../dico.js?v=67";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=67";
-import { vibrer, son } from "../retours.js?v=67";
+import { esc, md, ICONES } from "../ui.js?v=68";
+import { corriger } from "../corriger.js?v=68";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=68";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=68";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=68";
+import { motVu } from "../dico.js?v=68";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=68";
+import { vibrer, son } from "../retours.js?v=68";
 
 // Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
 // travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi
@@ -26,13 +26,17 @@ const MODES = {
   tous: { titre: "Tous mes verbes", verbes: mesVerbes },
 };
 
-function nouvelleSerie(ctx, cle, mode, v, retour) {
+// Les temps de la série (chantier 16) : depuis une fiche, celui de l'onglet ouvert (même pas encore vu, Q57 du hub) ;
+// sinon les temps vus. Le temps s'écrit dans la question dès que la série n'est pas tout au présent.
+function nouvelleSerie(ctx, cle, mode, v, retour, t) {
   const tous = mode === "un" ? [trouverVerbe(ctx, v)].filter(Boolean) : MODES[mode]?.verbes(ctx) || [];
   const verbes = mode === "cours" ? lesPlusAnciens(tous) : tous;
+  const temps = mode === "un" ? [TEMPS[t] ? t : "present"] : tempsVus(ctx);
   s = {
-    cle, mode, retour, verbes,
-    titre: mode === "un" ? (verbes[0]?.v || v) : MODES[mode]?.titre || "Verbes",
-    items: tirerSerie(ctx, verbes, { tableauEnPremier: mode === "un" }),
+    cle, mode, retour, verbes, t: temps[0],
+    montrerTemps: temps.some(x => x !== "present"),
+    titre: mode === "un" ? `${verbes[0]?.v || v}${temps[0] === "present" ? "" : ` · ${TEMPS[temps[0]].nom}`}` : MODES[mode]?.titre || "Verbes",
+    items: tirerSerie(ctx, verbes, { tableauEnPremier: mode === "un", temps }),
     i: 0, phase: "question", saisie: "", resultat: null, montres: new Set(), resultats: [], fini: false,
   };
 }
@@ -46,9 +50,13 @@ const barre = () => `<header class="barre-ex">
 const sorte = t => `<p class="sorte"><i aria-hidden="true"></i>${t}</p>`;
 const ecouter = (texte, cls = "") => `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
 const surligne = f => esc(f).replace(/\*\*(.+?)\*\*/g, `<span class="term">$1</span>`);
+// Le temps : « passé composé » dans une bulle, et « pas vu · U12 » dessous si sa leçon n'est pas faite (Q16-3).
+const nomTemps = t => TEMPS[t].nom;
+const unite = t => TEMPS[t].lecon.split("-")[0];
+const bulleTemps = (ctx, q) => s.montrerTemps ? `<p class="q-temps">${esc(nomTemps(q.temps))}</p>${tempsVu(ctx, q.temps) ? "" : `<p class="q-pas-vu">pas vu · ${unite(q.temps)}</p>`}` : "";
 const sixFormes = (q, ouvert = false) => {
-  const f = formesSurlignees(q.v, q.d);
-  return `<details class="six-formes"${ouvert ? " open" : ""}><summary>Les 6 formes de ${esc(q.v)}</summary><dl>${PERSONNES.map((per, i) =>
+  const f = formesSurlignees(q.v, q.d, q.temps);
+  return `<details class="six-formes"${ouvert ? " open" : ""}><summary>Les 6 formes de ${esc(q.v)}${q.temps === "present" ? "" : ` · ${esc(nomTemps(q.temps))}`}</summary><dl>${PERSONNES.map((per, i) =>
     `<dt>${per}</dt><dd lang="es"${i === q.p ? ' class="ici"' : ""}>${surligne(f[i])}</dd>`).join("")}</dl></details>`;
 };
 // La phrase, avec le trou ou avec la forme en gras.
@@ -56,15 +64,17 @@ const sixFormes = (q, ouvert = false) => {
 const majuscule = (q, f) => q.avant.trim() ? f : f[0].toUpperCase() + f.slice(1);
 const phrase = (q, forme) => `${esc(q.avant)}${forme ? `<mark class="bon">${esc(majuscule(q, forme))}</mark>` : `<span class="trou" aria-label="trou"></span>`}${esc(q.apres)}`;
 
-function vueEcrire(q) {
+function vueEcrire(ctx, q) {
   const tete = q.type === "forme"
     ? `${sorte("Verbes · trouve la forme")}
       <p class="q-verbe" lang="es">${esc(q.v)}</p>
       <p class="q-personne" lang="es">${esc(PERSONNES[q.p])}</p>
+      ${bulleTemps(ctx, q)}
       ${q.sens ? `<p class="q-sens" lang="es">${esc(q.sens)}</p>` : ""}`
     : `${sorte("Verbes · dans une phrase")}
       <p class="enonce q-phrase" lang="es">${phrase(q)}</p>
-      <p class="q-sens" lang="es">(${esc(q.v)})</p>`;
+      <p class="q-sens"><span lang="es">(${esc(q.v)}</span>${s.montrerTemps ? `, ${esc(nomTemps(q.temps))}` : ""})</p>
+      ${s.montrerTemps && !tempsVu(ctx, q.temps) ? `<p class="q-pas-vu">pas vu · ${unite(q.temps)}</p>` : ""}`;
   if (s.phase === "question") {
     return `<div class="defile">${barre()}${tete}</div>
       <form class="saisie" data-v-form>
@@ -118,9 +128,12 @@ function vueEnvers(q) {
 // Le tableau à dire : on dit la forme à voix haute, on touche, elle s'affiche et se prononce. Pas de note.
 const ligneMontree = (f, i) => `<button class="f vu" data-dire="${esc(f)}" aria-label="Écouter : ${esc(f)}" aria-pressed="false" data-k="${i}"><span lang="es">${esc(f)}</span>${ICONES.lecture}</button>`;
 const ligneCachee = i => `<button class="f cache" data-v="montrer" data-k="${i}">dis-le, puis touche</button>`;
-function vueTableau(q) {
+// Un temps pas encore vu : la ligne entière ici, sur le premier écran de la série (Q57 du hub, Q16-3).
+function vueTableau(ctx, q) {
   return `${barre()}${sorte("Verbes · dis le tableau")}
     <div class="tete-tableau"><p class="q-verbe" lang="es">${esc(q.v)}</p>${q.sens ? `<p class="q-sens" lang="es">${esc(q.sens.replace(/^[^=]*= /, "= "))}</p>` : ""}</div>
+    ${s.montrerTemps ? `<p class="q-temps">${esc(nomTemps(q.temps))}</p>` : ""}
+    ${tempsVu(ctx, q.temps) ? "" : `<p class="pas-vu">Pas encore vu : le prof l'expliquera en ${unite(q.temps)}.</p>`}
     <p class="consigne-dire">Dis chaque forme à voix haute, puis touche pour vérifier.</p>
     ${s.montres.size < 6 ? `<button class="lien tout-montrer" data-v="tout-montrer">Tout montrer</button>` : ""}
     <div class="tab-dire">${PERSONNES.map((per, i) => `<div class="ligne"><span class="p">${per}</span>${s.montres.has(i) ? ligneMontree(q.formes[i], i) : ligneCachee(i)}</div>`).join("")}</div>
@@ -134,14 +147,15 @@ function vueFin() {
   const notees = s.resultats;
   const justes = notees.filter(r => r.ok).length;
   const tableau = s.items.find(q => q.type === "tableau");
-  // « À retenir » : une ligne par verbe raté, ses formes ratées (sans doublon).
+  // « À retenir » : une ligne par verbe et par temps raté, ses formes ratées (sans doublon) ; le temps écrit s'il n'est pas le présent (Q16-4).
   const rates = new Map();
   for (const { q, ok } of notees) {
     if (ok) continue;
-    const m = rates.get(q.v) || rates.set(q.v, new Map()).get(q.v);
+    const k = `${q.v}|${q.temps}`;
+    const m = rates.get(k) || rates.set(k, new Map()).get(k);
     m.set(q.p, q.type === "envers" ? q.forme : q.es[0]);
   }
-  const retenir = [...rates].map(([v, formes]) => `<li><i lang="es">${esc(v)}</i> : ${[...formes].sort((a, b) => a[0] - b[0])
+  const retenir = [...rates].map(([k, formes]) => [...k.split("|"), formes]).map(([v, t, formes]) => `<li><i lang="es">${esc(v)}</i>${t === "present" ? "" : `, ${esc(nomTemps(t))}`} : ${[...formes].sort((a, b) => a[0] - b[0])
     .map(([p, f]) => `${PERSONNES[p]} → <b lang="es">${esc(f)}</b>`).join(", ")}</li>`).join("");
   // « Tu le sais ? » : un verbe en cours, tout juste sur 2 séries de suite (celle-ci comprise).
   const proposer = [...new Set(notees.map(r => r.q.v))].filter(v => verbeEnCours(v) && seriesJustes(v) >= 2);
@@ -154,7 +168,7 @@ function vueFin() {
       <p class="sous">${esc(s.titre)} · ${s.items.length} questions</p>
       <ul class="bilan">
         <li><b>Justes</b><span>${justes} sur ${notees.length}</span></li>
-        ${tableau ? `<li><b>Tableau à dire</b><span lang="es">${esc(tableau.v)}</span></li>` : ""}
+        ${tableau ? `<li><b>Tableau à dire</b><span><span lang="es">${esc(tableau.v)}</span>${tableau.temps === "present" ? "" : `, ${esc(nomTemps(tableau.temps))}`}</span></li>` : ""}
       </ul>
       ${retenir ? `<section aria-labelledby="t-retenir"><h2 id="t-retenir">À retenir</h2><ul class="a-retenir">${retenir}</ul></section>` : ""}
       ${sais}
@@ -164,13 +178,15 @@ function vueFin() {
     <a class="primaire" href="${s.retour}" data-remplace>${retourNom}</a>`;
 }
 
-// #/verbes/cours, #/verbes/tous, #/verbes/un/VERBE/ID/DEPUIS
-export function ecranVerbes(ctx, mode, a, b, c) {
+// #/verbes/cours, #/verbes/tous, #/verbes/un/VERBE/ID/DEPUIS/TEMPS (le temps de l'onglet ouvert sur la fiche ; présent sinon)
+export function ecranVerbes(ctx, mode, a, b, c, d) {
   const v = mode === "un" ? decodeURIComponent(a || "") : null;
+  const t = mode === "un" && TEMPS[d] ? d : "present";
   const retour = mode === "un" ? `#/dico/mot/${b || ""}/${c || "verbes"}` : "#/dico/verbes";
-  const cle = `${mode}:${v || ""}`;
+  // Les séries mélangées changent quand un nouveau temps devient vu.
+  const cle = `${mode}:${v || ""}:${mode === "un" ? t : tempsVus(ctx).join(",")}`;
   // Une série quittée en cours reprend à la même question ; une série finie recommence.
-  if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, mode, v, retour);
+  if (!s || s.cle !== cle || s.fini) nouvelleSerie(ctx, cle, mode, v, retour, t);
   if (!s.items.length) {
     const vide = s.mode === "cours" ? "Pas encore de verbe en cours : ajoute-en un depuis la page Verbes." : "Pas encore de verbe à travailler.";
     s = null;
@@ -189,7 +205,7 @@ export function ecranVerbes(ctx, mode, a, b, c) {
   }
   const q = s.items[s.i];
   const ecrire = (q.type === "forme" || q.type === "phrase");
-  const vue = ecrire ? vueEcrire(q) : q.type === "envers" ? vueEnvers(q) : vueTableau(q);
+  const vue = ecrire ? vueEcrire(ctx, q) : q.type === "envers" ? vueEnvers(q) : vueTableau(ctx, q);
   return {
     onglet: null,
     html: `<main class="colonne exo verbes-exo${ecrire && s.phase === "question" ? " ecrire-q" : ""}">${vue}</main>`,
@@ -275,9 +291,9 @@ export function actionVerbes(ctx, e) {
       suivant();
       return "suivant";
     case "encore": {
-      const { cle, mode, retour } = s;
+      const { cle, mode, retour, t } = s;
       const v = mode === "un" ? s.verbes[0]?.v : null;
-      nouvelleSerie(ctx, cle, mode, v, retour);
+      nouvelleSerie(ctx, cle, mode, v, retour, t);
       return "suivant";
     }
     case "sais": {

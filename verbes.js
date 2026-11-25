@@ -1,13 +1,14 @@
 // S'entraîner aux verbes : le moteur, sans écran (les écrans sont dans ecrans/verbes.js).
 // Il dit quels verbes on peut travailler, tire les questions d'une série et retrouve des phrases déjà écrites.
 // Pensé pour servir aussi plus tard à la « Course de conjugaison » des jeux (mêmes questions, chronométrées).
-// Seulement le présent pour l'instant : chaque question porte « temps: "present" », pour pouvoir ajouter les autres temps.
+// Les temps (chantier 16) : chaque question porte son temps (« present », « pc », « ps », « imp », « fut », « cond »).
+// Une série mélangée prend les temps vus (leurs leçons faites) ; depuis la fiche d'un verbe, un seul temps, même pas encore vu.
 
-import { conjuguer, sixFormes, PERSONNES, irregulierConnu } from "./controles.js?v=67";
-import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=67";
-import { verbesEnCours } from "./progression.js?v=67";
-import { EXERCICES } from "./exercices.js?v=67";
-import { BONUS } from "./bonus.js?v=67";
+import { conjuguer, sixFormes, PERSONNES, irregulierConnu, TEMPS, ORDRE_TEMPS } from "./controles.js?v=68";
+import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=68";
+import { verbesEnCours } from "./progression.js?v=68";
+import { EXERCICES } from "./exercices.js?v=68";
+import { BONUS } from "./bonus.js?v=68";
 
 // ── Les verbes ──
 // Un verbe qu'on peut travailler : l'appli connaît ses 6 formes, et il ne se construit pas comme gustar.
@@ -76,6 +77,10 @@ export function suggestions(ctx, n = 3) {
 // Le sens à afficher (« hacer = faire »), sauf s'il est le même mot (« venir = venir »).
 export const sensDe = x => x.fr && normaliser(x.fr) !== normaliser(x.inf) && normaliser(x.fr) !== normaliser(x.v) ? `${x.v} = ${x.fr}` : "";
 
+// Les temps vus : le présent, et ceux dont la leçon est faite (passé composé en U9-L1, passé simple en U12-L1…).
+export const tempsVus = ctx => ORDRE_TEMPS.filter(t => t === "present" || ctx.pos.faites.has(TEMPS[t].lecon));
+export const tempsVu = (ctx, t) => t === "present" || ctx.pos.faites.has(TEMPS[t]?.lecon);
+
 // ── Les phrases déjà écrites ──
 // 1. Les phrases à compléter des exercices et du bonus des leçons faites, qui portent déjà le verbe et la personne (v, p).
 // 2. L'exemple d'une carte du verbe dans le Sheet, quand il contient une forme du présent de ce verbe (« Hago la compra… »).
@@ -85,19 +90,19 @@ const ARTICLES = new Set(["el", "la", "los", "las", "un", "una", "unos", "unas",
 const PIEGES = new Set(["como", "para", "bajo", "sobre", "entre", "cocina", "cena", "compra", "trabajo", "desayuno", "baile", "paseo", "llamo"]);
 
 const IMPERATIF = new Set(["U8-L1"]);
-function phrasesExercices(ctx, x) {
+// Le temps d'une phrase : le sien (t), sinon celui de sa réserve de bonus (« Complète au passé composé », t: "pc"), sinon le présent.
+function phrasesExercices(ctx, x, t = "present") {
   const sources = [
-    ...Object.entries(EXERCICES).flatMap(([l, e]) => (e.ecrire || []).map(q => ({ l, q }))),
-    ...Object.entries(BONUS).flatMap(([l, b]) => (b.phrases || []).map(q => ({ l, q }))),
+    ...Object.entries(EXERCICES).flatMap(([l, e]) => (e.ecrire || []).map(q => ({ l, q, t: q.t || "present" }))),
+    ...Object.entries(BONUS).flatMap(([l, b]) => (b.phrases || []).map(q => ({ l, q, t: q.t || b.t || "present" }))),
   ];
   // Pas l'impératif (U8-L1, « ¡___, Léo! ») : il a la forme de él, mais ce n'est pas le présent.
-  // Pas les phrases au passé (champ t, unités 9 et plus) : l'entraînement ne fait que le présent pour l'instant.
-  return sources.filter(({ l, q }) => ctx.pos.faites.has(l) && !IMPERATIF.has(l) && q.v === x.v && Number.isInteger(q.p) && !q.t
-      && q.fr.includes("___") && !/¡\s*___/.test(q.fr))
+  return sources.filter(s => s.t === t && ctx.pos.faites.has(s.l) && !IMPERATIF.has(s.l) && s.q.v === x.v && Number.isInteger(s.q.p)
+      && s.q.fr.includes("___") && !/¡\s*___/.test(s.q.fr))
     .map(({ l, q }) => {
       const texte = q.fr.replace(/\s*\([^)]*\)\s*$/, "");
       const [avant, apres] = texte.split("___");
-      return { avant, apres, p: q.p, es: conjuguer(x.v, q.p, x.d), source: l };
+      return { avant, apres, p: q.p, es: conjuguer(x.v, q.p, x.d, t), source: l };
     });
 }
 
@@ -122,17 +127,18 @@ export function trouerExemple(ex, v, d) {
   return null;
 }
 
-export function phrasesDe(ctx, x) {
-  const exemples = x.cartes.map(m => trouerExemple(m.ex, x.v, x.d)).filter(Boolean).map(t => ({ ...t, source: "exemple" }));
-  const toutes = [...exemples, ...phrasesExercices(ctx, x)];
+// Les exemples du Sheet ne servent qu'au présent ; aux autres temps, seulement les phrases des exercices et du bonus.
+export function phrasesDe(ctx, x, t = "present") {
+  const exemples = t !== "present" ? [] : x.cartes.map(m => trouerExemple(m.ex, x.v, x.d)).filter(Boolean).map(t => ({ ...t, source: "exemple" }));
+  const toutes = [...exemples, ...phrasesExercices(ctx, x, t)];
   // Pas deux fois la même phrase.
   const vues = new Set();
   return toutes.filter(ph => { const k = normaliser(ph.avant + ph.es + ph.apres); if (vues.has(k)) return false; vues.add(k); return true; });
 }
 
 // La phrase d'exemple sous le tableau à dire : une phrase entière, la forme en gras.
-export function exempleDe(ctx, x) {
-  const ph = phrasesDe(ctx, x)[0];
+export function exempleDe(ctx, x, t = "present") {
+  const ph = phrasesDe(ctx, x, t)[0];
   if (!ph) return "";
   const forme = ph.trouve || ph.es;
   const avant = ph.avant, debut = !avant.trim();
@@ -148,40 +154,52 @@ const melanger = t => {
 const auHasard = t => t[Math.floor(Math.random() * t.length)];
 
 // Une question :
+// Chaque question a son temps (temps: "present", "pc"…).
 //   forme   : { type: "forme", v, p, es: [la forme] }            « venir · tú » → vienes
 //   phrase  : { type: "phrase", v, p, avant, apres, es: [..] }    « Los viernes ___ a cenar. (salir) »
 //   envers  : { type: "envers", v, p, forme, choix: [{ v, p }] }  « hago » → hacer · yo, parmi 4
 //   tableau : { type: "tableau", v, formes, exemple }             le tableau à dire, pas noté
-// options : { n: 10 questions en tout, tableauEnPremier: le tableau d'abord (un seul verbe, depuis sa fiche), tableau: true/false }
-export function tirerSerie(ctx, verbes, { n = 10, tableauEnPremier = false, tableau = true } = {}) {
-  if (!verbes.length) return [];
+// options : { n: 10 questions en tout, tableauEnPremier: le tableau d'abord (un seul verbe, depuis sa fiche), tableau: true/false,
+//   temps: les temps de la série (par défaut : le présent) ; depuis une fiche, un seul }
+// Les temps reviennent à parts égales (Q16-1). « À l'envers » reste au présent : pas d'« à l'envers » dans une série
+// sans présent (depuis l'onglet Passé simple d'une fiche, Q16-2).
+export function tirerSerie(ctx, verbes, { n = 10, tableauEnPremier = false, tableau = true, temps = ["present"] } = {}) {
+  if (!verbes.length || !temps.length) return [];
   const notees = tableau ? n - 1 : n;
-  const nbPhrases = 2, nbEnvers = 1;
+  const nbPhrases = 2, nbEnvers = temps.includes("present") ? 1 : 0;
   // Les paires (verbe, personne), mélangées, les verbes à tour de rôle : chaque verbe revient autant que possible.
   const paires = [];
   const parVerbe = melanger(verbes).map(x => ({ x, p: melanger([0, 1, 2, 3, 4, 5]) }));
   for (let tour = 0; paires.length < notees; tour++) {
     for (const { x, p } of parVerbe) if (paires.length < notees) paires.push({ x, p: p[tour % 6] });
   }
-  // Quelques paires deviennent des phrases (si le verbe en a), une devient « à l'envers », le reste « trouve la forme ».
+  // Le temps de chaque paire : les temps à tour de rôle, dans un ordre mélangé (à parts égales).
+  const ordre = melanger(temps);
+  const tempsDe = melanger(paires.map((_, i) => ordre[i % ordre.length]));
+  // Quelques paires deviennent des phrases (si le verbe en a, à ce temps), une devient « à l'envers », le reste « trouve la forme ».
   const restes = melanger(paires.map((_, i) => i));
   const types = new Array(notees).fill("forme");
   let phrases = 0;
-  const phrasesDispo = new Map(verbes.map(x => [x.v, melanger(phrasesDe(ctx, x))]));
-  const questions = paires.map(({ x, p }) => ({ type: "forme", temps: "present", v: x.v, d: x.d, p, sens: sensDe(x), es: [conjuguer(x.v, p, x.d)] }));
+  const phrasesDispo = new Map();
+  const dispo = (x, t) => { const k = `${x.v}|${t}`; if (!phrasesDispo.has(k)) phrasesDispo.set(k, melanger(phrasesDe(ctx, x, t))); return phrasesDispo.get(k); };
+  const parV = new Map(verbes.map(x => [x.v, x]));
+  const questions = paires.map(({ x, p }, i) => ({ type: "forme", temps: tempsDe[i], v: x.v, d: x.d, p, sens: sensDe(x), es: [conjuguer(x.v, p, x.d, tempsDe[i])] }));
   for (const i of restes) {
     if (phrases >= nbPhrases) break;
-    const ph = phrasesDispo.get(questions[i].v)?.shift();
+    const ph = dispo(parV.get(questions[i].v), questions[i].temps).shift();
     if (!ph) continue;
     questions[i] = { ...questions[i], type: "phrase", p: ph.p, avant: ph.avant, apres: ph.apres, es: [ph.es] };
     types[i] = "phrase"; phrases++;
   }
-  const libres = restes.filter(i => types[i] === "forme").slice(0, nbEnvers);
+  // « À l'envers » : au présent, sur une question « trouve la forme » (au présent de préférence, pour garder les parts égales).
+  const libres = restes.filter(i => types[i] === "forme").sort((a, b) => (questions[a].temps !== "present") - (questions[b].temps !== "present")).slice(0, nbEnvers);
   for (const i of libres) questions[i] = questionEnvers(verbes, questions[i]);
-  // Le tableau à dire : en premier (depuis une fiche), sinon vers la fin, sur un verbe de la série (un irrégulier si possible).
+  // Le tableau à dire, un seul temps : en premier (depuis une fiche, au temps de l'onglet), sinon vers la fin,
+  // sur un verbe de la série (un irrégulier si possible), à un des temps de la série.
   if (tableau) {
     const x = tableauEnPremier ? verbes[0] : auHasard(verbes.filter(y => y.irr).length ? verbes.filter(y => y.irr) : verbes);
-    const t = { type: "tableau", temps: "present", v: x.v, d: x.d, sens: sensDe(x), formes: sixFormes(x.v, x.d), exemple: exempleDe(ctx, x) };
+    const tt = tableauEnPremier ? temps[0] : auHasard(temps);
+    const t = { type: "tableau", temps: tt, v: x.v, d: x.d, sens: sensDe(x), formes: sixFormes(x.v, x.d, tt), exemple: exempleDe(ctx, x, tt) };
     const place = tableauEnPremier ? 0 : Math.min(questions.length, 6 + Math.floor(Math.random() * 3));
     questions.splice(place, 0, t);
   }

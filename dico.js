@@ -2,9 +2,9 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=67";
-import { mesMots, apprisEnAvance } from "./progression.js?v=67";
-import { LECONS } from "./position.js?v=67";
+import { irregulierConnu } from "./controles.js?v=68";
+import { mesMots, apprisEnAvance } from "./progression.js?v=68";
+import { LECONS } from "./position.js?v=68";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -108,7 +108,8 @@ const PARTICULIERS = {
 // Où le livre explique chaque règle (vérifié dans PROGRAMME.md).
 export const REGLES = {
   ar: { lecon: "U1-L1", texte: "Comme tous les verbes en -ar : on enlève -ar, on ajoute la terminaison." },
-  ir: { lecon: "U1-L3", texte: "Comme tous les verbes en -ir : on enlève -ir, on ajoute la terminaison." },
+  // -ir (Q59, la phrase du prof le 25 nov., après « vivemos ») : dire ce qui change par rapport aux -er.
+  ir: { lecon: "U1-L3", texte: "Comme les -er, sauf *nosotros* → -imos et *vosotros* → -ís." },
   er: { lecon: "U1-L5", texte: "Comme tous les verbes en -er : on enlève -er, on ajoute la terminaison." },
   se: { lecon: "U3-L1", texte: "Un verbe en -se : devant le verbe, me, te, se, nos, os, se." },
   ue: { lecon: "U3-L4", texte: "Le o devient ue, sauf avec nosotros et vosotros." },

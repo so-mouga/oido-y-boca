@@ -14,20 +14,20 @@
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=67";
-import { UNITES } from "../position.js?v=67";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=67";
-import { mesVerbes, verbesCours } from "../verbes.js?v=67";
-import { motsAMoi, motsAVenir } from "../dico.js?v=67";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=67";
-import { dire, taire } from "../voix.js?v=67";
-import { chispa } from "../mascotte.js?v=67";
-import * as J from "../jeux.js?v=67";
-import { ecranDeux } from "./deux.js?v=67";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=67";
-import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=67";
-import { ecranCharla, standCharla } from "./charla.js?v=67";
-import { ecranMision, standMision } from "./missions.js?v=67";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=68";
+import { UNITES } from "../position.js?v=68";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=68";
+import { mesVerbes, verbesCours } from "../verbes.js?v=68";
+import { motsAMoi, motsAVenir } from "../dico.js?v=68";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=68";
+import { dire, taire } from "../voix.js?v=68";
+import { chispa } from "../mascotte.js?v=68";
+import * as J from "../jeux.js?v=68";
+import { ecranDeux } from "./deux.js?v=68";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=68";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=68";
+import { ecranCharla, standCharla } from "./charla.js?v=68";
+import { ecranMision, standMision } from "./missions.js?v=68";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle

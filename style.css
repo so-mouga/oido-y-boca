@@ -666,6 +666,11 @@ details.sec > summary { box-shadow: 0 -12px 0 var(--sun-ground); border-radius: 
 .verbes-exo .q-verbe { font-size: 34px; font-weight: 600; text-align: center; letter-spacing: -.01em; margin-top: 18px; overflow-wrap: anywhere; }
 .verbes-exo .q-personne { align-self: center; background: var(--sun-deep); color: var(--marine); border-radius: 999px; padding: 6px 18px; font-size: 18px; font-weight: 600; }
 .verbes-exo .q-sens { text-align: center; font-size: 14px; color: var(--muted); }
+/* Le temps de la question (chantier 16) : une bulle marine ; « pas vu · U12 » en petit dessous, la ligne entière sur le tableau. */
+.verbes-exo .q-temps { align-self: center; background: var(--marine); color: var(--sun-ground); border-radius: 999px; padding: 5px 14px; font-size: 14.5px; font-weight: 500; }
+.verbes-exo .q-pas-vu { align-self: center; font-size: 12.5px; color: var(--muted); margin-top: -8px; }
+.verbes-exo .pas-vu { background: var(--sun-deep); color: var(--sun-ink); border-radius: 12px; padding: 8px 12px; font-size: 14px; line-height: 1.4; text-align: center; }
+.encours .tps { background: #21385E; border-radius: 10px; padding: 7px 10px; color: var(--sun-ground); font-size: 13.5px; }
 .verbes-exo .q-phrase { text-align: center; margin-top: 18px; }
 .verbes-exo .trou { display: inline-block; width: 80px; border-bottom: 2px solid var(--marine); vertical-align: baseline; margin: 0 2px; }
 .verbes-exo .defile { display: flex; flex-direction: column; gap: 14px; }

@@ -2,9 +2,9 @@
 // 1 le mot et 2 la phrase à trou : automatiques. 3, 4… : les phrases à écrire, chacune avec son « + » (data-prendre).
 // Gris : pas encore là ; jaune : dans « Tes mots à revoir » ; vert : réussie au rendez-vous des 3 jours.
 
-import { esc } from "../ui.js?v=67";
-import { cartesDuMot, etatCarte, cleCarte, departDe } from "../cartes.js?v=67";
-import { fichesCartes } from "../progression.js?v=67";
+import { esc } from "../ui.js?v=68";
+import { cartesDuMot, etatCarte, cleCarte, departDe } from "../cartes.js?v=68";
+import { fichesCartes } from "../progression.js?v=68";
 
 const trou = t => esc(t).replace("___", `<span class="trou" aria-label="mot caché"></span>`);
 
