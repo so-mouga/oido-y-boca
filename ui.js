@@ -1,8 +1,8 @@
 // Petits outils partagés par les écrans : échappement, mise en forme, icônes dessinées.
 
-import { chispa } from "./mascotte.js?v=68";
-import { etatJeux } from "./progression.js?v=68";
-import { attrapes, etape } from "./jeux.js?v=68";
+import { chispa } from "./mascotte.js?v=69";
+import { etatJeux } from "./progression.js?v=69";
+import { attrapes, etape } from "./jeux.js?v=69";
 
 export const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 

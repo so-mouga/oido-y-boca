@@ -871,3 +871,12 @@ mark .tx-mot.touche { box-shadow: none; }
 .fin .bloque p { font-size: 14px; line-height: 1.45; color: var(--marine-soft); margin: 0; }
 .fin .bloque .duo { display: flex; gap: 8px; }
 .fin .bloque .duo > * { flex: 1; }
+
+/* Mes mots en cours (chantier 19) : deux boutons dans la bulle, la séance. */
+.bm-action { display: flex; flex-direction: column; gap: 8px; }
+.bm-garder.bm-second { background: transparent; color: var(--sun-ground); border: 1.5px solid #4A5F82; font-weight: 500; }
+.mots-exo .mc-fr { font-size: 26px; font-weight: 600; text-align: center; }
+.mots-exo .mc-ecoute { display: flex; justify-content: center; padding: 12px 0; }
+.mots-exo .mc-ecoute .ecoute.grand { width: 72px; height: 72px; }
+.mots-exo .mc-sens { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.mots-exo .verdict p + p { margin-top: 4px; }

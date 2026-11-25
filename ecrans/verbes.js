@@ -5,14 +5,14 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=68";
-import { corriger } from "../corriger.js?v=68";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=68";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=68";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=68";
-import { motVu } from "../dico.js?v=68";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=68";
-import { vibrer, son } from "../retours.js?v=68";
+import { esc, md, ICONES } from "../ui.js?v=69";
+import { corriger } from "../corriger.js?v=69";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=69";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=69";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=69";
+import { motVu } from "../dico.js?v=69";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=69";
+import { vibrer, son } from "../retours.js?v=69";
 
 // Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
 // travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi
@@ -161,8 +161,8 @@ function vueFin() {
   const proposer = [...new Set(notees.map(r => r.q.v))].filter(v => verbeEnCours(v) && seriesJustes(v) >= 2);
   const sais = proposer.map(v => `<div class="tu-le-sais" role="status"><p><b lang="es">${esc(v)}</b> : tout juste ${seriesJustes(v)} séries de suite. Tu le sais ?</p>
       <button class="oui" data-v="sais" data-verbe="${esc(v)}">Oui, je le sais</button>
-      <small>Il sort de tes verbes en cours et reste dans « Tous mes verbes ».</small></div>`).join("");
-  const retourNom = s.mode === "un" ? "Retour à la fiche" : "Retour aux verbes";
+      <small>Il sort de tes mots en cours et reste dans « Tous mes verbes ».</small></div>`).join("");
+  const retourNom = s.mode === "un" ? "Retour à la fiche" : s.mode === "cours" ? "Retour au Dico" : "Retour aux verbes";
   return `<div class="fin">
       <h1>Série terminée</h1>
       <p class="sous">${esc(s.titre)} · ${s.items.length} questions</p>
@@ -300,7 +300,7 @@ export function actionVerbes(ctx, e) {
       // Sans redessiner (l'écran de fin ne doit pas relancer une série).
       const v = b.dataset.verbe;
       retirerDesCours(v);
-      b.closest(".tu-le-sais").outerHTML = `<p class="tu-le-sais sorti" role="status"><b lang="es">${esc(v)}</b> sort de tes verbes en cours. Bravo.</p>`;
+      b.closest(".tu-le-sais").outerHTML = `<p class="tu-le-sais sorti" role="status"><b lang="es">${esc(v)}</b> sort de tes mots en cours. Bravo.</p>`;
       vibrer();
       return false;
     }

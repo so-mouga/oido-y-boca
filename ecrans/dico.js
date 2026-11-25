@@ -3,16 +3,16 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=68";
-import { lecon as trouver } from "../position.js?v=68";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=68";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=68";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=68";
-import { verbesCours, mesVerbes, suggestions, tempsVus } from "../verbes.js?v=68";
-import { verbeEnCours } from "../progression.js?v=68";
-import { tropEnCours } from "./verbes.js?v=68";
-import { htmlCartes } from "./cartesmot.js?v=68";
-import { phraseTouchable } from "../toucher.js?v=68";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=69";
+import { lecon as trouver } from "../position.js?v=69";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=69";
+import { etatRevision, apprisEnAvance, fichesCartes } from "../progression.js?v=69";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=69";
+import { mesVerbes, suggestions } from "../verbes.js?v=69";
+import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE } from "../motsencours.js?v=69";
+import { phrasesDe, cleCarte } from "../cartes.js?v=69";
+import { htmlCartes } from "./cartesmot.js?v=69";
+import { phraseTouchable } from "../toucher.js?v=69";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -89,6 +89,7 @@ function sommaire(ctx) {
     html: `<main class="colonne dico">
         <header class="tete"><h1>Ton dico</h1>
           <p class="sous">Les mots et expressions de tes leçons${n ? ` · ${n} mot${n > 1 ? "s" : ""}` : ""}.</p></header>
+        ${carteMesMots(ctx)}
         <label class="cherche">${loupe}<input type="search" data-cherche placeholder="Chercher un mot" value="${esc(recherche)}"
           lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="search"
           aria-label="Chercher un mot, en espagnol ou en français"></label>
@@ -194,35 +195,37 @@ function pageSorte(ctx, sorte) {
   };
 }
 
-// ── S'entraîner aux verbes : la carte du haut de la page Verbes ──
-// Mes verbes en cours (choisis par moi) et le bouton de la série ; « À apprendre ensuite » : les 3 prochains verbes du livre,
-// avec « + » ; puis « Tous mes verbes » (vus ou en cours). Les séries sont dans ecrans/verbes.js.
-function carteEntrainement(ctx) {
-  const cours = verbesCours(ctx);
-  const tous = mesVerbes(ctx);
-  const ensuite = suggestions(ctx);
-  // Chaque verbe en cours : son lien vers sa fiche (s'il a une carte dans le Sheet), et une croix pour le retirer
-  // (sans dire « je le sais », Q10-16). Un verbe des exercices sans carte (« buscar ») n'a pas de fiche.
-  const puce = x => `<span class="puce-verbe">${x.carte ? `<a href="${lienMot(x.carte, "verbes")}" lang="es">${esc(x.v)}</a>` : `<span lang="es">${esc(x.v)}</span>`}<button class="retirer-verbe" data-v-retirer="${esc(x.v)}" aria-label="Retirer ${esc(x.v)} de mes verbes en cours">×</button></span>`;
-  return `<section class="entrainement" aria-labelledby="t-cours">
+// ── « Mes mots en cours » (chantier 19) : la carte du haut du Dico ──
+// Les mots que je choisis de travailler (verbes compris), une croix pour retirer, et la séance de 10 questions (ecrans/motsencours.js).
+function carteMesMots(ctx) {
+  const cours = motsEnCours(ctx);
+  const puce = it => `<span class="puce-verbe">${it.m ? `<a href="${lienMot(it.m, "dico")}" lang="es">${esc(it.es)}</a>` : `<span lang="es">${esc(it.es)}</span>`}<button class="retirer-verbe" data-mc-retirer="${esc(it.cle)}" aria-label="Retirer ${esc(it.es)} de mes mots en cours">×</button></span>`;
+  return `<section class="entrainement mots-cours" aria-labelledby="t-cours">
       <div class="encours">
-        <h2 id="t-cours">Mes verbes en cours${cours.length ? ` · ${cours.length}` : ""}</h2>
+        <h2 id="t-cours">Mes mots en cours${cours.length ? ` · ${cours.length}` : ""}</h2>
         ${cours.length ? `<div class="puces">${cours.map(puce).join("")}</div>
-          ${tempsVus(ctx).length > 1 ? `<p class="tps">Temps : ${esc(listeTemps(tempsVus(ctx)))}</p>` : ""}
-          <a class="primaire soleil" href="#/verbes/cours">S'entraîner · 10 questions</a>`
-          : `<p>Aucun pour l'instant. Ajoute 1 ou 2 verbes : touche « + » ci-dessous, ou « Je l'apprends » sur la fiche d'un verbe.</p>`}
-        ${tropEnCours()}
+          <a class="primaire soleil" href="#/mots/cours">S'entraîner · 10 questions</a>
+          <p>Retrouver le mot toi-même : du français à l'espagnol, à l'oreille, dans ses phrases.${cours.length > MOTS_PAR_SEANCE ? ` Chaque séance en prend ${MOTS_PAR_SEANCE} : ceux que tu n'as pas travaillés depuis longtemps passent d'abord.` : ""}</p>`
+          : `<p>Les mots qui ne rentrent pas. Ajoute-les depuis leur fiche (« M'entraîner sur ce mot »), ou en les touchant dans une phrase.</p>`}
       </div>
-      ${ensuite.length ? `<div class="ensuite"><h3>À apprendre ensuite</h3><ul>${ensuite.map(x => `<li>
-          <a href="${lienMot(x.carte, "verbes")}"><span class="es" lang="es">${esc(x.v)}</span><span class="fr">${esc(x.fr || `dans « ${x.carte.es} »`)}<small>arrive en ${id(x.carte.lecon)}</small></span></a>
-          <button class="ajout-verbe" data-v-apprendre="${esc(x.v)}" data-mot="${esc(x.carte.id)}" aria-label="Mettre ${esc(x.v)} dans mes verbes en cours">+</button>
-        </li>`).join("")}</ul></div>` : ""}
-      ${tous.length ? `<a class="tous" href="#/verbes/tous">Tous mes verbes · ${tous.length}</a>` : ""}
     </section>`;
 }
 
-// « présent et passé composé », « présent, passé composé et passé simple ».
-const listeTemps = ts => { const n = ts.map(t => TEMPS[t].nom); return n.length < 2 ? n.join("") : `${n.slice(0, -1).join(", ")} et ${n.at(-1)}`; };
+// ── La page Verbes : « À apprendre ensuite » et « Tous mes verbes » ──
+// Les 3 prochains verbes du livre, avec « + » (il passe dans « Mes mots en cours ») ; puis la série de conjugaison sur tous mes verbes.
+function carteEntrainement(ctx) {
+  const tous = mesVerbes(ctx);
+  const ensuite = suggestions(ctx);
+  if (!ensuite.length && !tous.length) return "";
+  return `<section class="entrainement" aria-label="S'entraîner aux verbes">
+      ${ensuite.length ? `<div class="ensuite"><h3>À apprendre ensuite</h3><ul>${ensuite.map(x => `<li>
+          <a href="${lienMot(x.carte, "verbes")}"><span class="es" lang="es">${esc(x.v)}</span><span class="fr">${esc(x.fr || `dans « ${x.carte.es} »`)}<small>arrive en ${id(x.carte.lecon)}</small></span></a>
+          <button class="ajout-verbe" data-mc-ajouter="${esc(x.carte.id)}" aria-label="Mettre ${esc(x.v)} dans mes mots en cours">+</button>
+        </li>`).join("")}</ul><p class="petit">Le « + » le met dans « Mes mots en cours », en haut du Dico.</p></div>` : ""}
+      ${tous.length ? `<a class="tous" href="#/verbes/tous">Conjuguer tous mes verbes · ${tous.length}</a>` : ""}
+    </section>`;
+}
+
 
 function regleCourte(ctx, idLecon) {
   const texte = `La règle : ${id(idLecon)}`;
@@ -236,24 +239,28 @@ const surligne = f => esc(f).replace(/\*\*(.+?)\*\*/g, `<span class="term">$1</s
 // Tous les temps, sur WordReference (Q86) : l'appli connaît le présent et les 3 passés.
 const lienWR = vb => `<a class="lk wr" href="https://www.wordreference.com/conj/esverbs.aspx?v=${encodeURIComponent(vb.inf)}" target="_blank" rel="noopener">Toutes les conjugaisons (WordReference)${ICONES.sortie}</a>`;
 
-// Le bas de la fiche d'un verbe qu'on peut travailler (formes connues, pas comme gustar).
-// « Je l'apprends » : le verbe passe en cours, et si sa carte n'est pas vue, elle entre dans « Tes mots à revoir »
-// (il remplace « L'apprendre maintenant » sur les fiches de verbe). En cours : « M'entraîner » et « Je le sais ».
-// « M'entraîner sur ce verbe » entraîne l'onglet ouvert (chantier 16) : la fiche s'ouvre sur le présent, et changer d'onglet
-// change le lien et son texte (« · passé simple », app.js). data-serie : le lien sans le temps.
-function actionsVerbe(ctx, m, vb, vu, depuis) {
-  const base = `#/verbes/un/${encodeURIComponent(vb.v)}/${encodeURIComponent(m.id)}/${depuis || "verbes"}`;
-  const lien = cls => `<a class="${cls}" href="${base}/present" data-serie="${base}">M'entraîner sur ce verbe</a>`;
-  if (verbeEnCours(vb.v)) {
-    return `<div class="espace"></div><p class="en-cours"><b lang="es">${esc(vb.v)}</b> est dans tes verbes en cours.</p>
-      ${lien("primaire soleil")}
-      <button class="secondaire" data-v-retirer="${esc(vb.v)}">Je le sais</button>`;
+// Le bas de la fiche (chantier 19, Q19-2, Q19-7) : « M'entraîner sur ce mot » le met dans « Mes mots en cours »
+// (ses phrases 3 et 4 entrent dans la révision ; s'il n'est pas vu, sa carte aussi). En cours : « Séance sur ce mot seul »
+// et « Je le sais ». Un verbe que l'appli sait conjuguer garde « Conjuguer seulement » (l'ancienne série, au temps de l'onglet).
+function actionsMot(ctx, m, vb, vu, depuis) {
+  const conj = vb?.formes && !vb.gustar && !m.moi;
+  const base = conj ? `#/verbes/un/${encodeURIComponent(vb.v)}/${encodeURIComponent(m.id)}/${depuis || "verbes"}` : "";
+  const lienConj = conj ? `<a class="secondaire" href="${base}/present" data-serie="${base}">Conjuguer seulement</a>` : "";
+  const cle = cleDe(ctx, m);
+  if (motEnCours(ctx, m)) {
+    return `<div class="espace"></div><p class="en-cours"><b lang="es">${esc(m.es)}</b> est dans tes mots en cours.</p>
+      <a class="primaire soleil" href="#/mots/un/${encodeURIComponent(cle)}/${encodeURIComponent(m.id)}/${depuis || "dico"}">Séance sur ce mot seul · 10 questions</a>
+      ${lienConj}
+      <button class="secondaire" data-mc-retirer="${esc(cle)}">Je le sais</button>`;
   }
+  const fiches = fichesCartes();
+  const n = m.moi ? 0 : phrasesDe(m).filter((_, i) => !fiches[cleCarte(m.id, i + 3)]).length;
+  const effets = [n ? `ses ${n > 1 ? `${n} phrases` : "phrase"} à écrire ${n > 1 ? "entrent" : "entre"} dans tes mots à revoir` : "", !vu ? "sa carte arrive dans tes mots à revoir" : ""].filter(Boolean);
   return `<div class="espace"></div>
-    <button class="primaire soleil" data-v-apprendre="${esc(vb.v)}" data-mot="${esc(m.id)}">Je l'apprends</button>
-    <p class="petit">${vu ? "Il passe dans tes verbes en cours." : "Il passe dans tes verbes en cours, et son sens arrive dans tes mots à revoir dès demain."}</p>
-    ${tropEnCours()}
-    ${lien("secondaire")}`;
+    <button class="primaire soleil" data-mc-ajouter="${esc(m.id)}">M'entraîner sur ce mot</button>
+    <p class="petit">Il passe dans tes mots en cours${effets.length ? `, et ${effets.join(", et ")}` : ""}.</p>
+    ${!vu && !conj ? `<button class="secondaire" data-apprendre="${esc(m.id)}">L'apprendre maintenant</button>` : ""}
+    ${lienConj}`;
 }
 
 function blocVerbe(ctx, vb) {
@@ -330,10 +337,7 @@ function fiche(ctx, idMot, depuis) {
         ${m.moi ? `<div class="bloc"><h3>Mes mots</h3><p class="regle">${esc(`${origineMonMot(m).replace(/^./, c => c.toUpperCase())}${m.via === "ecoute" ? ", à l'écoute du jour" : ""}`.replace(/\.?$/, "."))}</p></div>`
           : !vu ? `<div class="bloc"><h3>Pas encore vu</h3><p class="regle">Arrive en ${id(m.lecon)}${l ? ` · ${esc(l.titre)}` : ""}.</p></div>`
           : enAvance ? "" : `<div class="bloc"><h3>Ce mot vient de</h3>${lienLecon(ctx, m.lecon, "")}</div>`}
-        ${vb?.formes && !vb.gustar && !m.moi ? `${vu ? `<p class="etat">${etat(ctx, m)}</p>` : ""}${actionsVerbe(ctx, m, vb, vu, depuis)}`
-          : vu ? `<p class="etat">${etat(ctx, m)}</p>` : `<div class="espace"></div>
-          <button class="primaire soleil" data-apprendre="${esc(m.id)}">L'apprendre maintenant</button>
-          <p class="petit">Il arrive dans tes mots à revoir dès demain. Quelques mots d'avance, c'est bien ; le reste viendra avec le prof.</p>`}
+        ${vu ? `<p class="etat">${etat(ctx, m)}</p>` : ""}${actionsMot(ctx, m, vb, vu, depuis)}
         ${m.moi ? `<div class="espace"></div><div class="duo">
             <a class="secondaire cadre" href="#/mes-mots/modifier/${encodeURIComponent(m.id)}">Modifier</a>
             <button class="secondaire supprimer" data-mm-suppr="${esc(m.id)}" data-retour>Supprimer</button></div>` : ""}

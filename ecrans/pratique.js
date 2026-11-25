@@ -7,23 +7,24 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=68";
-import { lecon as trouver } from "../position.js?v=68";
-import { EXERCICES } from "../exercices.js?v=68";
-import { corriger } from "../corriger.js?v=68";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=68";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=68";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=68";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=68";
-import { BONUS } from "../bonus.js?v=68";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=68";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=68";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=68";
-import { vibrer, son } from "../retours.js?v=68";
+import { esc, md, id, ICONES } from "../ui.js?v=69";
+import { lecon as trouver } from "../position.js?v=69";
+import { EXERCICES } from "../exercices.js?v=69";
+import { corriger } from "../corriger.js?v=69";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=69";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=69";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=69";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=69";
+import { BONUS } from "../bonus.js?v=69";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=69";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=69";
+import { mettreMotEnCours } from "../motsencours.js?v=69";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=69";
+import { vibrer, son } from "../retours.js?v=69";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=68";
+} from "../enregistrement.js?v=69";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -564,11 +565,12 @@ function vueFinPaquet(ctx) {
       </ul>
       ${bloque.map(m => `<div class="bloque">
           <span class="k">Tu bloques sur un mot</span>
-          <p><b lang="es">${esc(m.es)}</b> · ${esc(m.fr)} : 2 fois « Non » de suite. Ses ${phrasesDe(m).length} phrases à écrire t'aideraient à le fixer.</p>
-          <div class="duo"><button class="primaire soleil" data-p="phrases-oui" data-mot="${esc(m.id)}">Ajouter ses phrases</button>
+          <p><b lang="es">${esc(m.es)}</b> · ${esc(m.fr)} : 2 fois « Non » de suite. Le travailler dans « Mes mots en cours », avec ses ${phrasesDe(m).length} phrases à écrire, t'aiderait à le fixer.</p>
+          <div class="duo"><button class="primaire soleil" data-p="phrases-oui" data-mot="${esc(m.id)}">M'entraîner dessus</button>
             <button class="secondaire" data-p="phrases-non" data-mot="${esc(m.id)}">Pas maintenant</button></div>
+          <p class="petit">Ses phrases entrent dans tes mots à revoir, et il passe dans « Mes mots en cours » (en haut du Dico).</p>
         </div>`).join("")}
-      ${pris.map(m => `<p class="sous">Les phrases de <b lang="es">${esc(m.es)}</b> sont dans tes mots à revoir : la première arrive demain.</p>`).join("")}
+      ${pris.map(m => `<p class="sous"><b lang="es">${esc(m.es)}</b> est dans « Mes mots en cours », et ses phrases sont dans tes mots à revoir.</p>`).join("")}
       ${dus && possible ? `<div class="reste">
           <b>Il te reste ${cartes(dus)} à revoir</b>
           <p>Encore un paquet si tu as envie. Sinon, elles t'attendent demain.</p>
@@ -866,9 +868,10 @@ export async function actionPratique(ctx, action, el) {
     case "encore": // « Encore 6 » : un autre tirage du bonus
       { const retour = s.retour; nouvelleSerie(ctx, s.cle, () => serieBonus(s.bonus)); s.retour = retour; }
       return "suivant";
-    case "phrases-oui": { // « Tu bloques sur… · Ajouter ses phrases » : ses cartes 3, 4… entrent dans la révision
+    case "phrases-oui": { // « Tu bloques sur… · M'entraîner dessus » : ses cartes 3, 4… entrent dans la révision,
+      // et il passe dans « Mes mots en cours » (chantier 19, Q78).
       const m = (s.rates || []).find(x => x.id === el.dataset.mot);
-      if (m) phrasesDe(m).forEach((_, i) => prendreCarte(cleCarte(m.id, i + 3), ctx.jour));
+      if (m) mettreMotEnCours(ctx, m, ctx.jour);
       vibrer(12);
       return true;
     }

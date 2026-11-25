@@ -5,15 +5,16 @@
 // et un bouton pour le garder :
 // - une carte déjà apprise ou un de mes mots → « Je l'avais oublié · à revoir demain » (comme un « Non » dans la révision) ;
 // - une carte plus loin dans le livre → « L'apprendre maintenant » (comme dans le Dico) ;
-// - un verbe qu'on peut travailler → « M'entraîner sur ce verbe » (« Mes verbes en cours ») ;
+// - et en plus, en premier (chantier 19, Q19-3) : « M'entraîner sur ce mot » (« Mes mots en cours », verbes compris) ;
 // - rien de trouvé → « Ajouter à Mes mots » (l'espagnol déjà écrit, le français à écrire soi-même).
 // Toucher un mot ne change rien à la révision : seul le bouton agit. On reste sur l'écran.
 
-import { esc, ICONES, id } from "../ui.js?v=68";
-import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=68";
-import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=68";
-import { motVu, memeMot, motsAMoi } from "../dico.js?v=68";
-import { vibrer } from "../retours.js?v=68";
+import { esc, ICONES, id } from "../ui.js?v=69";
+import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=69";
+import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=69";
+import { motEnCours, mettreMotEnCours } from "../motsencours.js?v=69";
+import { motVu, memeMot, motsAMoi } from "../dico.js?v=69";
+import { vibrer } from "../retours.js?v=69";
 
 let ouvert = null;            // { mot, ph, bulle }
 const revusIci = new Set();   // les cartes mises « à revoir demain » depuis l'ouverture de l'appli
@@ -78,23 +79,31 @@ function contenu(ctx, mot, ph) {
 }
 
 const fait = texte => `<p class="bm-fait" role="status">${texte}</p>`;
-// Le bouton pour garder le mot. prefill : null quand le mot est connu, sinon le français à proposer (« Ajouter à Mes mots »).
+// Les boutons pour garder le mot. prefill : null quand le mot est connu, sinon le français à proposer (« Ajouter à Mes mots »).
+// D'abord « M'entraîner sur ce mot » (Mes mots en cours, Q19-3), puis, dessous, ce qu'il y avait avant :
+// « Je l'avais oublié · à revoir demain » ou « L'apprendre maintenant ».
 function bouton(ctx, s, t, prefill) {
   const v = s.verbes.find(x => !x.x.gustar);
-  if (v) {
+  // Un verbe des exercices sans carte (« buscar ») : seulement « M'entraîner sur ce mot ».
+  if (v && !v.x.carte && !s.carte) {
     return verbeEnCours(v.x.v)
-      ? fait(`<b lang="es">${esc(v.x.v)}</b> est dans « Mes verbes en cours ».`)
-      : `<button class="bm-garder" data-tx-verbe="${esc(v.x.v)}" data-mot="${esc(v.x.carte?.id || "")}">M'entraîner sur ce verbe</button>`;
+      ? fait(`<b lang="es">${esc(v.x.v)}</b> est dans tes mots en cours.`)
+      : `<button class="bm-garder" data-tx-verbe="${esc(v.x.v)}">M'entraîner sur ce mot</button>`;
   }
-  const m = s.carte?.m || s.verbes[0]?.x.carte;
+  const m = (s.carte && !s.carte.verbe ? s.carte.m : null) || v?.x.carte || s.carte?.m;
   if (m) {
+    const cours = motEnCours(ctx, m)
+      ? fait(`<b lang="es">${esc(m.es)}</b> est dans tes mots en cours.`)
+      : `<button class="bm-garder" data-tx-cours="${esc(m.id)}">M'entraîner sur ce mot</button>`;
     const st = statut(ctx, m);
+    let second;
     // Appris en avance (et sa leçon pas encore faite) : rien de plus à faire, il est déjà dans la révision.
-    if (!m.moi && !ctx.pos.faites.has(m.lecon) && apprisEnAvance(m.id) && !revusIci.has(m.id)) return fait("Appris en avance : il est dans « Tes mots à revoir ».");
-    if (st.cas === "loin") return `<button class="bm-garder" data-tx-apprendre="${esc(m.id)}">L'apprendre maintenant</button>`;
-    return revusIci.has(m.id)
+    if (!m.moi && !ctx.pos.faites.has(m.lecon) && apprisEnAvance(m.id) && !revusIci.has(m.id)) second = fait("Appris en avance : il est dans « Tes mots à revoir ».");
+    else if (st.cas === "loin") second = `<button class="bm-garder bm-second" data-tx-apprendre="${esc(m.id)}">L'apprendre maintenant</button>`;
+    else second = revusIci.has(m.id)
       ? fait("Revient demain dans « Tes mots à revoir ».")
-      : `<button class="bm-garder" data-tx-revoir="${esc(m.id)}">${st.cas === "moi" ? "À revoir demain" : "Je l'avais oublié · à revoir demain"}</button>`;
+      : `<button class="bm-garder bm-second" data-tx-revoir="${esc(m.id)}">${st.cas === "moi" ? "À revoir demain" : "Je l'avais oublié · à revoir demain"}</button>`;
+    return cours + second;
   }
   if (prefill === null) return "";
   return `<button class="bm-garder" data-tx-ajouter="${esc(prefill)}">Ajouter à Mes mots</button>`;
@@ -135,11 +144,14 @@ export function actionToucher(ctx, e) {
   else if ("txVoirfr" in d) { b.hidden = true; ouvert.bulle.querySelector(".bm-trad").hidden = false; placer(); }
   else if (d.txRevoir) { noterMot(d.txRevoir, 1, ctx.jour); revusIci.add(d.txRevoir); vibrer(); redessiner(ctx); }
   else if (d.txApprendre) { apprendreEnAvance(d.txApprendre, ctx.jour); vibrer(); redessiner(ctx); }
-  else if (d.txVerbe) {
-    // Comme « Je l'apprends » du Dico : le verbe passe en cours, et sa carte entre dans la révision si elle n'est pas vue.
+  else if (d.txCours) {
+    // « M'entraîner sur ce mot » : comme sur la fiche du Dico (ses phrases 3 et 4 entrent dans la révision ; pas vu → sa carte aussi).
+    const m = ctx.mots.find(x => x.id === d.txCours) || motsAMoi().find(x => x.id === d.txCours);
+    if (m) mettreMotEnCours(ctx, m, ctx.jour);
+    vibrer(); redessiner(ctx);
+  } else if (d.txVerbe) {
+    // Un verbe des exercices sans carte (« buscar ») : il passe dans « Mes mots en cours ».
     mettreEnCours(d.txVerbe, ctx.jour);
-    const m = d.mot && ctx.mots.find(x => x.id === d.mot);
-    if (m && !motVu(ctx, m)) apprendreEnAvance(m.id, ctx.jour);
     vibrer(); redessiner(ctx);
   } else if ("txAjouter" in d) {
     const es = ouvert.mot.textContent;

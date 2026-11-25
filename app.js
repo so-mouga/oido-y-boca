@@ -1,28 +1,29 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=68";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=68";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=68";
-import { ECOUTES } from "./ecoute.js?v=68";
-import { preparerVoix } from "./voix.js?v=68";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=68";
-import { vibrer } from "./retours.js?v=68";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=68";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=68";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=68";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=68";
-import { ecranLivre } from "./ecrans/livre.js?v=68";
-import { ecranLecon } from "./ecrans/lecon.js?v=68";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=68";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=68";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=68";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=68";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=68";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=68";
-import { ecranLectures } from "./ecrans/lectures.js?v=68";
-import { ecranJeux } from "./ecrans/jeux.js?v=68";
-import { envoyerGoogle, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=68";
+import { chargerTableau } from "./donnees.js?v=69";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=69";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=69";
+import { ECOUTES } from "./ecoute.js?v=69";
+import { preparerVoix } from "./voix.js?v=69";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=69";
+import { vibrer } from "./retours.js?v=69";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=69";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=69";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=69";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=69";
+import { ecranLivre } from "./ecrans/livre.js?v=69";
+import { ecranLecon } from "./ecrans/lecon.js?v=69";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=69";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=69";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=69";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=69";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=69";
+import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=69";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=69";
+import { ecranLectures } from "./ecrans/lectures.js?v=69";
+import { ecranJeux } from "./ecrans/jeux.js?v=69";
+import { envoyerGoogle, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=69";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -66,6 +67,7 @@ const ECRANS = {
   controle: ecranControle,
   dico: ecranDico,
   verbes: ecranVerbes,
+  mots: ecranMots,
   "mes-mots": ecranMesMots,
   semaine: ecranSemaine,
   lectures: ecranLectures,
@@ -117,6 +119,11 @@ app.addEventListener("submit", async e => {
     if (envoiMesMots(ctx, e.target)) afficher();
     return;
   }
+  if (e.target.matches("[data-mc-form]")) {
+    e.preventDefault();
+    if (verifierMot()) afficher();
+    return;
+  }
   if (e.target.matches("[data-v-form]")) {
     e.preventDefault();
     if (verifierVerbe()) afficher();
@@ -149,12 +156,18 @@ app.addEventListener("click", async e => {
     const bloc = onglet.closest(".bloc");
     bloc.querySelectorAll("[data-temps]").forEach(b => b.setAttribute("aria-selected", String(b === onglet)));
     bloc.querySelectorAll("[data-panneau]").forEach(p => { p.hidden = p.dataset.panneau !== onglet.dataset.temps; });
-    // « M'entraîner sur ce verbe » suit l'onglet ouvert (chantier 16).
-    document.querySelectorAll("a[data-serie]").forEach(l => { const t = onglet.dataset.temps; l.href = `${l.dataset.serie}/${t}`; l.textContent = `M'entraîner sur ce verbe${t === "present" ? "" : ` · ${onglet.dataset.nom}`}`; });
+    // « Conjuguer seulement » (l'ancien « M'entraîner sur ce verbe ») suit l'onglet ouvert (chantier 16).
+    document.querySelectorAll("a[data-serie]").forEach(l => { const t = onglet.dataset.temps; l.href = `${l.dataset.serie}/${t}`; l.textContent = `Conjuguer seulement${t === "present" ? "" : ` · ${onglet.dataset.nom}`}`; });
     return;
   }
   // Para Blanca : « Otra pregunta » tire une question d'une leçon déjà faite, sans redessiner l'écran.
   if (actionOtra(ctx, e)) { vibrer(); return; }
+  // Mes mots en cours : la séance, et « M'entraîner sur ce mot », « Je le sais », la croix des puces dans le Dico.
+  const mot = actionMots(ctx, e);
+  if (mot !== null) {
+    if (mot) afficher(mot === "suivant" ? "glisse" : false);
+    return;
+  }
   // S'entraîner aux verbes : la série, et « Je l'apprends », « + », « Je le sais » dans le Dico.
   const verbe = actionVerbes(ctx, e);
   if (verbe !== null) {
