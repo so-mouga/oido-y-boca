@@ -2,8 +2,8 @@
 // Un seul son à la fois. Le bouton qui joue s'allume (barres de son qui bougent) ;
 // le toucher à nouveau arrête la lecture ; il s'éteint tout seul à la fin.
 
-import { dire, taire } from "./voix.js?v=66";
-import { reecouterEnregistrement, arreterReecoute } from "./enregistrement.js?v=66";
+import { dire, taire } from "./voix.js?v=67";
+import { reecouterEnregistrement, arreterReecoute } from "./enregistrement.js?v=67";
 
 let actif = null;
 

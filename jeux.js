@@ -376,14 +376,17 @@ export function nomsPropres(phrases) {
 // Les mots d'une phrase, tels qu'on les écrit sur les assiettes.
 export const motsAssiettes = (es, propres) => nu(es).map(w => propres.has(w) ? w : w.toLowerCase());
 
-// Les phrases des exercices. exercices : EXERCICES (exercices.js) ; lecons : les leçons à prendre (Set), dans l'ordre du livre.
+// Les phrases des exercices, et celles des cartes 3 et 4 des mots (chantier 15, colonnes « phrase N » du Sheet).
+// exercices : EXERCICES (exercices.js) ; lecons : les leçons à prendre (Set), dans l'ordre du livre ; mots : le vocabulaire (versMots).
+// Seulement les phrases à une seule bonne réponse : l'ordre des assiettes doit être unique.
 // Rend [{ id, lecon, fr, es, mots }] sans doublon.
-export function phrasesChiringuito(exercices, lecons) {
+export function phrasesChiringuito(exercices, lecons, mots = []) {
   const brutes = [];
   for (const [lecon, ex] of Object.entries(exercices)) {
     for (const q of ex.ecrire || []) if (q.consigne === "Traduis" && Array.isArray(q.es) && q.es.length === 1) brutes.push({ lecon, fr: q.fr, es: q.es[0] });
     for (const q of ex.dire || []) if (typeof q.es === "string") brutes.push({ lecon, fr: q.fr, es: q.es });
   }
+  for (const m of mots) if (!m.moi) for (const p of m.phrases || []) if (p.fr && p.es?.length === 1) brutes.push({ lecon: m.lecon, fr: p.fr, es: p.es[0] });
   const bonnes = brutes.filter(p => p.fr && p.es && !p.fr.includes("___") && !/[«»()…\/]/.test(p.fr + p.es) && !/\d/.test(p.es));
   // Les noms propres se cherchent dans tous les exercices (« Navidad » n'est peut-être qu'en début de phrase dans les leçons faites).
   const propres = nomsPropres(bonnes.map(p => p.es));

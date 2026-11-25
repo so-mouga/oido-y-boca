@@ -336,8 +336,14 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   fs.writeFileSync(path.join(tmp, "exercices.js"), src);
   const { EXERCICES } = await import(path.join(tmp, "exercices.js"));
   const toutes = new Set(Object.keys(EXERCICES));
-  const { phrases, propres } = J.phrasesChiringuito(EXERCICES, toutes);
+  // Chantier 15 : avec les phrases des cartes 3 et 4 (une seule bonne réponse), il y en a beaucoup plus.
+  const sansCartes = J.phrasesChiringuito(EXERCICES, toutes).phrases.length;
+  for (const l of new Set(mots.map(m => m.lecon))) toutes.add(l);
+  const { phrases, propres } = J.phrasesChiringuito(EXERCICES, toutes, mots);
   if (phrases.length < 150) faux(`Chiringuito : seulement ${phrases.length} phrases`);
+  if (mots.some(m => m.phrases?.length) && phrases.length < sansCartes + 300) faux(`Chiringuito : les phrases des cartes manquent (${phrases.length}, ${sansCartes} sans elles)`);
+  const aVariantes = mots.flatMap(m => m.phrases || []).filter(p => p.es.length > 1).map(p => p.es[0]);
+  if (phrases.some(p => aVariantes.includes(p.es))) faux("Chiringuito : une phrase à plusieurs bonnes réponses");
   for (const p of phrases) {
     if (p.mots.length < 3 || p.mots.length > 7) faux(`Chiringuito : ${p.es} a ${p.mots.length} mots`);
     if (p.mots.some(w => /[¿?¡!.,]/.test(w))) faux(`Chiringuito : ponctuation sur une assiette (${p.es})`);
@@ -372,7 +378,7 @@ egal("pions", [J.pions(0), J.pions(2), J.pions(4), J.pions(8), J.pions(12)], [{ 
   egal("paquets du Chiringuito", pq.map(p => p.id), ["mes", "semaine"]);
   if (pq[1].mots.some(p => p.lecon !== "U1-L2")) faux("Chiringuito : une phrase d'une vieille leçon dans « la semaine »");
   egal("le pourboire", [J.pourboire(.9), J.pourboire(.5)], [J.BONUS_RAPIDE, 0]);
-  console.log(`Chiringuito : ${phrases.length} phrases, ${avec} avec au moins un piège ; ${debut.length} après U1-L2.`);
+  console.log(`Chiringuito : ${phrases.length} phrases (${sansCartes} sans les cartes), ${avec} avec au moins un piège ; ${debut.length} après U1-L2.`);
 }
 
 console.log(erreurs ? `${erreurs} erreur(s).` : "Tout est bon.");

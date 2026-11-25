@@ -7,23 +7,23 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=66";
-import { lecon as trouver } from "../position.js?v=66";
-import { EXERCICES } from "../exercices.js?v=66";
-import { corriger } from "../corriger.js?v=66";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=66";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=66";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=66";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=66";
-import { BONUS } from "../bonus.js?v=66";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=66";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=66";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=66";
-import { vibrer, son } from "../retours.js?v=66";
+import { esc, md, id, ICONES } from "../ui.js?v=67";
+import { lecon as trouver } from "../position.js?v=67";
+import { EXERCICES } from "../exercices.js?v=67";
+import { corriger } from "../corriger.js?v=67";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=67";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=67";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=67";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=67";
+import { BONUS } from "../bonus.js?v=67";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=67";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=67";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=67";
+import { vibrer, son } from "../retours.js?v=67";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=66";
+} from "../enregistrement.js?v=67";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));

@@ -3,19 +3,19 @@
 //   #/jeux/chiringuito/partie   un client commande en français ; on touche les assiettes (les mots espagnols) dans l'ordre (90 s)
 //   #/jeux/chiringuito/fin      le score, le record du niveau, les commandes à revoir
 // Le jeu vérifie à chaque assiette : une mauvaise assiette tremble et reste sur le comptoir. Phrase finie : « ¡Servido! »,
-// la phrase s'écrit en entier et la voix la dit. Les phrases viennent des exercices des leçons faites (jeux.js,
-// phrasesChiringuito) ; les pièges sont fabriqués tout seuls (article, ser / estar, petit mot, personne du verbe, genre).
+// la phrase s'écrit en entier et la voix la dit. Les phrases viennent des exercices et des cartes 3 et 4 des leçons faites
+// (jeux.js, phrasesChiringuito) ; les pièges sont fabriqués tout seuls (article, ser / estar, petit mot, personne du verbe, genre).
 // Rien ici ne touche à la révision des mots.
 
-import { esc, ICONES } from "../ui.js?v=66";
-import { EXERCICES } from "../exercices.js?v=66";
-import { conjuguer, TEMPS } from "../controles.js?v=66";
-import { tousLesVerbes } from "../verbes.js?v=66";
-import { etatJeux, garderJeux } from "../progression.js?v=66";
-import { dire, taire } from "../voix.js?v=66";
-import { chispa } from "../mascotte.js?v=66";
-import * as J from "../jeux.js?v=66";
-import { rosette } from "./jeux.js?v=66";
+import { esc, ICONES } from "../ui.js?v=67";
+import { EXERCICES } from "../exercices.js?v=67";
+import { conjuguer, TEMPS } from "../controles.js?v=67";
+import { tousLesVerbes } from "../verbes.js?v=67";
+import { etatJeux, garderJeux } from "../progression.js?v=67";
+import { dire, taire } from "../voix.js?v=67";
+import { chispa } from "../mascotte.js?v=67";
+import * as J from "../jeux.js?v=67";
+import { rosette } from "./jeux.js?v=67";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -69,7 +69,7 @@ const direPhrase = es => { if (!jeux().muet) dire(es); };
 
 // ——— les phrases ———
 function donnees(ctx) {
-  const { phrases, propres } = J.phrasesChiringuito(EXERCICES, ctx.pos.faites);
+  const { phrases, propres } = J.phrasesChiringuito(EXERCICES, ctx.pos.faites, ctx.mots);
   const paquets = J.paquetsChiringuito(phrases, ctx.pos.dateFaite, ctx.jour);
   const r = reglages();
   const choisi = paquets.find(p => p.id === r.paquet && p.ouvert) || paquets.find(p => p.ouvert) || null;
