@@ -7,9 +7,9 @@
 // La mémoire de chaque carte est dans progression.js (etat.mots), sous la clé du mot pour la carte 1 (les anciennes sauvegardes
 // restent bonnes) et « id#n » pour les autres. Chaque carte a son propre rythme ; une seule carte par mot et par jour.
 
-import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=65";
-import { verbeDe } from "./dico.js?v=65";
-import { INTERVALLES, apprisEnAvance } from "./progression.js?v=65";
+import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=66";
+import { verbeDe } from "./dico.js?v=66";
+import { INTERVALLES, apprisEnAvance } from "./progression.js?v=66";
 
 // Le jour d'où compte la carte 1 d'un mot jamais revu : le jour de sa leçon, de son apprentissage en avance, ou de son ajout (mes mots).
 export const departDe = ctx => m => m.moi ? m.le : apprisEnAvance(m.id) || ctx.pos.dateFaite[m.lecon];
@@ -104,22 +104,26 @@ function retardDe(c, m, aujourdhui, depart, f1) {
   return jours(debut, aujourdhui) - INTERVALLES[f?.boite ?? 0];
 }
 
-// Les cartes à revoir aujourd'hui, une par mot au plus, les plus en retard d'abord.
-// Un mot dont une carte est déjà passée aujourd'hui attend demain (même ratée : sinon « il te reste N » ne finirait jamais,
-// et une carte du mot soufflerait la réponse de l'autre). Parmi les cartes dues d'un mot : d'abord une carte que je viens
-// de prendre (jamais vue, la plus petite), sinon la plus en retard (à égalité, la plus petite).
+// Les cartes à revoir aujourd'hui, les plus en retard d'abord.
+// Une carte que je viens de prendre avec « + » (jamais vue) arrive tout de suite, même si le mot est déjà passé aujourd'hui
+// (Kevin, 25 nov. : « si j'appuie, elle doit apparaître tout de suite ») ; si j'en prends deux, les deux arrivent.
+// Sinon, une seule carte par mot et par jour : un mot dont une carte est déjà passée aujourd'hui attend demain (même ratée :
+// sinon « il te reste N » ne finirait jamais, et une carte du mot soufflerait la réponse de l'autre) ; parmi ses cartes dues,
+// la plus en retard (à égalité, la plus petite).
 // Renvoie [{ mot, n, retard, neuve, ...carte }] : d'abord les cartes prises avec « + », puis les plus en retard.
 export function cartesARevoir(mots, fiches, aujourdhui, depart) {
   const dues = [];
   for (const m of mots) {
     const cartes = cartesDuMot(m, fiches).filter(c => c.la);
-    if (cartes.some(c => c.fiche?.vu === aujourdhui)) continue;
     const f1 = fiches[m.id];
+    const avecRetard = c => ({ ...c, retard: Math.max(0, retardDe(c, m, aujourdhui, depart, f1)) });
+    const neuves = cartes.filter(c => c.n >= 3 && !c.fiche?.vu);
+    if (neuves.length) { for (const c of neuves) dues.push({ mot: m, ...avecRetard(c), neuve: true }); continue; }
+    if (cartes.some(c => c.fiche?.vu === aujourdhui)) continue;
     const candidates = cartes.map(c => ({ ...c, retard: retardDe(c, m, aujourdhui, depart, f1) })).filter(c => c.retard >= 0);
     if (!candidates.length) continue;
-    const neuve = candidates.find(c => c.n >= 3 && !c.fiche?.vu);
-    const choisie = neuve || candidates.sort((a, b) => b.retard - a.retard || a.n - b.n)[0];
-    dues.push({ mot: m, ...choisie, neuve: !!neuve });
+    const choisie = candidates.sort((a, b) => b.retard - a.retard || a.n - b.n)[0];
+    dues.push({ mot: m, ...choisie, neuve: false });
   }
   // Les cartes que je viens de prendre avec « + » passent en tête : sinon, avec du retard et le plafond de 40,
   // elles attendraient des jours derrière les cartes en retard.
@@ -132,6 +136,7 @@ export function cartesARevoir(mots, fiches, aujourdhui, depart) {
 export function etatCarte(c, m, aujourdhui, depart, fiches) {
   if (!c.la) return c.n === 2 ? { etat: "attend", texte: "après la 1" } : { etat: "absente", texte: "" };
   const f = c.fiche;
+  if (!f?.vu && c.n >= 3) return { etat: "revision", texte: "aujourd'hui" }; // prise avec « + » : tout de suite
   if (!f?.vu && c.n === 1 && !depart(m)) return { etat: "revision", texte: "pas encore revue" };
   const vuAuj = cartesDuMot(m, fiches).some(x => x.fiche?.vu === aujourdhui);
   const retard = retardDe(c, m, aujourdhui, depart, fiches[m.id]);

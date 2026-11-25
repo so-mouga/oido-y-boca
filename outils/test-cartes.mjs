@@ -81,13 +81,23 @@ egal(nDe([desde], 1, desde), 3, "jour 1 : la carte prise passe d'abord (la 3 ava
 // Une carte prise passe en tête du paquet, même devant un mot très en retard.
 const vieux = { id: "U1-L1|viejo", es: "viejo", fr: "vieux", lecon: "U1-L1", phrases: [] };
 const ordre = C.cartesARevoir([vieux, desde], P.fichesCartes(), jour(1), () => "2026-01-01").map(c => c.mot.id);
-egal(ordre, [desde.id, vieux.id], "la carte prise avec « + » passe devant les cartes en retard");
+egal(ordre, [desde.id, desde.id, vieux.id], "les cartes prises avec « + » (la 3 et la 4) passent devant les cartes en retard");
+egal(dues([desde], 1).map(c => c.n), [3, 4], "les deux cartes prises arrivent le jour même");
 P.noterMot(C.cleCarte(desde.id, 3), 3, jour(1));
-egal(nDe([desde], 1, desde), null, "une seule carte par mot et par jour");
-egal(nDe([desde], 2, desde), 4, "jour 2 : la 4, jamais vue");
-P.noterMot(C.cleCarte(desde.id, 4), 2, jour(2));
-egal(nDe([desde], 3, desde), 1, "jour 3 : la carte 1, la plus en retard");
-P.noterMot(desde.id, 3, jour(3));
+egal(nDe([desde], 1, desde), 4, "la 4, prise aussi, arrive le même jour malgré la 3 déjà vue");
+P.noterMot(C.cleCarte(desde.id, 4), 2, jour(1));
+egal(nDe([desde], 1, desde), null, "ensuite, une seule carte par mot et par jour");
+egal(nDe([desde], 2, desde), 1, "jour 2 : la carte 1 (à égalité de retard avec la 4, la plus petite)");
+P.noterMot(desde.id, 3, jour(2));
+egal(nDe([desde], 3, desde), 4, "jour 3 : la 4, ratée à moitié, revient");
+P.noterMot(C.cleCarte(desde.id, 4), 2, jour(3));
+// Un mot déjà vu aujourd'hui (sa carte 1 vient de passer) : une carte prise avec « + » arrive quand même tout de suite.
+const autre = { ...desde, id: "U1-L3|autre" };
+P.noterMot(autre.id, 3, jour(5));
+egal(nDe([autre], 5, autre), null, "carte 1 vue aujourd'hui : rien de plus");
+P.prendreCarte(C.cleCarte(autre.id, 3), jour(5));
+egal(nDe([autre], 5, autre), 3, "« + » sur un mot déjà vu aujourd'hui : la carte arrive tout de suite");
+egal(C.etatCarte(C.cartesDuMot(autre, P.fichesCartes())[2], autre, jour(5), depart, P.fichesCartes()).texte, "aujourd'hui", "le Livre dit « aujourd'hui »");
 egal(P.fichesCartes()[C.cleCarte(desde.id, 4)].boite, 0, "« Avec peine » garde la boîte de la carte 4");
 egal(P.fichesCartes()[C.cleCarte(desde.id, 3)].boite, 1, "chaque carte a sa boîte : la 3 en boîte 1");
 

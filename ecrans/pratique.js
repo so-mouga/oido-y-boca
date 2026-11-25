@@ -7,23 +7,23 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=65";
-import { lecon as trouver } from "../position.js?v=65";
-import { EXERCICES } from "../exercices.js?v=65";
-import { corriger } from "../corriger.js?v=65";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=65";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=65";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=65";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=65";
-import { BONUS } from "../bonus.js?v=65";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=65";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=65";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=65";
-import { vibrer, son } from "../retours.js?v=65";
+import { esc, md, id, ICONES } from "../ui.js?v=66";
+import { lecon as trouver } from "../position.js?v=66";
+import { EXERCICES } from "../exercices.js?v=66";
+import { corriger } from "../corriger.js?v=66";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=66";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=66";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=66";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=66";
+import { BONUS } from "../bonus.js?v=66";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=66";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=66";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=66";
+import { vibrer, son } from "../retours.js?v=66";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=65";
+} from "../enregistrement.js?v=66";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -54,10 +54,12 @@ function serieLecon(ctx, idLecon) {
 export const PAQUET = 20;
 export function motsDus(ctx) {
   const { pos, motsParLecon, jour } = ctx;
-  const mots = [...pos.faites].filter(l => pos.dateFaite[l] !== jour).flatMap(l => motsParLecon[l] || []);
+  const mots = [...pos.faites].flatMap(l => motsParLecon[l] || []);
+  // Les mots de la leçon du jour attendent demain, sauf les cartes que je viens de prendre avec « + » (tout de suite).
+  const duJour = new Set([...pos.faites].filter(l => pos.dateFaite[l] === jour).flatMap(l => (motsParLecon[l] || []).map(m => m.id)));
   const enAvance = ctx.mots.filter(m => !pos.faites.has(m.lecon) && apprisEnAvance(m.id) && apprisEnAvance(m.id) < jour);
   const aMoi = motsAMoi().filter(m => m.le < jour);
-  return cartesARevoir([...mots, ...enAvance, ...aMoi], fichesCartes(), jour, departDe(ctx));
+  return cartesARevoir([...mots, ...enAvance, ...aMoi], fichesCartes(), jour, departDe(ctx)).filter(c => c.neuve || !duJour.has(c.mot.id));
 }
 // Combien de cartes on peut encore revoir aujourd'hui avant le plafond.
 export const resteDuJour = ctx => Math.max(0, PLAFOND - (Number(cases(ctx.jour).revision) || 0));
