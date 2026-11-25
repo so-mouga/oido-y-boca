@@ -5,10 +5,11 @@
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 // Ouverte depuis le Dico (#/lecon/U1-L3/dico) : tout est là, et le lien du haut ramène au mot.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=64";
-import { lecon as trouver } from "../position.js?v=64";
-import { EXERCICES } from "../exercices.js?v=64";
-import { BONUS } from "../bonus.js?v=64";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=65";
+import { lecon as trouver } from "../position.js?v=65";
+import { EXERCICES } from "../exercices.js?v=65";
+import { BONUS } from "../bonus.js?v=65";
+import { htmlCartes } from "./cartesmot.js?v=65";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -59,9 +60,10 @@ export function ecranLecon(ctx, idLecon, depuis) {
         </section>
         <section aria-labelledby="t-mots">
           <h2 id="t-mots">Les ${mots.length} mots</h2>
+          ${serie ? "" : `<p class="sous">Chaque mot a ses cartes : 1 le mot et 2 la phrase à trou arrivent toutes seules ; touche « + » pour ajouter une phrase à écrire.</p>`}
           <ul class="mots">${mots.map(m => `<li class="mot">
               ${bouton(m.ex ? `${m.es}. ${m.ex}` : m.es)}
-              <div class="txt"><b lang="es">${esc(m.es)}</b><span class="fr">${esc(m.fr)}</span>${m.ex ? `<span class="ex" lang="es">${esc(m.ex)}</span>` : ""}</div>
+              <div class="txt"><b lang="es">${esc(m.es)}</b><span class="fr">${esc(m.fr)}</span>${m.ex ? `<span class="ex" lang="es">${esc(m.ex)}</span>` : ""}${serie ? "" : htmlCartes(ctx, m)}</div>
             </li>`).join("")}</ul>
         </section>
         <section aria-labelledby="t-prat">

@@ -840,3 +840,29 @@ mark .tx-mot.touche { box-shadow: none; }
 .case-erreur .c .coche { color: var(--sage-ink); font-weight: 600; }
 .case-erreur .c del { color: var(--rose-ink); }
 .case-erreur .c b { background: var(--sun); color: var(--marine); border-radius: 4px; padding: 0 3px; font-weight: 600; }
+
+/* Chantier 15 : les cartes d'un mot, sous le mot (Livre) et dans la fiche du Dico */
+.cartes-mot { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; margin-top: 8px; width: 100%; }
+.cm-liste { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+.cm { display: flex; align-items: center; gap: 8px; font-size: 13px; line-height: 1.35; color: var(--marine-soft); min-height: 24px; }
+.cm:focus { outline: none; }
+.cm .num { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--fog); display: grid; place-items: center; font-size: 11px; font-weight: 600; color: var(--muted); }
+.cm .txt { flex: 1; min-width: 0; }
+.cm .quand { flex: none; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.cm.revision .num { background: var(--sun); border-color: var(--sun); color: var(--marine); }
+.cm.sue .num { background: var(--sage-ink); border-color: var(--sage-ink); color: #fff; }
+.cm.attend .txt, .cm.absente .txt { color: var(--fog); }
+.cm.attend .num, .cm.absente .num { color: var(--fog); }
+.cm .trou { display: inline-block; min-width: 36px; border-bottom: 2px solid currentColor; margin: 0 2px; vertical-align: -2px; }
+.cm-plus { background: var(--card); border: 1px solid var(--hair); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.cm-plus p { font-size: 12px; font-weight: 500; color: var(--marine-soft); margin: 0; }
+.plus-carte { flex: none; min-width: 44px; height: 32px; border: 0; border-radius: 999px; background: var(--sun); color: var(--marine); font: 600 18px/1 var(--font); cursor: pointer; }
+.plus-carte:active { transform: scale(.96); }
+.cartes-bloc { align-items: stretch; }
+.cartes-bloc .cartes-mot { margin-top: 0; }
+/* « Tu bloques sur… » à la fin d'un paquet */
+.fin .bloque { background: var(--card); border: 1.5px solid var(--sun); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.fin .bloque .k { font-size: 12px; font-weight: 500; color: var(--sun-ink); }
+.fin .bloque p { font-size: 14px; line-height: 1.45; color: var(--marine-soft); margin: 0; }
+.fin .bloque .duo { display: flex; gap: 8px; }
+.fin .bloque .duo > * { flex: 1; }

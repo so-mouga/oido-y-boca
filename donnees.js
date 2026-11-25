@@ -51,8 +51,29 @@ export function lireDate(texte) {
   return "";
 }
 
+// Les phrases à écrire (chantier 15) : les colonnes « phrase 1 (fr) », « phrase 1 (es) », « phrase 1 (aide) », « phrase 2 … »,
+// autant qu'il y en a (une colonne « phrase 3 » donnerait une carte de plus). « | » sépare plusieurs bonnes réponses en espagnol.
+// L'aide (facultative) donne le mot pas encore vu de la phrase (« habitante = habitant »).
+// Un mot sans ces colonnes n'a pas de phrases : il garde ses cartes 1 et 2.
+function phrasesDesLignes(lignes) {
+  const [entete = [], ...reste] = lignes;
+  const cols = {};
+  entete.forEach((t, i) => {
+    const r = t.trim().toLowerCase().match(/^phrase (\d+) \((fr|es|aide)\)$/);
+    if (r) (cols[r[1]] ||= {})[r[2]] = i;
+  });
+  const nums = Object.keys(cols).map(Number).sort((a, b) => a - b);
+  return reste.map(l => nums.map(n => {
+    const c = cols[n], val = i => (i >= 0 && l[i] ? l[i].trim() : "");
+    const fr = val(c.fr ?? -1), es = val(c.es ?? -1).split("|").map(x => x.trim()).filter(Boolean);
+    return fr && es.length ? { fr, es, aide: val(c.aide ?? -1) } : null;
+  }).filter(Boolean));
+}
+
 export function versMots(lignes) {
+  const phrases = phrasesDesLignes(lignes);
   return versObjets(lignes, { es: "espagnol", fr: "français", ex: "exemple", lecon: "leçon", categorie: "catégorie" })
+    .map((m, i) => ({ ...m, phrases: phrases[i] }))
     .filter(m => m.es && m.fr && m.lecon)
     .map(m => ({ ...m, id: `${m.lecon}|${m.es}` }));
 }

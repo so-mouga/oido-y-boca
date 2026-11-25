@@ -3,15 +3,16 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=64";
-import { lecon as trouver } from "../position.js?v=64";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=64";
-import { etatRevision, apprisEnAvance } from "../progression.js?v=64";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=64";
-import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=64";
-import { verbeEnCours } from "../progression.js?v=64";
-import { tropEnCours } from "./verbes.js?v=64";
-import { phraseTouchable } from "../toucher.js?v=64";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=65";
+import { lecon as trouver } from "../position.js?v=65";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=65";
+import { etatRevision, apprisEnAvance } from "../progression.js?v=65";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=65";
+import { verbesCours, mesVerbes, suggestions } from "../verbes.js?v=65";
+import { verbeEnCours } from "../progression.js?v=65";
+import { tropEnCours } from "./verbes.js?v=65";
+import { htmlCartes } from "./cartesmot.js?v=65";
+import { phraseTouchable } from "../toucher.js?v=65";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -317,6 +318,7 @@ function fiche(ctx, idMot, depuis) {
           ${m.ex ? `<p class="ex" lang="es">${phraseTouchable(ctx, m.ex)}</p>` : ""}
         </div>
         ${enAvance ? `<span class="avance">${id(m.lecon)} · appris en avance</span>` : ""}
+        ${vu && !m.moi ? `<div class="bloc cartes-bloc"><h3>Ses cartes</h3>${htmlCartes(ctx, m)}</div>` : ""}
         ${vb ? blocVerbe(ctx, vb) : ""}
         ${m.moi ? `<div class="bloc"><h3>Mes mots</h3><p class="regle">${esc(`${origineMonMot(m).replace(/^./, c => c.toUpperCase())}${m.via === "ecoute" ? ", à l'écoute du jour" : ""}`.replace(/\.?$/, "."))}</p></div>`
           : !vu ? `<div class="bloc"><h3>Pas encore vu</h3><p class="regle">Arrive en ${id(m.lecon)}${l ? ` · ${esc(l.titre)}` : ""}.</p></div>`

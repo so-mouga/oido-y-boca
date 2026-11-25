@@ -11,11 +11,11 @@
 // ni le texte entre parenthèses (« (estar, yo) » : c'est la consigne). Rien de trouvé : « Pas dans ton livre ».
 // L'affichage de la bulle est dans ecrans/bulle.js. Vérifié par outils/test-toucher.mjs.
 
-import { esc } from "./ui.js?v=64";
-import { conjuguer, ORDRE_TEMPS, TEMPS, PERSONNES } from "./controles.js?v=64";
-import { verbeDe, motsAMoi, motVu, normaliser } from "./dico.js?v=64";
-import { verbesConnus } from "./verbes.js?v=64";
-import { GLOSE, NOMS } from "./lectures.js?v=64";
+import { esc } from "./ui.js?v=65";
+import { conjuguer, ORDRE_TEMPS, TEMPS, PERSONNES } from "./controles.js?v=65";
+import { verbeDe, motsAMoi, motVu, normaliser } from "./dico.js?v=65";
+import { verbesConnus } from "./verbes.js?v=65";
+import { GLOSE, NOMS } from "./lectures.js?v=65";
 
 // Les petits mots que le Sheet n'a pas (ou pas seuls) : pronoms, articles, prépositions, nombres, jours…
 // GLOSE (les lectures) d'abord, puis ceux-ci. Un mot du Sheet passe toujours avant.

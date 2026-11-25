@@ -4,7 +4,8 @@
 // Le Sheet n'est jamais modifié.
 
 const CLE = "oyb.v2";
-const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir un mot, selon sa boîte
+export const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir une carte, selon sa boîte
+export const PLAFOND = 40; // cartes de « Tes mots à revoir » par jour, au plus (Q63) : le reste attend demain
 
 const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {}, erreurs: {} });
 let etat = lire();
@@ -27,12 +28,34 @@ const sauver = () => { if (!apercu) ecrire(); };
 
 const jours = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
 
-// note : 1 = Non, 2 = Avec peine, 3 = Oui
+// note : 1 = Non, 2 = Avec peine, 3 = Oui. idMot est la clé de la carte : l'id du mot pour la carte 1, « id#n » pour les autres (cartes.js).
+// Chantier 15 : la carte 1 réussie au rendez-vous des 3 jours (boîte 2 → 3) débloque la carte 2, qui arrive le lendemain ;
+// « nons » compte les « Non » de suite à la carte 1 (à 2, la fin du paquet propose les phrases du mot).
 export function noterMot(idMot, note, aujourdhui) {
   const f = etat.mots[idMot] || { boite: 0, vu: null };
+  const avant = f.boite;
   f.boite = note === 3 ? Math.min(f.boite + 1, INTERVALLES.length - 1) : note === 1 ? 0 : f.boite;
   f.vu = aujourdhui;
+  if (!idMot.includes("#")) {
+    f.nons = note === 1 ? (f.nons || 0) + 1 : note === 3 ? 0 : f.nons || 0;
+    if (avant === 2 && f.boite === 3 && !etat.mots[`${idMot}#2`]) etat.mots[`${idMot}#2`] = { boite: 0, vu: null, dep: aujourdhui };
+  }
   etat.mots[idMot] = f;
+  sauver();
+}
+
+// Les fiches de toutes les cartes ({ clé: { boite, vu, dep?, nons?, refus? } }), pour cartes.js.
+export const fichesCartes = () => etat.mots;
+
+// Le « + » d'une carte 3 ou 4 (ou « Ajouter ses phrases ») : la carte entre dans « Tes mots à revoir » dès aujourd'hui.
+export function prendreCarte(cle, aujourdhui) {
+  if (etat.mots[cle]) return;
+  etat.mots = { ...etat.mots, [cle]: { boite: 0, vu: null, dep: aujourdhui } };
+  sauver();
+}
+// « Pas maintenant » à « Tu bloques sur… » : on ne le redemande plus pour ce mot.
+export function refuserPhrases(idMot) {
+  etat.mots = { ...etat.mots, [idMot]: { boite: 0, vu: null, ...etat.mots[idMot], refus: true } };
   sauver();
 }
 

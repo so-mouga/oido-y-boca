@@ -2,21 +2,22 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=64";
-import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=64";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=64";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=64";
-import { EXERCICES } from "../exercices.js?v=64";
-import { controlePret, dernierResultat } from "./controle.js?v=64";
-import { motsDus, PAQUET } from "./pratique.js?v=64";
-import { BONUS } from "../bonus.js?v=64";
-import { motsDeLaSemaine } from "./mesmots.js?v=64";
-import { soirRepaso } from "./soir.js?v=64";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=64";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=65";
+import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=65";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=65";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=65";
+import { EXERCICES } from "../exercices.js?v=65";
+import { controlePret, dernierResultat } from "./controle.js?v=65";
+import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=65";
+import { BONUS } from "../bonus.js?v=65";
+import { motsDeLaSemaine } from "./mesmots.js?v=65";
+import { soirRepaso } from "./soir.js?v=65";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=65";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
+const cartes = n => `${n} carte${n > 1 ? "s" : ""}`;
 
 // Une ligne de « Ta journée ». t : { titre, detail, fait, href, externe, cle (bouton « C'est fait »), bouton (un autre bouton, en HTML) }.
 function ligne(t, ici) {
@@ -160,15 +161,16 @@ export function ecranAujourdhui(ctx) {
 
   // 3. Tes mots à revoir : faite dès qu'un paquet est fini, ou s'il n'y a rien à revoir.
   if (der) {
-    const dus = motsDus(ctx).length;
+    // Chantier 15 : des cartes (jusqu'à 4 par mot, une par jour), 40 au plus par jour (resteDuJour).
+    const dus = Math.min(motsDus(ctx).length, resteDuJour(ctx));
     const revus = Number(c.revision) || 0;
     journee.push({
       titre: "Tes mots à revoir", fait: revus > 0 || dus === 0, href: dus ? "#/revision" : null,
-      detail: revus ? `${mots(revus)} revus${dus ? ` · encore ${dus} si tu veux` : ""}`
-        : dus ? mots(dus) : "rien à revoir aujourd'hui",
+      detail: revus ? `${cartes(revus)} revue${revus > 1 ? "s" : ""}${dus ? ` · encore ${dus} si tu veux` : ""}`
+        : dus ? cartes(dus) : "rien à revoir aujourd'hui",
       carte: { titre: "Tes mots à revoir",
-        texte: dus > PAQUET ? `${dus} mots en attente. Un paquet de ${PAQUET} cartes, en commençant par les plus oubliés.`
-          : `${mots(dus)} en attente, en commençant par les plus oubliés.`,
+        texte: dus > PAQUET ? `${dus} cartes en attente. Un paquet de ${PAQUET}, en commençant par les plus oubliées.`
+          : `${cartes(dus)} en attente, en commençant par les plus oubliées.`,
         bouton: "Commencer", href: "#/revision" },
     });
   }

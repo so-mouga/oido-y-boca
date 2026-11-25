@@ -27,11 +27,11 @@
 // Règles : jamais de famille inventée (la vraie famille seulement, avec son vrai rôle) ; Blanca apparaît par messages,
 // dans son vrai rôle ; Léo et Dorian seulement avec le rôle qu'ils ont déjà dans les exercices. Espagnol d'Espagne.
 
-import { CHARLAS as U01 } from "./u01-05.js?v=64";
-import { CHARLAS as U06 } from "./u06-10.js?v=64";
-import { CHARLAS as U11 } from "./u11-15.js?v=64";
-import { CHARLAS as U16 } from "./u16-20.js?v=64";
-import { CHARLAS as U21 } from "./u21-25.js?v=64";
+import { CHARLAS as U01 } from "./u01-05.js?v=65";
+import { CHARLAS as U06 } from "./u06-10.js?v=65";
+import { CHARLAS as U11 } from "./u11-15.js?v=65";
+import { CHARLAS as U16 } from "./u16-20.js?v=65";
+import { CHARLAS as U21 } from "./u21-25.js?v=65";
 
 // La troupe : des inconnus de Huesca qui reviennent d'une charla à l'autre (couleur : [habit, peau] du petit portrait).
 export const TROUPE = {

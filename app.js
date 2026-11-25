@@ -1,28 +1,28 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=64";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=64";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer } from "./progression.js?v=64";
-import { ECOUTES } from "./ecoute.js?v=64";
-import { preparerVoix } from "./voix.js?v=64";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=64";
-import { vibrer } from "./retours.js?v=64";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=64";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=64";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=64";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=64";
-import { ecranLivre } from "./ecrans/livre.js?v=64";
-import { ecranLecon } from "./ecrans/lecon.js?v=64";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=64";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=64";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=64";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=64";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=64";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=64";
-import { ecranLectures } from "./ecrans/lectures.js?v=64";
-import { ecranJeux } from "./ecrans/jeux.js?v=64";
-import { envoyerGoogle, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=64";
+import { chargerTableau } from "./donnees.js?v=65";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=65";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=65";
+import { ECOUTES } from "./ecoute.js?v=65";
+import { preparerVoix } from "./voix.js?v=65";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=65";
+import { vibrer } from "./retours.js?v=65";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=65";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=65";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=65";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=65";
+import { ecranLivre } from "./ecrans/livre.js?v=65";
+import { ecranLecon } from "./ecrans/lecon.js?v=65";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=65";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=65";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=65";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=65";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=65";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=65";
+import { ecranLectures } from "./ecrans/lectures.js?v=65";
+import { ecranJeux } from "./ecrans/jeux.js?v=65";
+import { envoyerGoogle, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=65";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -157,6 +157,17 @@ app.addEventListener("click", async e => {
   const verbe = actionVerbes(ctx, e);
   if (verbe !== null) {
     if (verbe) afficher(verbe === "suivant" ? "glisse" : false);
+    return;
+  }
+  // Le « + » d'une carte 3 ou 4 (Livre, Dico) : elle entre dans « Tes mots à revoir » (chantier 15).
+  const prendre = e.target.closest("[data-prendre]");
+  if (prendre) {
+    prendreCarte(prendre.dataset.prendre, ctx.jour);
+    vibrer(12);
+    const y = window.scrollY; // la page reste où elle était
+    afficher();
+    window.scrollTo(0, y);
+    app.querySelector(`[data-carte="${CSS.escape(prendre.dataset.prendre)}"]`)?.focus({ preventScroll: true });
     return;
   }
   const action = e.target.closest("[data-p]");

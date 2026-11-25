@@ -7,22 +7,23 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=64";
-import { lecon as trouver } from "../position.js?v=64";
-import { EXERCICES } from "../exercices.js?v=64";
-import { corriger } from "../corriger.js?v=64";
-import { noterMot, motsARevoir, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur } from "../progression.js?v=64";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=64";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=64";
-import { BONUS } from "../bonus.js?v=64";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=64";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=64";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=64";
-import { vibrer, son } from "../retours.js?v=64";
+import { esc, md, id, ICONES } from "../ui.js?v=65";
+import { lecon as trouver } from "../position.js?v=65";
+import { EXERCICES } from "../exercices.js?v=65";
+import { corriger } from "../corriger.js?v=65";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=65";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=65";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=65";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=65";
+import { BONUS } from "../bonus.js?v=65";
+import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=65";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=65";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=65";
+import { vibrer, son } from "../retours.js?v=65";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=64";
+} from "../enregistrement.js?v=65";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -46,20 +47,33 @@ function serieLecon(ctx, idLecon) {
   };
 }
 
-// « Tes mots à revoir » : tous les mots dus, toutes leçons confondues, sauf ceux de la leçon faite aujourd'hui
+// « Tes mots à revoir » : les cartes dues de tous les mots, toutes leçons confondues, sauf ceux de la leçon faite aujourd'hui
 // (ils sont dans la leçon du jour). Avec mes mots et les mots du livre appris en avance, à partir du lendemain.
 // Un mot appris en avance compte depuis ce jour-là, même une fois sa leçon faite : il garde sa révision.
+// Chantier 15 : chaque mot a jusqu'à 4 cartes (cartes.js), une seule par jour ; 40 cartes par jour au plus (PLAFOND).
 export const PAQUET = 20;
 export function motsDus(ctx) {
   const { pos, motsParLecon, jour } = ctx;
   const mots = [...pos.faites].filter(l => pos.dateFaite[l] !== jour).flatMap(l => motsParLecon[l] || []);
   const enAvance = ctx.mots.filter(m => !pos.faites.has(m.lecon) && apprisEnAvance(m.id) && apprisEnAvance(m.id) < jour);
   const aMoi = motsAMoi().filter(m => m.le < jour);
-  return motsARevoir([...mots, ...enAvance, ...aMoi], jour, m => m.moi ? m.le : apprisEnAvance(m.id) || pos.dateFaite[m.lecon]);
+  return cartesARevoir([...mots, ...enAvance, ...aMoi], fichesCartes(), jour, departDe(ctx));
+}
+// Combien de cartes on peut encore revoir aujourd'hui avant le plafond.
+export const resteDuJour = ctx => Math.max(0, PLAFOND - (Number(cases(ctx.jour).revision) || 0));
+
+// Une carte de la révision → une question. Carte 1 : la carte retournée d'avant. Cartes 2, 3… : à écrire.
+function itemDeCarte(c) {
+  const m = c.mot;
+  if (c.n === 1) return { type: "carte", mot: m, n: 1 };
+  const commun = { type: "ecrire", lecon: m.lecon, mot: m, n: c.n, cle: cleCarte(m.id, c.n) };
+  if (c.n === 2) return { ...commun, consigne: "Complète", fr: c.trou.phrase, es: [c.trou.reponse], aideFr: m.fr };
+  return { ...commun, consigne: "Traduis", fr: c.phrase.fr, es: c.phrase.es, sens: c.phrase.aide };
 }
 
 function serieRevision(ctx) {
-  return { titre: "Tes mots à revoir", revision: true, faites: ctx.pos.faites, items: cartes(motsDus(ctx).slice(0, PAQUET)) };
+  const n = Math.min(PAQUET, resteDuJour(ctx));
+  return { titre: "Tes mots à revoir", revision: true, faites: ctx.pos.faites, items: motsDus(ctx).slice(0, n).map(itemDeCarte) };
 }
 
 // « Mes erreurs » (#/erreurs, chantier 11) : les cartes du jour tirées du carnet du prof, 5 au plus (carnet.js).
@@ -194,12 +208,14 @@ function boutonIndice(it) {
 function vueEcrire(it, enTete) {
   const consigne = it.bonus
     ? `${sorte(`Entraînement · ${esc(it.nom)}`)}<p class="consigne">${esc(it.consigne)}</p>`
+    : it.cle ? sorte(`Tes mots à revoir · carte ${it.n} sur ${nbCartes(it.mot)}${it.n > 2 ? ` · ${esc(it.mot.fr)}` : ""}`)
+      + `<p class="consigne">${it.n === 2 ? "Écris le mot qui manque." : "Écris toute la phrase en espagnol."}</p>`
     : sorte(`À écrire · ${it.consigne.toLowerCase()}`);
   // Toucher un mot (chantier 10) : une phrase espagnole à compléter se touche pendant la question (pas pendant un contrôle) ;
   // après la réponse, la phrase complète se touche, la réponse surlignée. Un « Traduis » montre du français : rien à toucher
   // avant la réponse ; après, c'est la bonne réponse qui se touche. La traduction de l'auteur (trad) ne donne jamais la forme.
   const trou = it.fr.includes("___");
-  const sens = it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : "";
+  const sens = it.sens ? `<p class="sens" lang="es">${esc(it.sens)}</p>` : it.aideFr ? `<p class="sens">(${esc(it.aideFr)})</p>` : "";
   let enonce = `<p class="enonce">${esc(it.fr)}</p>${sens}`;
   if (trou && s.phase === "question" && !it.controle) {
     enonce = `<p class="enonce">${phraseTouchable(ctxVue, it.fr, { fr: it.trad, extras: it.sens })}</p>${sens}`;
@@ -410,7 +426,7 @@ function vueCarte(it) {
   // Un de mes mots a pu être corrigé pendant la série (« Modifier ») : on reprend sa dernière version.
   if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
   const m = it.mot;
-  const tete = sorte(s.revision ? "Tes mots à revoir · carte" : "Carte · du français à l'espagnol");
+  const tete = sorte(s.revision ? `Tes mots à revoir · carte 1${nbCartes(m) > 1 ? ` sur ${nbCartes(m)}` : ""}` : "Carte · du français à l'espagnol");
   // En révision, la leçon d'où vient le mot. « Revoir la leçon » s'ouvre par-dessus la série, qui reprend au retour.
   const l = s.revision && trouver(m.lecon);
   // Un de mes mots : quand je l'ai ajouté, et « Modifier » (après la correction du prof).
@@ -525,26 +541,43 @@ function blocBonus() {
 // Les boutons de fin remplacent la série dans l'historique (data-remplace) : le retour d'Android ne la relance pas.
 const versAujourdhui = cls => `<a class="${cls}" href="#/" data-remplace>Revenir à aujourd'hui</a>`;
 
-// La fin d'un paquet de « Tes mots à revoir » : pas de plafond, un autre paquet si tu veux.
+// La fin d'un paquet de « Tes mots à revoir » : un autre paquet si tu veux, jusqu'à 40 cartes par jour (PLAFOND) ;
+// le reste attend demain. « Tu bloques sur… » : une carte 1 ratée 2 fois de suite propose les phrases du mot (une fois).
 function vueFinPaquet(ctx) {
   const n = s.notes.carte;
-  const reste = motsDus(ctx).length;
-  const mots = k => k ? `${k} mot${k > 1 ? "s" : ""}` : "aucun";
+  const dus = motsDus(ctx).length, possible = resteDuJour(ctx);
+  const cartes = k => k ? `${k} carte${k > 1 ? "s" : ""}` : "aucune";
+  const fiches = fichesCartes();
+  const bloque = [...new Map((s.rates || []).map(m => [m.id, m])).values()]
+    .filter(m => !m.moi && (fiches[m.id]?.nons || 0) >= 2 && !fiches[m.id]?.refus && phrasesDe(m).length
+      && phrasesDe(m).every((_, i) => !fiches[cleCarte(m.id, i + 3)]));
+  const pris = [...new Map((s.rates || []).map(m => [m.id, m])).values()]
+    .filter(m => phrasesDe(m).length && fiches[cleCarte(m.id, 3)]?.dep === ctx.jour && !fiches[cleCarte(m.id, 3)]?.vu);
   return `<div class="fin">
       <h1>Paquet terminé</h1>
       <p class="sous">Tes mots à revoir</p>
       <ul class="bilan">
-        <li><b>Trouvés</b><span>${n.filter(x => x === 3).length} sur ${n.length}</span></li>
-        <li><b>À revoir bientôt</b><span>${mots(n.filter(x => x < 3).length)}</span></li>
+        <li><b>Trouvées</b><span>${n.filter(x => x === 3).length} sur ${n.length}</span></li>
+        <li><b>À revoir bientôt</b><span>${cartes(n.filter(x => x < 3).length)}</span></li>
       </ul>
-      ${reste ? `<div class="reste">
-          <b>Il te reste ${mots(reste)} à revoir</b>
-          <p>Encore un paquet si tu as envie. Sinon, ils t'attendent demain.</p>
-          <button class="primaire" data-p="continuer">Continuer · ${mots(Math.min(reste, PAQUET))}</button>
+      ${bloque.map(m => `<div class="bloque">
+          <span class="k">Tu bloques sur un mot</span>
+          <p><b lang="es">${esc(m.es)}</b> · ${esc(m.fr)} : 2 fois « Non » de suite. Ses ${phrasesDe(m).length} phrases à écrire t'aideraient à le fixer.</p>
+          <div class="duo"><button class="primaire soleil" data-p="phrases-oui" data-mot="${esc(m.id)}">Ajouter ses phrases</button>
+            <button class="secondaire" data-p="phrases-non" data-mot="${esc(m.id)}">Pas maintenant</button></div>
+        </div>`).join("")}
+      ${pris.map(m => `<p class="sous">Les phrases de <b lang="es">${esc(m.es)}</b> sont dans tes mots à revoir : la première arrive demain.</p>`).join("")}
+      ${dus && possible ? `<div class="reste">
+          <b>Il te reste ${cartes(dus)} à revoir</b>
+          <p>Encore un paquet si tu as envie. Sinon, elles t'attendent demain.</p>
+          <button class="primaire" data-p="continuer">Continuer · ${cartes(Math.min(dus, PAQUET, possible))}</button>
+        </div>` : dus ? `<div class="reste plafond">
+          <b>${PLAFOND} cartes aujourd'hui : c'est tout</b>
+          <p>Il en reste ${dus}. Elles t'attendent demain, les plus en retard d'abord.</p>
         </div>` : `<p class="sous">C'est tout : tes autres mots sont frais.</p>`}
     </div>
     <div class="espace"></div>
-    ${versAujourdhui(reste ? "secondaire" : "primaire")}`;
+    ${versAujourdhui(dus && possible ? "secondaire" : "primaire")}`;
 }
 
 // La fin de « Mes erreurs » : chaque carte, et quand elle revient. Les fiches sont déjà notées.
@@ -703,6 +736,13 @@ function noterCarteErreur(ctx, it, resultat, extra = {}) {
   s.resultats.push({ it, ok: resultat !== "rate", aide: resultat === "aide", fiche, ...extra });
 }
 
+// Les cartes 2, 3, 4 de « Tes mots à revoir » (chantier 15) : juste du premier coup = Oui ; avec un indice ou à un mot près = Avec peine ;
+// faux ou « Je ne sais pas » = Non. Même mémoire que les cartes à dire.
+function noterCarteEcrite(ctx, it, n) {
+  noterMot(it.cle, n, ctx.jour);
+  s.notes.carte.push(n);
+}
+
 function suivant() {
   effacerEnregistrement();
   arreterLecture();
@@ -755,6 +795,7 @@ export async function actionPratique(ctx, action, el) {
       }
       s.resultat = corriger(s.saisie, it.es);
       const ok = s.resultat.niveau === "juste" || s.resultat.niveau === "accents";
+      if (it.cle) noterCarteEcrite(ctx, it, ok ? (s.indice ? 2 : 3) : s.resultat.niveau === "presque" ? 2 : 1);
       s.notes.ecrire.push(ok);
       s.resultats.push({ it, ok, saisie: s.saisie });
       if (s.indice) s.notes.aide.ecrire++;
@@ -782,6 +823,7 @@ export async function actionPratique(ctx, action, el) {
         return true;
       }
       s.saisie = ""; s.resultat = { niveau: "passe", attendu: it.es[0] };
+      if (it.cle) noterCarteEcrite(ctx, it, 1);
       s.notes.ecrire.push(false); s.resultats.push({ it, ok: false, saisie: "" }); s.phase = "reponse";
       return true;
     case "voir":
@@ -808,7 +850,7 @@ export async function actionPratique(ctx, action, el) {
       const n = Number(el.dataset.n);
       if (s.indice && it.type !== "ecrire") s.notes.aide[it.type]++;
       // Un de mes mots supprimé pendant la série : on ne lui recrée pas de mémoire.
-      if (it.type === "carte") { if (!it.mot.moi || monMot(it.mot.id)) noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); }
+      if (it.type === "carte") { if (!it.mot.moi || monMot(it.mot.id)) noterMot(it.mot.id, n, ctx.jour); s.notes.carte.push(n); if (n === 1) (s.rates ||= []).push(it.mot); }
       else {
         s.notes.dire.push(n);
         if (it.phrase) noterCarteErreur(ctx, it, n === 3 ? "juste" : n === 2 ? "aide" : "rate");
@@ -822,6 +864,15 @@ export async function actionPratique(ctx, action, el) {
     case "encore": // « Encore 6 » : un autre tirage du bonus
       { const retour = s.retour; nouvelleSerie(ctx, s.cle, () => serieBonus(s.bonus)); s.retour = retour; }
       return "suivant";
+    case "phrases-oui": { // « Tu bloques sur… · Ajouter ses phrases » : ses cartes 3, 4… entrent dans la révision
+      const m = (s.rates || []).find(x => x.id === el.dataset.mot);
+      if (m) phrasesDe(m).forEach((_, i) => prendreCarte(cleCarte(m.id, i + 3), ctx.jour));
+      vibrer(12);
+      return true;
+    }
+    case "phrases-non":
+      refuserPhrases(el.dataset.mot);
+      return true;
     case "continuer": // un autre paquet de « Tes mots à revoir »
       nouvelleSerie(ctx, s.cle, () => serieRevision(ctx));
       s.retour = "#/";
