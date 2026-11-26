@@ -2,9 +2,10 @@
 // Ici : les sortes de mots, la recherche, et ce que l'appli sait de chaque verbe.
 // Les écrans sont dans ecrans/dico.js.
 
-import { irregulierConnu } from "./controles.js?v=69";
-import { mesMots, apprisEnAvance } from "./progression.js?v=69";
-import { LECONS } from "./position.js?v=69";
+import { irregulierConnu, conjuguer } from "./controles.js?v=70";
+import { mesMots, apprisEnAvance } from "./progression.js?v=70";
+import { LECONS } from "./position.js?v=70";
+import { VERBES, CE_QUI_CHANGE, lignesDe, PAS_SUR_LA_CARTE } from "./regles.js?v=70";
 
 // Les sortes du sommaire, et les catégories du Sheet qui vont dedans.
 // « Mes mots » : les mots que j'ajoute moi-même, gardés sur le téléphone (pas dans le Sheet).
@@ -105,18 +106,9 @@ const PARTICULIERS = {
   conducir: { irr: true }, suponer: { irr: true }, seguir: { irr: true },
 };
 
-// Où le livre explique chaque règle (vérifié dans PROGRAMME.md).
-export const REGLES = {
-  ar: { lecon: "U1-L1", texte: "Comme tous les verbes en -ar : on enlève -ar, on ajoute la terminaison." },
-  // -ir (Q59, la phrase du prof le 25 nov., après « vivemos ») : dire ce qui change par rapport aux -er.
-  ir: { lecon: "U1-L3", texte: "Comme les -er, sauf *nosotros* → -imos et *vosotros* → -ís." },
-  er: { lecon: "U1-L5", texte: "Comme tous les verbes en -er : on enlève -er, on ajoute la terminaison." },
-  se: { lecon: "U3-L1", texte: "Un verbe en -se : devant le verbe, me, te, se, nos, os, se." },
-  ue: { lecon: "U3-L4", texte: "Le o devient ue, sauf avec nosotros et vosotros." },
-  ie: { lecon: "U3-L5", texte: "Le e devient ie, sauf avec nosotros et vosotros." },
-  i: { lecon: "U6-L2", texte: "Le e devient i, sauf avec nosotros et vosotros." },
-  gustar: { lecon: "U6-L1", texte: "Comme *gustar* : le verbe ne change pas, c'est le petit mot devant qui dit à qui (me, te, le, nos, os, les)." },
-};
+// Où le livre explique chaque règle (vérifié dans PROGRAMME.md) : les lignes des verbes sont dans regles.js (chantier 18),
+// les mêmes partout (Dico, cartes, leçons, explications de conjugaison).
+export const REGLES = VERBES;
 const LECON_IRREGULIER = {
   ser: "U1-L2", estar: "U1-L4", tener: "U2-L1", ir: "U3-L6",
   hacer: "U7-L4", poner: "U7-L4", traer: "U7-L4", dar: "U7-L4", salir: "U7-L5", decir: "U7-L5", venir: "U7-L5", jugar: "U8-L5",
@@ -125,28 +117,7 @@ const LECON_IRREGULIER = {
   "freír": "U19-L4",
 };
 
-// Ce qui est irrégulier, dit précisément (vérifié forme par forme avec IRREGULIERS, controles.js).
-// Les autres (ser, estar, ir) : « ses 6 formes s'apprennent par cœur ».
-const CE_QUI_CHANGE = {
-  hacer: "Seul *yo* est irrégulier : **hago**. Le reste suit la règle des -er.",
-  poner: "Seul *yo* est irrégulier : **pongo**. Le reste suit la règle des -er.",
-  traer: "Seul *yo* est irrégulier : **traigo**. Le reste suit la règle des -er.",
-  salir: "Seul *yo* est irrégulier : **salgo**. Le reste suit la règle des -ir.",
-  dar: "*Yo* est irrégulier : **doy**. Le reste suit la règle des -ar, mais *vosotros dais* n'a pas d'accent.",
-  tener: "*Yo* est irrégulier : **tengo**. Ensuite, le e devient ie (*tienes*…), sauf avec nosotros et vosotros.",
-  venir: "*Yo* est irrégulier : **vengo**. Ensuite, le e devient ie (*vienes*…), sauf avec nosotros et vosotros.",
-  decir: "*Yo* est irrégulier : **digo**. Ensuite, le e devient i (*dices*…), sauf avec nosotros et vosotros.",
-  jugar: "Le u devient ue (*juego*…), sauf avec nosotros et vosotros. C'est le seul verbe qui fait ça.",
-  ver: "Seul *yo* est irrégulier : **veo**. Attention : *vosotros veis*, sans accent.",
-  enviar: "Le i prend un accent (*envío, envías*…), sauf avec nosotros et vosotros. Le reste suit la règle des -ar.",
-  recoger: "Seul *yo* change : **recojo** (le g devient j pour garder le son). Le reste suit la règle des -er.",
-  crecer: "Seul *yo* est irrégulier : **crezco**. Le reste suit la règle des -er.",
-  conducir: "Seul *yo* est irrégulier : **conduzco**. Le reste suit la règle des -ir.",
-  caer: "Seul *yo* est irrégulier : **caigo**. Le reste suit la règle des -er.",
-  conocer: "Seul *yo* est irrégulier : **conozco**. Le reste suit la règle des -er.",
-  saber: "Seul *yo* est irrégulier : **sé**. Le reste suit la règle des -er.",
-  "freír": "Le e devient í, avec un accent (*frío, fríes, fríe*), sauf avec nosotros et vosotros (*freímos, freís*).",
-};
+// Ce qui est irrégulier, dit précisément : CE_QUI_CHANGE (regles.js).
 
 // Ce que l'appli sait d'un verbe du Sheet. « tener … años » → tener ; « comer (= déjeuner) » → comer ;
 // « hacerse daño » → hacerse. Renvoie null si le mot n'est pas un verbe qu'on sait lire.
@@ -178,4 +149,57 @@ export function etiquette(vb) {
   if (vb.famille === "irr") return "irrégulier";
   if (vb.famille === "autres") return "";
   return [vb.gustar && "comme gustar", vb.se && "-se", vb.d &&`${{ ue: "o", ie: "e", i: "e" }[vb.d]} → ${vb.d}`].filter(Boolean).join(" · ");
+}
+
+// ── Les règles d'un mot (chantier 18) ──
+// Ce qu'une ligne de règle concerne, comparé sans majuscules ni ponctuation. Les accents comptent (« sí » ≠ « si »),
+// l'article aussi (« el juego » ≠ « juego »).
+const nu = s => (s || "").normalize("NFC").toLowerCase().replace(/[¿¡?!…«»"().,;:=]/g, " ").replace(/\s+/g, " ").trim();
+const formesDuMot = es => (es || "").replace(/\([^)]*\)/g, " ").split("/").map(nu).filter(Boolean);
+const motsDeLaLigne = x => (x.mots || []).map(nu).filter(Boolean);
+
+// Les lignes de règle d'une carte (Q18-4 à Q18-8), chacune avec son étiquette : [{ texte, etiquette }].
+// Un verbe : ses lignes du Dico, seulement celles des leçons faites, sauf celle d'un irrégulier (elle parle du mot lui-même).
+// Un autre mot : les lignes des leçons faites qui le concernent (sa leçon d'abord), 2 au plus.
+export function reglesDuMot(m, faites) {
+  const vb = verbeDe(m);
+  if (vb) {
+    return vb.regles.filter(r => vb.famille === "irr" || (r.lecon && faites.has(r.lecon)))
+      .map(r => ({ texte: r.texte, etiquette: r.lecon && faites.has(r.lecon) ? `La règle · ${r.lecon}` : "Verbe irrégulier" }));
+  }
+  const formes = formesDuMot(m.es);
+  if (!formes.length) return [];
+  const lecons = [...faites].sort((a, b) => (b === m.lecon) - (a === m.lecon) || rangLecon(a) - rangLecon(b));
+  const exclues = PAS_SUR_LA_CARTE[m.es] || [];
+  return lecons.filter(l => !exclues.includes(l)).flatMap(l => lignesDe(l))
+    .filter(x => !x.verbe && !x.irr && motsDeLaLigne(x).some(f => formes.includes(f)))
+    .slice(0, 2).map(x => ({ texte: x.texte, etiquette: `La règle · ${x.lecon}` }));
+}
+
+// Après une erreur dans une leçon (Q18-2) : les lignes de la leçon qui concernent un mot raté de la bonne réponse.
+// mots : les mots de la bonne réponse, { brut, juste } ; une ligne compte si un de ses mots (« desde hace »)
+// est dans la réponse et qu'au moins un de ses morceaux est raté. Les lignes de verbe : une forme du présent ratée.
+export function lignesConcernees(idLecon, mots) {
+  const n = mots.map(x => ({ w: nu(x.brut), juste: x.juste })).filter(x => x.w);
+  const rate = (debut, long) => n.slice(debut, debut + long).some(x => !x.juste);
+  const dans = f => { const fs = f.split(" "); return n.some((_, i) => fs.every((w, k) => n[i + k]?.w === w) && rate(i, fs.length)); };
+  return lignesDe(idLecon).filter(x => {
+    if (x.verbe || x.irr) { const fs = formesDeVerbes(x); return n.some(y => !y.juste && fs.has(y.w)); }
+    return motsDeLaLigne(x).some(dans);
+  });
+}
+
+// Les formes du présent des verbes qu'une ligne de verbe concerne : un irrégulier, ou tous les verbes du groupe.
+const CACHE_FORMES = new Map();
+function formesDeVerbes(x) {
+  const cle = x.irr ? `irr:${x.irr}` : x.verbe;
+  if (!CACHE_FORMES.has(cle)) {
+    const infs = x.irr ? [x.irr] : [...REGULIERS, ...Object.keys(PARTICULIERS)].filter(inf => {
+      const p = PARTICULIERS[inf] || {};
+      if (p.irr || p.gustar) return false;
+      return x.verbe === p.d || (!p.d && x.verbe === inf.slice(-2).replace("í", "i"));
+    });
+    CACHE_FORMES.set(cle, new Set(infs.flatMap(inf => [0, 1, 2, 3, 4, 5].map(p => nu(conjuguer(inf, p, PARTICULIERS[inf]?.d))))));
+  }
+  return CACHE_FORMES.get(cle);
 }

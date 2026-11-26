@@ -7,24 +7,24 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=69";
-import { lecon as trouver } from "../position.js?v=69";
-import { EXERCICES } from "../exercices.js?v=69";
-import { corriger } from "../corriger.js?v=69";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=69";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=69";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=69";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=69";
-import { BONUS } from "../bonus.js?v=69";
-import { verbeDe, motsAMoi, origineMonMot } from "../dico.js?v=69";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=69";
-import { mettreMotEnCours } from "../motsencours.js?v=69";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=69";
-import { vibrer, son } from "../retours.js?v=69";
+import { esc, md, id, ICONES } from "../ui.js?v=70";
+import { lecon as trouver } from "../position.js?v=70";
+import { EXERCICES } from "../exercices.js?v=70";
+import { corriger } from "../corriger.js?v=70";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=70";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe } from "../cartes.js?v=70";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=70";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=70";
+import { BONUS } from "../bonus.js?v=70";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=70";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=70";
+import { mettreMotEnCours } from "../motsencours.js?v=70";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=70";
+import { vibrer, son } from "../retours.js?v=70";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=69";
+} from "../enregistrement.js?v=70";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -166,35 +166,22 @@ const notes = (question, avecCriteres) => s.indice
   </div>`;
 
 // ——— l'indice : deux étapes au plus ———
-// 1. la règle de la leçon (la grammaire du livre) ; 2. la première lettre de chaque mot (« V··· e· H····· »).
-// Pour une carte, une seule étape : la première lettre.
+// 1. les lignes de règle de la leçon qui concernent la phrase (regles.js) ; 2. la première lettre de chaque mot (« V··· e· H····· »).
+// Pour une carte (la carte retournée et les cartes à écrire de la révision), jamais de règle (Q18-5) : la première lettre.
 
 const reponseDe = it => it.type === "ecrire" || it.type === "erreur" ? it.es[0] : it.type === "dire" ? it.es : it.mot.es;
 const initiales = texte => texte.replace(/\p{L}+/gu, mot => mot[0] + "·".repeat(mot.length - 1));
+const tousRates = texte => texte.trim().split(/\s+/).map(brut => ({ brut, juste: false }));
 
-// La règle de la leçon (la grammaire du livre), avec une majuscule.
-function regleDe(it) {
-  const regle = it.type !== "carte" && trouver(it.lecon)?.grammaire;
-  return regle ? regle.charAt(0).toUpperCase() + regle.slice(1) : "";
-}
-
-// Après une erreur, la règle ne s'affiche que si elle concerne la phrase : au moins un mot de la bonne réponse
-// se retrouve dans ses exemples en italique (*vivo, vives…*). Sans accents ni majuscules, comme corriger.js.
-// Les noms propres des exemples (*vivo en Huesca*) ne comptent pas.
-const sansAccents = t => t.toLowerCase().replace(/ñ/g, "\u0001").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\u0001/g, "ñ");
-const motsDe = t => t.match(/\p{L}+/gu) || [];
-function regleConcerne(it) {
-  const exemples = new Set([...regleDe(it).matchAll(/(?<!\*)\*(?!\*)([^*]+)\*(?!\*)/g)]
-    .flatMap(m => motsDe(m[1]).filter((w, i) => i === 0 || w[0] === w[0].toLowerCase()).map(sansAccents)));
-  return motsDe(reponseDe(it)).some(w => exemples.has(sansAccents(w)));
-}
+// Les lignes de règle de la leçon qui concernent la phrase (Q18-13) : pour l'indice, tous ses mots comptent.
+const lignesDeLaPhrase = it => it.type === "carte" || it.cle || !it.lecon ? [] : lignesConcernees(it.lecon, tousRates(reponseDe(it)));
 
 function etapesIndice(it) {
   // Mes erreurs : un seul indice, la « Règle en une ligne » du carnet.
   if (it.type === "erreur") return it.carte.regle ? [`<p class="regle">${esc(it.carte.regle)}</p>`] : [];
   const etapes = [];
-  const regle = regleDe(it);
-  if (regle) etapes.push(`<p class="regle">${md(regle)}</p>`);
+  const lignes = lignesDeLaPhrase(it);
+  if (lignes.length) etapes.push(lignes.map(x => `<p class="regle">${md(x.texte)}</p>`).join(""));
   etapes.push(`<p class="initiales" lang="es">${esc(initiales(reponseDe(it)))}</p>`);
   return etapes;
 }
@@ -252,7 +239,8 @@ function vueEcrire(it, enTete) {
       <div class="bonne">${ecouter(r.attendu)}<p lang="es">${bonne}</p></div>
       ${r.niveau === "accents" ? `<p>Regarde les accents de la bonne réponse : à l'oral, ils disent où appuyer.</p>` : ""}
       ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
-      ${it.controle || it.bonus || !ok ? explication(it) : ""}
+      ${it.controle || it.bonus || !ok ? explication(it, r) : ""}
+      ${it.cle ? lignesDuMot(it.mot) : ""}
       ${it.v && !it.controle ? lesSixFormes(it.v, it.d, it.p, it.t) : ""}
       ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}/exercice">Revoir la leçon</a>` : ""}
     </div>
@@ -262,12 +250,15 @@ function vueEcrire(it, enTete) {
 
 // Pourquoi c'est la bonne réponse : l'explication écrite pour la phrase s'il y en a une,
 // sinon la conjugaison calculée (verbe v, personne p), la phrase d'exemple du mot (contrôle),
-// ou, dans les leçons, la règle de la leçon quand elle concerne la phrase.
-function explication(it) {
+// ou, dans les leçons, seulement les lignes de règle des mots ratés (Q18-2 ; tous les mots après « Je ne sais pas »).
+// Une carte à écrire de la révision montre la ligne de son mot à part (lignesDuMot), pas celles-ci.
+function explication(it, r) {
   if (it.expl) return `<p class="explication">${md(it.expl)}</p>`;
   if (it.v) return `<p class="explication">${md(explicationConjugaison(it.v, it.p, it.d, it.t))}</p>`;
   if (it.exemple) return `<p class="explication">Exemple : <span lang="es">${esc(it.exemple)}</span></p>`;
-  if (!it.controle && regleConcerne(it)) return `<p class="explication">${md(regleDe(it))}</p>`;
+  if (it.controle || it.cle || !it.lecon) return "";
+  const mots = r?.niveau !== "passe" && r?.reponse ? r.reponse : tousRates(reponseDe(it));
+  return lignesConcernees(it.lecon, mots).map(x => `<p class="explication">${md(x.texte)}</p>`).join("");
   return "";
 }
 
@@ -425,6 +416,13 @@ function formesCarte(m) {
   return vb?.formes && !vb.gustar ? lesSixFormes(vb.v, vb.d, -1) : "";
 }
 
+// La règle sur la carte (chantier 18) : au dos, sous l'exemple, toujours, seulement si une règle d'une leçon faite
+// concerne le mot (Q18-4, Q18-5, Q18-8). Un verbe : la ligne du Dico ; un irrégulier, même avant sa leçon.
+function lignesDuMot(m) {
+  return reglesDuMot(m, ctxVue?.pos?.faites || new Set()).map(r =>
+    `<div class="regle-carte"><span class="etiq">${esc(r.etiquette)}</span><span>${md(r.texte)}</span></div>`).join("");
+}
+
 function vueCarte(it) {
   // Un de mes mots a pu être corrigé pendant la série (« Modifier ») : on reprend sa dernière version.
   if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
@@ -449,6 +447,7 @@ function vueCarte(it) {
       <p class="es" lang="es">${esc(m.es)}</p>
       ${ecouter(m.ex ? `${m.es}. ${m.ex}` : m.es, "grand")}
       ${m.ex ? `<p class="exemple" lang="es">${phraseTouchable(ctxVue, m.ex)}</p>` : ""}
+      ${lignesDuMot(m)}
       ${formesCarte(m)}
       ${origine}
     </div>

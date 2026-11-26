@@ -173,7 +173,9 @@ const ATTENDU = [
 
 // controles.js importe ui.js (pour l'affichage) : on le charge sans cet import.
 const ici = path.dirname(new URL(import.meta.url).pathname);
-const source = fs.readFileSync(path.join(ici, "../controles.js"), "utf8").replace(/^import .*$/m, "const md = x => x;");
+const source = fs.readFileSync(path.join(ici, "../controles.js"), "utf8").replace(/^import .*$/m, "const md = x => x;")
+  // regles.js (les lignes des verbes, chantier 18) : chargé depuis l'appli.
+  .replace(/^import (.*) from "\.\/regles\.js.*$/m, (_, quoi) => `import ${quoi} from "${new URL("../regles.js", import.meta.url)}";`);
 const tmp = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "oyb-")), "controles.mjs");
 fs.writeFileSync(tmp, source);
 const { conjuguer, formesSurlignees } = await import(tmp);

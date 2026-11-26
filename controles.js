@@ -8,7 +8,8 @@
 // Une phrase : { fr, es: [réponses acceptées], expl } ; pour le présent, { fr, v, p, es } et l'explication
 // se construit toute seule à partir du verbe (v) et de la personne (p : 0 = yo … 5 = ellos).
 
-import { md } from "./ui.js?v=69";
+import { md } from "./ui.js?v=70";
+import { VERBES } from "./regles.js?v=70";
 
 export const PERSONNES = ["yo", "tú", "él, ella", "nosotros", "vosotros", "ellos, ellas"];
 const PRONOMS = ["me", "te", "se", "nos", "os", "se"]; // les verbes en -se
@@ -228,9 +229,10 @@ export function reglesDetaillees(v, d, t) {
   if (t === "present") {
     if (IRREGULIERS[inf]) return [{ texte: `*${Maj(inf)}* est irrégulier : ${IRREGULIERS[inf].join(", ")}.`, lecon: null }];
     return [
-      d && { texte: `Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`, lecon: { ue: "U3-L4", ie: "U3-L5", i: "U6-L2" }[d] },
+      // Les mêmes lignes que le Dico, les cartes et les leçons (regles.js, chantier 18, Q18-11).
+      d && VERBES[d],
       pronoms,
-      { texte: `Les verbes en ‑${g} : on enlève ‑${g}, puis ${tirets(TERMINAISONS[g])}.`, lecon: { ar: "U1-L1", ir: "U1-L3", er: "U1-L5" }[g] },
+      VERBES[g],
     ].filter(Boolean);
   }
   if (t === "pc") {
@@ -271,7 +273,7 @@ export function reglesDetaillees(v, d, t) {
 export const reglesVerbe = (v, d, t) => reglesDetaillees(v, d, t).map(x => x.texte);
 export const regleVerbe = (v, d, t) => reglesVerbe(v, d, t).join(" ");
 
-// « *vivir*, avec *vosotros* : viv + **ís**. Les verbes en -ir : -o, -es, -e, -imos, -ís, -en. »
+// « *vivir*, avec *vosotros* : viv + **ís**. Les verbes en -ir : comme les -er (*como, comes*…), sauf… »
 // « *contar*, avec *yo* : c**ue**nt + **o**. Le o devient ue, sauf avec nosotros et vosotros. »
 // « *lavarse*, avec *yo* : **me** lav + **o**. Devant le verbe : me, te, se, nos, os, se. »
 // « *abrir*, avec *él, ella*, au passé composé : **ha** + **abierto**. Participe irrégulier : abierto. »
@@ -283,9 +285,10 @@ export function explicationConjugaison(v, p, d, t) {
   const devant = se ? " Devant le verbe : me, te, se, nos, os, se." : "";
   if (t === "present") {
     if (IRREGULIERS[inf]) return `${avec} : ${pronom}**${IRREGULIERS[inf][p]}**. *${Maj(inf)}* : ${IRREGULIERS[inf].join(", ")}.${devant}`;
-    const groupe = ` Les verbes en ‑${g} : ${tirets(TERMINAISONS[g])}.`;
+    // La ligne du groupe et celle de la voyelle : les mêmes que sur les cartes, dans le Dico et la leçon (Q18-11).
+    const groupe = ` ${VERBES[g].texte}`;
     const voyelle = !d ? "" : change(d, p)
-      ? ` Le ${AVANT[d]} devient ${d}, sauf avec nosotros et vosotros.`
+      ? ` ${VERBES[d].texte}`
       : ` Avec ${PERSONNES[p]}, le ${AVANT[d]} ne change pas.`;
     return `${avec} : ${pronom}${radical(r, d, p, true)} + **${TERMINAISONS[g][p]}**.${voyelle}${devant}${d || se ? "" : groupe}`;
   }

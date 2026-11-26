@@ -1,15 +1,16 @@
-// La page d'une leçon faite : la phrase clé, la grammaire, les 5 mots avec le son, puis « Pratiquer »,
+// La page d'une leçon faite : la phrase clé, la grammaire (une ligne par règle, regles.js), les 5 mots avec le son, puis « Pratiquer »,
 // et « S'entraîner » (le bonus de grammaire) si la leçon a une réserve dans bonus.js.
 // Une leçon pas encore faite avec le prof ne s'ouvre pas.
 // Ouverte depuis une série, une carte de « Tes mots à revoir » (#/lecon/U1-L3/revision) ou une phrase ratée
 // (#/lecon/U1-L3/exercice) : pas de « Commencer », et le lien du haut te remet sur la même question.
 // Ouverte depuis le Dico (#/lecon/U1-L3/dico) : tout est là, et le lien du haut ramène au mot.
 
-import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=69";
-import { lecon as trouver } from "../position.js?v=69";
-import { EXERCICES } from "../exercices.js?v=69";
-import { BONUS } from "../bonus.js?v=69";
-import { htmlCartes } from "./cartesmot.js?v=69";
+import { esc, md, id, dateLongue, ICONES, barreOnglets } from "../ui.js?v=70";
+import { lecon as trouver } from "../position.js?v=70";
+import { EXERCICES } from "../exercices.js?v=70";
+import { BONUS } from "../bonus.js?v=70";
+import { htmlCartes } from "./cartesmot.js?v=70";
+import { lignesDe, texteDansLaLecon } from "../regles.js?v=70";
 
 const bouton = (texte, cls = "") =>
   `<button class="ecoute ${cls}" data-dire="${esc(texte)}" aria-label="Écouter : ${esc(texte)}" aria-pressed="false">${ICONES.lecture}</button>`;
@@ -56,7 +57,7 @@ export function ecranLecon(ctx, idLecon, depuis) {
         <div class="cle avec-son">${bouton(l.phrase, "grand")}<p><span>La phrase clé</span>${md(l.phrase)}</p></div>
         <section aria-labelledby="t-gram">
           <h2 id="t-gram">La grammaire</h2>
-          <p class="gram">${md(l.grammaire.charAt(0).toUpperCase() + l.grammaire.slice(1))}</p>
+          <ul class="gram">${lignesDe(l.id).map(x => `<li>${md(texteDansLaLecon(x))}</li>`).join("")}</ul>
         </section>
         <section aria-labelledby="t-mots">
           <h2 id="t-mots">Les ${mots.length} mots</h2>

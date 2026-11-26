@@ -3,14 +3,14 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=69";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=69";
-import { tempsVu } from "../verbes.js?v=69";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=69";
-import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=69";
-import { motsAMoi } from "../dico.js?v=69";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=69";
-import { vibrer, son } from "../retours.js?v=69";
+import { esc, md, ICONES } from "../ui.js?v=70";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=70";
+import { tempsVu } from "../verbes.js?v=70";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=70";
+import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=70";
+import { motsAMoi } from "../dico.js?v=70";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=70";
+import { vibrer, son } from "../retours.js?v=70";
 
 let s = null; // la séance en cours
 

@@ -15,9 +15,9 @@ const memoire = {};
 globalThis.localStorage = { getItem: k => memoire[k] ?? null, setItem: (k, v) => { memoire[k] = String(v); } };
 
 const { lireCsv, versMots } = await import(path.join(tmp, "donnees.js"));
-const V = await import(path.join(tmp, "progression.js?v=69"));
+const V = await import(path.join(tmp, "progression.js?v=70"));
 const M = await import(path.join(tmp, "motsencours.js"));
-const { LECONS } = await import(path.join(tmp, "position.js?v=69"));
+const { LECONS } = await import(path.join(tmp, "position.js?v=70"));
 
 const csv = process.argv[2];
 if (!csv) { console.error("Donne le CSV du vocabulaire."); process.exit(1); }

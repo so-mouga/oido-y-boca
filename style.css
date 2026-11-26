@@ -213,6 +213,10 @@ button.case::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 
 .cle.avec-son p { flex: 1; }
 .gram { font-size: 15px; line-height: 1.6; color: var(--marine-soft); }
 .gram b { color: var(--marine); font-weight: 600; }
+/* La grammaire de la leçon : une ligne par règle (chantier 18). */
+ul.gram { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+ul.gram li { position: relative; padding-left: 16px; }
+ul.gram li::before { content: ""; position: absolute; left: 2px; top: 0.7em; width: 6px; height: 6px; border-radius: 50%; background: var(--sun-ink); opacity: .55; }
 .mots { display: flex; flex-direction: column; }
 .mot { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-top: 1px solid var(--hair); }
 .mot .txt { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr auto; column-gap: 10px; }
@@ -429,6 +433,13 @@ mark.bon { background: var(--sun); color: var(--marine); }
 /* Sous une carte retournée de la révision : la leçon d'où vient le mot. */
 .carte .origine { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; border-top: 1px solid var(--hair); padding-top: 12px; font-size: 13px; color: var(--muted); text-align: left; }
 .carte .origine .lien { font-size: 14px; padding: 4px 0; }
+/* La règle sur la carte (chantier 18, Q18-7) : un encadré jaune pâle sous l'exemple, avec « La règle · U1-L3 » en petit. */
+.regle-carte { width: 100%; text-align: left; background: var(--sun-deep); border-radius: 14px; padding: 10px 12px;
+  font-size: 14px; line-height: 1.45; color: var(--marine-soft); display: flex; flex-direction: column; gap: 3px; }
+.regle-carte .etiq { font-size: 11.5px; font-weight: 600; color: var(--sun-ink); letter-spacing: .02em; }
+.regle-carte b { color: var(--marine); }
+.regle-carte + .regle-carte { margin-top: -6px; }
+.verdict .regle-carte { margin-top: 4px; }
 
 /* Ma progression : sauvegarder ou restaurer, discret en bas d'Aujourd'hui. */
 .sauvegarde { margin-top: 8px; padding-top: 14px; border-top: 1px solid var(--hair); display: flex; flex-direction: column; gap: 8px; font-size: 13px; color: var(--muted); }
