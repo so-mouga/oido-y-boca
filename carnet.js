@@ -9,7 +9,7 @@
 // La clé vient de la bonne forme (ou de la phrase) : si le prof change la règle ou le nombre de fois, la carte garde ses progrès ;
 // s'il change la bonne forme, c'est une autre carte, qui repart de zéro.
 
-import { corriger } from "./corriger.js?v=75";
+import { corriger } from "./corriger.js?v=76";
 
 const CLE_COPIE = "oyb.carnet";
 export const MAX_PAR_JOUR = 5; // dont 1 phrase à dire au plus
@@ -108,7 +108,8 @@ export function cartesDuJour(carnet, fiches, jour) {
 export function nouvelleFiche(f, resultat, jour, vue) {
   const b = f?.boite || 0;
   const boite = resultat === "juste" ? Math.min(b + 1, INTERVALLES.length - 1) : resultat === "rate" ? 0 : b;
-  return { boite, vu: jour, ...(vue && { vue }) };
+  // « tour » compte les passages : la carte « à traduire » prend ainsi une autre phrase la fois suivante.
+  return { boite, vu: jour, ...(vue && { vue }), tour: (f?.tour || 0) + 1 };
 }
 // « Elle revient demain » / « dans 3 jours ».
 export function quandRevient(f) {
@@ -167,4 +168,99 @@ export function jugerCases(saisies, cases) {
   const premiere = lignes.find(l => !l.ok && l.r.astuce);
   const rappel = lignes.find(l => l.ok && l.r.rappel)?.r.rappel || "";
   return { ok: lignes.every(l => l.ok), justes: lignes.filter(l => l.ok).length, lignes, astuce: premiere?.r.astuce || "", rappel };
+}
+
+// ——— une phrase nouvelle à traduire (point 8 quindecies, Q11-13 à Q11-18) ———
+// Au lieu de « Corrige : phrase fausse », la carte montre une phrase en français, qui change à chaque passage.
+// Sans IA, l'appli ne juge pas une traduction libre : elle vérifie seulement le « morceau piège » de la carte
+// (« está en » pour « Blanca es en Huesca → Blanca está en Huesca »), et Kevin compare le reste avec la phrase modèle.
+// D'où vient la phrase (Q11-13) : la réserve écrite par Claude (erreurs-phrases.js), sinon une phrase des exercices
+// des leçons faites qui contient exactement le morceau piège, sinon l'ancienne carte « Corrige ».
+
+// Sans accents ni ñ (« está » = « esta », « mañana » = « manana ») : ils ne comptent pas, sauf sur une carte d'orthographe.
+const plat = t => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const motsDe = (t, accents) => (accents ? String(t || "").toLowerCase().normalize("NFC") : plat(t)).replace(PONCTUATION, " ").split(/\s+/).filter(Boolean);
+
+// Les positions des mots de b qui ne viennent pas de a (plus longue sous-suite commune).
+function change(a, b) {
+  const t = Array.from({ length: a.length + 1 }, () => new Array(b.length + 1).fill(0));
+  for (let i = a.length - 1; i >= 0; i--)
+    for (let j = b.length - 1; j >= 0; j--)
+      t[i][j] = a[i] === b[j] ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
+  const garde = new Array(b.length).fill(false);
+  for (let i = 0, j = 0; i < a.length && j < b.length;) {
+    if (a[i] === b[j]) { garde[j] = true; i++; j++; } else if (t[i + 1][j] >= t[i][j + 1]) i++; else j++;
+  }
+  return garde.map((g, j) => g ? -1 : j).filter(j => j >= 0);
+}
+
+// Le morceau piège d'une carte : les mots qui changent entre la faute et la bonne forme, plus le petit mot qui suit
+// (« está en », « estamos en », « cuál es ») ; jamais un nombre ni un nom (« desde hace », pas « desde hace 5 » : Q11-14).
+// Une carte dont la faute n'est qu'un accent ou un ñ (« manana → mañana ») est une carte d'orthographe : ses accents comptent.
+// Renvoie { texte, ortho } ou null (rien ne change à part la ponctuation : la carte reste « Corrige »).
+export function morceauPiege(erreur, bonne) {
+  const brut = String(bonne || "").replace(PONCTUATION, " ").split(/\s+/).filter(Boolean);
+  let d = change(motsDe(erreur), motsDe(bonne)), ortho = false;
+  if (!d.length) { d = change(motsDe(erreur, true), motsDe(bonne, true)); ortho = true; }
+  if (!d.length) return null;
+  let fin = d[d.length - 1];
+  const suivant = brut[fin + 1];
+  if (!ortho && suivant && suivant.length <= 3 && /^\p{Ll}+$/u.test(suivant)) fin++;
+  return { texte: brut.slice(d[0], fin + 1).join(" "), ortho };
+}
+
+// Le morceau est-il dans le texte (mots entiers, dans l'ordre) ? Sans les accents, sauf pour une carte d'orthographe.
+// Renvoie la position du premier mot trouvé, ou -1.
+export function chercherMorceau(texte, morceau, ortho = false) {
+  const t = motsDe(texte, ortho), m = motsDe(morceau, ortho);
+  if (!m.length) return -1;
+  for (let i = 0; i + m.length <= t.length; i++) if (m.every((w, k) => t[i + k] === w)) return i;
+  return -1;
+}
+
+// Les phrases des exercices qui testent ce morceau : réponse en espagnol qui le contient, phrase en français à traduire.
+// Un morceau trop court (un seul mot de 3 lettres ou moins, comme « en ») trouverait n'importe quoi : pas d'exercice.
+export function phrasesDesExercices(exercices, faites, piege) {
+  if (!piege || (!piege.texte.includes(" ") && piege.texte.length <= 3)) return [];
+  const r = [];
+  for (const id of faites) {
+    const ex = exercices[id];
+    if (!ex) continue;
+    for (const it of [...(ex.ecrire || []), ...(ex.dire || [])]) {
+      let fr = it.fr, variantes = Array.isArray(it.es) ? it.es : [it.es];
+      if (fr.includes("___")) {
+        if (!it.trad) continue;
+        variantes = variantes.map(v => fr.replace("___", v).replace(/\s*\([^)]*\)\s*$/, ""));
+        fr = it.trad;
+      }
+      const es = variantes.find(v => chercherMorceau(v, piege.texte, piege.ortho) >= 0);
+      if (es && !r.some(x => x.fr === fr)) r.push({ fr, es, piege: piege.texte, source: id });
+    }
+  }
+  return r;
+}
+
+// La phrase de ce passage : réserve (phrases dont la leçon « apres » est faite), sinon exercices, sinon null (« Corrige »).
+// « tour » (dans la fiche) avance à chaque passage : les phrases passent chacune à leur tour, jamais deux fois de suite la même.
+export function phraseATraduire(carte, { reserve = {}, exercices = {}, faites = new Set(), tour = 0 } = {}) {
+  // Une ligne qui regroupe encore plusieurs fautes (ancien carnet) garde ses cases (Q11-11) : un seul piège n'y suffit pas.
+  if (decouper(carte)) return null;
+  const piege = morceauPiege(carte.erreur, carte.bonne);
+  if (!piege) return null;
+  const miennes = (reserve[carte.cle] || []).filter(p => !p.apres || faites.has(p.apres))
+    .map(p => ({ ...p, source: "reserve" }));
+  const liste = miennes.length ? miennes : phrasesDesExercices(exercices, faites, piege);
+  if (!liste.length) return null;
+  const p = liste[tour % liste.length];
+  return { fr: p.fr, es: p.es, piege: p.piege || piege.texte, ortho: piege.ortho, source: p.source };
+}
+
+// Juge une traduction : le morceau piège y est-il ? Accents sans importance (rappel), sauf carte d'orthographe.
+// Renvoie { ok, position (du morceau dans la réponse, en mots), rappel }.
+export function jugerTraduction(tape, phrase) {
+  const position = chercherMorceau(tape, phrase.piege, phrase.ortho);
+  const ok = position >= 0;
+  const exact = ok && chercherMorceau(tape, phrase.piege, true) >= 0;
+  const rappel = ok && !exact ? `Accent : « ${phrase.piege} ».` : "";
+  return { ok, position, rappel };
 }

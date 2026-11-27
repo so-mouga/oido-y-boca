@@ -975,3 +975,7 @@ mark .tx-mot.touche { box-shadow: none; }
 .tend { font-weight: 600; border-radius: 999px; padding: 0 7px; font-size: 12px; white-space: nowrap; }
 .tend.monte { background: var(--rose); color: var(--rose-ink); }
 .tend.baisse { background: #DCEBDD; color: var(--sage-ink); }
+
+/* Mes erreurs, « Traduis » (point 8 quindecies) : la phrase rappelée en plus petit au verso, et la consigne de comparaison. */
+.enonce.petite { font-size: 18px; }
+.verdict .compare { font-size: 13.5px; color: var(--marine-soft); }

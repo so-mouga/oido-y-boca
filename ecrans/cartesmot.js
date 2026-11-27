@@ -3,9 +3,9 @@
 // Gris : pas encore là ; jaune : dans « Tes mots à revoir » ; vert : réussie au rendez-vous des 3 jours.
 // Chantier 24 : la carte 5 « à l'oreille » se range juste après la 2, qu'elle remplace au rendez-vous des 14 jours.
 
-import { esc } from "../ui.js?v=75";
-import { cartesDuMot, etatCarte, cleCarte, departDe, ORE } from "../cartes.js?v=75";
-import { fichesCartes } from "../progression.js?v=75";
+import { esc } from "../ui.js?v=76";
+import { cartesDuMot, etatCarte, cleCarte, departDe, ORE } from "../cartes.js?v=76";
+import { fichesCartes } from "../progression.js?v=76";
 
 const trou = t => esc(t).replace("___", `<span class="trou" aria-label="mot caché"></span>`);
 

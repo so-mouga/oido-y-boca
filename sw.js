@@ -1,5 +1,5 @@
 // Le service worker : garde l'appli sur le téléphone pour qu'elle s'ouvre sans réseau.
-// Son numéro de version vient de son adresse (« sw.js?v=75 », écrite dans index.html) :
+// Son numéro de version vient de son adresse (« sw.js?v=76 », écrite dans index.html) :
 // passer les imports à la version suivante change cette adresse, le navigateur installe
 // le nouveau service worker, qui remplace l'ancien et efface son cache. Rien à vider à la main.
 // Le Google Sheet n'est pas concerné : donnees.js garde déjà sa propre copie.
@@ -12,7 +12,7 @@ const CACHE_POLICE = "oyb-police"; // Lexend ne change pas d'une version à l'au
 const FICHIERS = [
   "app.js", "corriger.js", "donnees.js", "ecoute.js", "enregistrement.js", "exercices.js",
   "guide.js", "lecture.js", "livre.js", "position.js", "progression.js", "retours.js",
-  "ui.js", "voix.js", "controles.js", "bonus.js", "dico.js", "regles.js", "sauvegarde-google.js", "verbes.js", "lectures.js", "clavier.js", "toucher.js", "jeux.js", "mascotte.js", "themes.js", "carnet.js", "oreille.js", "style.css", "jeux.css",
+  "ui.js", "voix.js", "controles.js", "bonus.js", "dico.js", "regles.js", "sauvegarde-google.js", "verbes.js", "lectures.js", "clavier.js", "toucher.js", "jeux.js", "mascotte.js", "themes.js", "carnet.js", "erreurs-phrases.js", "oreille.js", "micro.js", "style.css", "jeux.css",
   "ecrans/aujourdhui.js", "ecrans/controle.js", "ecrans/dico.js", "ecrans/lecon.js", "ecrans/mesmots.js", "ecrans/livre.js", "ecrans/pratique.js", "ecrans/soir.js", "ecrans/verbes.js", "ecrans/lectures.js", "ecrans/bulle.js", "ecrans/jeux.js", "ecrans/deux.js", "ecrans/caseta.js", "ecrans/chiringuito.js",
   "charla.js", "ecrans/charla.js", "charlas/index.js", "charlas/u01-05.js", "charlas/u06-10.js", "charlas/u11-15.js", "charlas/u16-20.js", "charlas/u21-25.js",
   "missions.js", "ecrans/missions.js", "duos.js", "cartes.js", "ecrans/cartesmot.js", "motsencours.js", "ecrans/motsencours.js",

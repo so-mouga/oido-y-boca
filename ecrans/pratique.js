@@ -7,26 +7,27 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=75";
-import { lecon as trouver } from "../position.js?v=75";
-import { EXERCICES } from "../exercices.js?v=75";
-import { corriger } from "../corriger.js?v=75";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=75";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=75";
-import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=75";
-import { dire } from "../voix.js?v=75";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=75";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=75";
-import { BONUS } from "../bonus.js?v=75";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=75";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=75";
-import { mettreMotEnCours } from "../motsencours.js?v=75";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=75";
-import { vibrer, son } from "../retours.js?v=75";
+import { esc, md, id, ICONES } from "../ui.js?v=76";
+import { lecon as trouver } from "../position.js?v=76";
+import { EXERCICES } from "../exercices.js?v=76";
+import { corriger } from "../corriger.js?v=76";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=76";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=76";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=76";
+import { dire } from "../voix.js?v=76";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=76";
+import { RESERVE } from "../erreurs-phrases.js?v=76";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=76";
+import { BONUS } from "../bonus.js?v=76";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=76";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=76";
+import { mettreMotEnCours } from "../motsencours.js?v=76";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=76";
+import { vibrer, son } from "../retours.js?v=76";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=75";
+} from "../enregistrement.js?v=76";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -85,12 +86,17 @@ function serieRevision(ctx) {
 }
 
 // « Mes erreurs » (#/erreurs, chantier 11) : les cartes du jour tirées du carnet du prof, 5 au plus (carnet.js).
-// Une erreur : « Corrige : … », tu écris la bonne forme (accents obligatoires). Une phrase personnalisée : à redire de mémoire.
+// Une erreur : une phrase en français à traduire, qui change à chaque passage (point 8 quindecies) ; sans phrase prête,
+// l'ancienne carte « Corrige : … » (tu écris la bonne forme, accents obligatoires). Une phrase personnalisée : à redire de mémoire.
 // Chaque réponse met à jour la fiche de la carte tout de suite : quitter au milieu garde ce qui est fait.
 function serieErreurs(ctx) {
   const items = cartesDuJour(carnetActuel(), fichesErreurs(), ctx.jour).map(carte => {
     // Plusieurs fautes sur une ligne : une case par faute (Q11-11).
-    if (carte.type === "erreur") return { type: "erreur", carte, es: [carte.bonne], cases: decouper(carte) };
+    if (carte.type === "erreur") {
+      const traduire = phraseATraduire(carte, { reserve: RESERVE, exercices: EXERCICES, faites: ctx.pos.faites, tour: fichesErreurs()[carte.cle]?.tour || 0 });
+      if (traduire) return { type: "erreur", carte, es: [traduire.es], traduire };
+      return { type: "erreur", carte, es: [carte.bonne], cases: decouper(carte) };
+    }
     const l = trouver(carte.lecon);
     return { type: "dire", phrase: carte, es: carte.es, fr: `Ta phrase de ${carte.lecon}${l ? ` · ${l.titre}` : ""}`, sujet: SUJETS[carte.lecon] || "" };
   });
@@ -370,8 +376,56 @@ function vueErreurCases(it, enTete) {
     <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
+// Mes erreurs, « Traduis » (point 8 quindecies) : une phrase en français ; l'appli ne vérifie que le morceau piège,
+// surligné ensuite dans ta réponse et dans la phrase modèle. Le reste, tu le compares toi-même.
+function surlignerMorceau(texte, position, longueur, cls) {
+  if (position < 0) return esc(texte);
+  let k = 0, debut = -1, fin = -1;
+  const brut = texte.trim().split(/\s+/);
+  brut.forEach((m, i) => {
+    const n = (m.match(/\p{L}+/gu) || []).length;
+    if (n && k >= position && k < position + longueur) { if (debut < 0) debut = i; fin = i; }
+    k += n;
+  });
+  if (debut < 0) return esc(texte);
+  // Un seul bloc jaune pour tout le morceau (« está en »).
+  return [...brut.slice(0, debut).map(esc), `<mark class="${cls}">${esc(brut.slice(debut, fin + 1).join(" "))}</mark>`,
+    ...brut.slice(fin + 1).map(esc)].join(" ");
+}
+function vueTraduire(it, enTete) {
+  const t = it.traduire, c = it.carte;
+  const consigne = sorte("Mes erreurs · à traduire");
+  if (s.phase === "question") {
+    return `<div class="defile">${enTete}${consigne}<p class="corrige">Traduis en espagnol :</p>
+        <p class="enonce">${esc(t.fr)}</p>${zoneIndice(it)}</div>
+      <form class="saisie" data-p-form>
+        <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
+        <button class="primaire" type="submit">Vérifier</button>
+        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </form>`;
+  }
+  const r = s.resultat;
+  const n = (t.piege.match(/\p{L}+/gu) || []).length;
+  const modele = surlignerMorceau(t.es, jugerTraduction(t.es, t).position, n, "bon");
+  const titre = r.ok ? `${s.indice ? "Juste, avec l'indice" : "Juste"} : « ${esc(t.piege)} »` : r.passe ? "La réponse" : `Pas encore : il fallait « ${esc(t.piege)} »`;
+  return `${enTete}${consigne}<p class="enonce petite">${esc(t.fr)}</p>
+    ${s.saisie ? `<p class="tape" lang="es">${surlignerMorceau(s.saisie, r.position, n, "bon")}</p>` : ""}
+    <div class="verdict ${r.ok ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
+      <b>${titre}</b>
+      <div class="bonne">${ecouter(t.es)}<p lang="es">${modele}</p></div>
+      ${r.rappel ? `<p>${esc(r.rappel)}</p>` : ""}
+      ${r.ok ? `<p class="compare">Compare le reste avec la phrase modèle : l'appli ne vérifie que le piège.</p>` : ""}
+      ${c.regle ? `<p class="explication">${esc(c.regle)}</p>` : ""}
+      <p class="revient">Elle revient ${quandRevient(s.fiche)}, avec une autre phrase.</p>
+    </div>
+    <div class="espace"></div>
+    <button class="primaire" data-p="suivant">Suivant</button>`;
+}
+
 // Mes erreurs : la faute telle que le prof l'a notée (en rose), sa note entre parenthèses en petit, et combien de fois.
 function vueErreur(it, enTete) {
+  if (it.traduire) return vueTraduire(it, enTete);
   if (it.cases) return vueErreurCases(it, enTete);
   const c = it.carte;
   const faute = (taille = "") => `<p class="corrige">Corrige :</p>
@@ -738,7 +792,7 @@ function vueFinErreurs() {
     : x.aide ? ["mi", "Indice"] : x.ok ? ["ok", "Juste"] : ["ko", "Demain"];
   const lignes = r.map(x => {
     const [cls, mot] = etiquette(x);
-    const texte = x.it.phrase ? x.it.es : x.it.carte.bonne;
+    const texte = x.it.phrase ? x.it.es : x.it.traduire ? x.it.traduire.es : x.it.carte.bonne;
     const pourquoi = !x.it.phrase && !x.ok && x.astuce ? x.astuce : `revient ${quandRevient(x.fiche)}`;
     return `<li><span class="r ${cls}">${mot}</span><span class="t"><span lang="es">${esc(texte)}</span><small>${esc(pourquoi)}</small></span></li>`;
   }).join("");
@@ -956,6 +1010,14 @@ export async function actionPratique(ctx, action, el) {
         vibrer(s.resultat.note === 3 ? 12 : [8, 60, 8]); son(s.resultat.note === 3 ? "juste" : "rate");
         return true;
       }
+      if (it.type === "erreur" && it.traduire) {
+        s.resultat = jugerTraduction(s.saisie, it.traduire);
+        const ok = s.resultat.ok;
+        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate");
+        s.phase = "reponse";
+        vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
+        return true;
+      }
       if (it.type === "erreur") {
         s.resultat = juger(s.saisie, it.carte);
         const ok = s.resultat.ok;
@@ -985,6 +1047,12 @@ export async function actionPratique(ctx, action, el) {
       }
       if (it.type === "erreur" && it.cases) {
         s.resultat = { ...jugerCases([], it.cases), passe: true };
+        noterCarteErreur(ctx, it, "rate");
+        s.phase = "reponse";
+        return true;
+      }
+      if (it.type === "erreur" && it.traduire) {
+        s.saisie = ""; s.resultat = { ok: false, passe: true, position: -1, rappel: "" };
         noterCarteErreur(ctx, it, "rate");
         s.phase = "reponse";
         return true;
