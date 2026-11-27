@@ -1,4 +1,4 @@
-// Vérifie le soir avec Blanca (chantier 9) : la lecture de l'onglet « Soir » avec ou sans les colonnes
+// Vérifie le soir avec Blanca (chantiers 9 et 20) : la lecture de l'onglet « Soir » avec ou sans les colonnes
 // « pregunta 4 » et « reto » (ancienne copie hors ligne), le découpage du défi « Nom: consigne »,
 // et le tirage de « Otra pregunta » (leçons faites seulement, pas celle du soir, pas deux fois de suite).
 // Lancer depuis appli/ : node outils/test-soir.mjs
@@ -10,7 +10,7 @@ const ici = path.dirname(new URL(import.meta.url).pathname);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "oyb-soir-"));
 fs.copyFileSync(path.join(ici, "..", "donnees.js"), path.join(tmp, "donnees.js"));
 fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
-const { versSoir, lireReto, tirerPregunta, tirerRepaso } = await import(path.join(tmp, "donnees.js"));
+const { versSoir, lireReto, tirerPregunta, tirerRepaso, ligneSoir, COLONNES_SOIRS } = await import(path.join(tmp, "donnees.js"));
 
 let fautes = 0;
 const verifier = (nom, obtenu, attendu) => {
@@ -83,6 +83,37 @@ for (let d = 1; d <= 20; d++) {
 verifier("un autre tirage les autres jours", differents >= 15, true);
 verifier("Kevin : 1re ligne de grammaire de chaque leçon", r1.kevin.map(k => k.texte), r1.questions.map(q => `grammaire ${q.lecon}`));
 verifier("moins de 4 autres leçons : pas de révision", tirerRepaso(tout, new Set(["L1", "L2", "L3", "L4"]), "L4", "2026-11-26"), null);
+
+// 6. Chantier 20 : la question ouverte et ses mots d'aide
+const ouvert = versSoir([
+  ["leçon", "misión", "pregunta 1", "pregunta 2", "pregunta 3", "para Kevin", "pregunta 4", "reto", "Pregunta abierta", "ayuda"],
+  ["U1-L4", "M", "a", "b", "c", "n", "d", "", "Cuéntame tu día", "estoy en mi despacho;  tengo una reunión ; "],
+  ["U1-L5", "M", "a", "b", "c", "n", "d", "", "", ""],
+]);
+verifier("la question ouverte", ouvert["U1-L4"].abierta, "Cuéntame tu día");
+verifier("les mots d'aide, coupés au « ; »", ouvert["U1-L4"].ayuda, ["estoy en mi despacho", "tengo una reunión"]);
+verifier("pas de question ouverte : vide", [ouvert["U1-L5"].abierta, ouvert["U1-L5"].ayuda], ["", []]);
+verifier("ancien Sheet : pas de question ouverte", [ancien["U1-L1"].abierta, ancien["U1-L1"].ayuda], ["", []]);
+verifier("la question ouverte ne compte pas dans les 4 questions", ouvert["U1-L4"].questions, ["a", "b", "c", "d"]);
+
+// Le soir de révision prend la question ouverte d'une des 4 leçons tirées, et ne change pas le reste du tirage.
+const avecOuvertes = Object.fromEntries(Object.entries(tout).map(([l, s]) => [l, { ...s, abierta: `ouverte ${l}`, ayuda: [`aide ${l}`] }]));
+const r2 = tirerRepaso(avecOuvertes, fait6, "L6", "2026-11-26");
+verifier("révision : mêmes questions qu'avant", r2.questions, r1.questions);
+verifier("révision : même défi qu'avant", r2.reto, r1.reto);
+verifier("révision : la question ouverte vient d'une leçon tirée", r1.questions.some(q => q.lecon === r2.abierta.lecon) && r2.abierta.texte === `ouverte ${r2.abierta.lecon}`, true);
+verifier("révision : ses mots d'aide", r2.abierta.ayuda, [`aide ${r2.abierta.lecon}`]);
+verifier("révision sans questions ouvertes : null", r1.abierta, null);
+
+// 7. La ligne de l'onglet « Soirs »
+verifier("9 colonnes", COLONNES_SOIRS.length, 9);
+verifier("pas de soir : pas de ligne", ligneSoir("2026-11-27", { ecoute: true }), null);
+verifier("soir coché sans nota", ligneSoir("2026-11-27", { soir: true, soirLecon: "U1-L4" }), ["2026-11-27", "U1-L4", "", "", "", "", "", "", "no"]);
+const nota = { lecon: "U1-L4", guardada: true, bien: "Habla sin francés", error: "es en casa → está en casa", mejora: "Se bloquea con los números", comida: "Un poco",
+  notas: [{ t: "bien", txt: "estoy cansado", ou: "1" }, { t: "err", txt: "a Huesca → en Huesca", ou: "2" }, { t: "bien", txt: "trabajo desde casa", ou: "abierta" }] };
+verifier("la nota complète", ligneSoir("2026-11-27", { soir: true, ecoute: true, nota }),
+  ["2026-11-27", "U1-L4", "estoy cansado | trabajo desde casa", "a Huesca → en Huesca", "Habla sin francés", "es en casa → está en casa", "Se bloquea con los números", "Un poco", "sí"]);
+verifier("des notes prises, soir pas encore gardé : une ligne quand même", ligneSoir("2026-11-27", { nota: { notas: [{ t: "err", txt: "x" }] } })?.[3], "x");
 
 console.log(fautes ? `\n${fautes} faute(s)` : "✓ Le soir : tout est bon");
 process.exit(fautes ? 1 : 0);

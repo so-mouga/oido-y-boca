@@ -19,7 +19,17 @@
 // Après avoir collé cette version : lancer une fois « testerCarnet » (Google demande l'accès aux Docs), puis
 // Déployer → Gérer les déploiements → crayon → Version : « Nouvelle version » → Déployer.
 
+//
+// L'onglet « Soirs » (chantier 20) : l'appli envoie { cle, quoi: "soir", ligne: [date, leçon, …] } ; le script écrit la ligne de ce jour
+// dans l'onglet « Soirs » du tableau (il le crée avec ses titres s'il n'existe pas), ou la remplace si ce jour y est déjà.
+// Le prof la lit chaque matin. Après avoir collé cette version : lancer une fois « testerSoirs » (Google demande l'accès au tableau),
+// puis Déployer → Gérer les déploiements → crayon → Version : « Nouvelle version » → Déployer.
+
 const DOSSIER = "Oído y Boca – sauvegardes";
+const TABLEAU = "1xG8SU6emfDAjz8Xxh_GTXEgxm5i_G2ixCXKIkcobKxQ"; // « Espagnol – Vocabulaire »
+// Les mêmes titres que COLONNES_SOIRS dans donnees.js.
+const COLONNES_SOIRS = ["fecha", "lección", "apuntado: bien dicho", "apuntado: errores", "lo que ha dicho bien", "un error",
+  "¿ha mejorado? ¿dónde se bloquea?", "comida en español", "escucha"];
 const GARDER = 60;
 const CARNET = "1O4NmpsYuUI5BbBkOqrypKecP_wp9s2J23qGSutxFMHE"; // le Doc du carnet (privé : ce numéro seul ne l'ouvre pas)
 
@@ -65,11 +75,50 @@ function fichiers_(dossier) {
   return liste.sort((a, b) => b.getName().localeCompare(a.getName()));
 }
 
-// L'appli envoie sa progression : { cle, le: "2026-11-23", progression: {…} }.
+// L'onglet « Soirs », créé avec ses titres au premier soir. La date reste du texte (pas de conversion en date par Sheets).
+function ongletSoirs_() {
+  const classeur = SpreadsheetApp.openById(TABLEAU);
+  let f = classeur.getSheetByName("Soirs");
+  if (!f) {
+    f = classeur.insertSheet("Soirs");
+    f.getRange(1, 1, 1, COLONNES_SOIRS.length).setValues([COLONNES_SOIRS]).setFontWeight("bold");
+    f.setFrozenRows(1);
+    f.getRange("A:A").setNumberFormat("@");
+  }
+  return f;
+}
+
+// Écrit la ligne d'un soir, ou remplace celle du même jour.
+function ecrireSoir_(ligne) {
+  const f = ongletSoirs_();
+  const valeurs = COLONNES_SOIRS.map((_, i) => String(ligne[i] == null ? "" : ligne[i]).slice(0, 2000));
+  const dates = f.getLastRow() > 1 ? f.getRange(2, 1, f.getLastRow() - 1, 1).getDisplayValues().map(r => r[0]) : [];
+  const i = dates.indexOf(valeurs[0]);
+  const rang = i >= 0 ? i + 2 : f.getLastRow() + 1;
+  f.getRange(rang, 1, 1, valeurs.length).setNumberFormat("@").setValues([valeurs]);
+}
+
+// À lancer une fois à la main après avoir collé cette version : Google demande l'accès au tableau, puis le journal dit où en est l'onglet.
+function testerSoirs() {
+  const f = ongletSoirs_();
+  Logger.log("Onglet « Soirs » prêt : " + (f.getLastRow() - 1) + " soir(s) déjà écrit(s).");
+}
+
+// L'appli envoie sa progression : { cle, le: "2026-11-23", progression: {…} },
+// ou la ligne d'un soir : { cle, quoi: "soir", ligne: ["2026-11-27", "U1-L4", …] }.
 function doPost(e) {
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, erreur: "envoi illisible" }); }
   if (!d || d.cle !== cle_()) return json_({ ok: false, erreur: "clé refusée" });
+  if (d.quoi === "soir") {
+    if (!Array.isArray(d.ligne) || !/^\d{4}-\d{2}-\d{2}$/.test(d.ligne[0] || "")) return json_({ ok: false, erreur: "soir incomplet" });
+    const verrou = LockService.getScriptLock();
+    verrou.waitLock(20000);
+    try { ecrireSoir_(d.ligne); }
+    catch (err) { return json_({ ok: false, erreur: "onglet Soirs : " + err.message }); }
+    finally { verrou.releaseLock(); }
+    return json_({ ok: true, le: d.ligne[0] });
+  }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d.le || "") || !d.progression || typeof d.progression !== "object") {
     return json_({ ok: false, erreur: "sauvegarde incomplète" });
   }

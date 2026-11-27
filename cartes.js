@@ -7,9 +7,9 @@
 // La mémoire de chaque carte est dans progression.js (etat.mots), sous la clé du mot pour la carte 1 (les anciennes sauvegardes
 // restent bonnes) et « id#n » pour les autres. Chaque carte a son propre rythme ; une seule carte par mot et par jour.
 
-import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=70";
-import { verbeDe } from "./dico.js?v=70";
-import { INTERVALLES, apprisEnAvance } from "./progression.js?v=70";
+import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=71";
+import { verbeDe } from "./dico.js?v=71";
+import { INTERVALLES, apprisEnAvance } from "./progression.js?v=71";
 
 // Le jour d'où compte la carte 1 d'un mot jamais revu : le jour de sa leçon, de son apprentissage en avance, ou de son ajout (mes mots).
 export const departDe = ctx => m => m.moi ? m.le : apprisEnAvance(m.id) || ctx.pos.dateFaite[m.lecon];

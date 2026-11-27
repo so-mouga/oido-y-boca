@@ -86,11 +86,14 @@ export function versSuivi(lignes) {
 
 // Une ligne par leçon : misión, 4 questions (la 4e peut manquer), le défi (« reto », peut manquer) et la note pour moi.
 // La copie hors ligne d'avant la v=43 n'a ni « pregunta 4 » ni « reto » : l'écran fait sans.
+// Chantier 20 : la question ouverte (« pregunta abierta ») et ses mots d'aide (« ayuda », séparés par « ; »), qui peuvent manquer aussi.
 export function versSoir(lignes) {
   const soir = {};
-  const colonnes = { lecon: "leçon", mision: "misión", q1: "pregunta 1", q2: "pregunta 2", q3: "pregunta 3", q4: "pregunta 4", reto: "reto", kevin: "para kevin" };
+  const colonnes = { lecon: "leçon", mision: "misión", q1: "pregunta 1", q2: "pregunta 2", q3: "pregunta 3", q4: "pregunta 4", reto: "reto", kevin: "para kevin",
+    abierta: "pregunta abierta", ayuda: "ayuda" };
   for (const s of versObjets(lignes, colonnes)) {
-    if (s.lecon) soir[s.lecon] = { mision: s.mision, questions: [s.q1, s.q2, s.q3, s.q4].filter(Boolean), reto: s.reto, kevin: s.kevin };
+    if (s.lecon) soir[s.lecon] = { mision: s.mision, questions: [s.q1, s.q2, s.q3, s.q4].filter(Boolean), reto: s.reto, kevin: s.kevin,
+      abierta: s.abierta, ayuda: s.ayuda.split(";").map(x => x.trim()).filter(Boolean) };
   }
   return soir;
 }
@@ -181,5 +184,23 @@ export function tirerRepaso(soir, faites, derniere, jour, hasard = hasardDuJour(
   const kevin = choisies
     .map(id => ({ lecon: id, texte: (soir[id].kevin || "").split(";")[0].trim() }))
     .filter(k => k.texte);
-  return { questions, reto, kevin };
+  // La question ouverte (chantier 20) : celle d'une des 4 leçons tirées, au hasard du jour. null si aucune n'en a.
+  const avecAbierta = choisies.filter(id => soir[id].abierta);
+  const id = avecAbierta.length ? avecAbierta[Math.floor(hasard() * avecAbierta.length)] : null;
+  const abierta = id ? { lecon: id, texte: soir[id].abierta, ayuda: soir[id].ayuda || [] } : null;
+  return { questions, reto, kevin, abierta };
+}
+
+// Chantier 20 : l'onglet « Soirs » du tableau, une ligne par soir, écrite par le script Google de la sauvegarde (le prof la lit le matin).
+// Les titres sont écrits par le script (outils/sauvegarde.gs, même liste). La date sert de clé : renvoyer un jour remplace sa ligne.
+export const COLONNES_SOIRS = ["fecha", "lección", "apuntado: bien dicho", "apuntado: errores", "lo que ha dicho bien", "un error",
+  "¿ha mejorado? ¿dónde se bloquea?", "comida en español", "escucha"];
+
+// La ligne d'un jour, à partir de ses cases (soir, écoute, nota de Blanca). null si le soir n'a pas eu lieu (rien coché, rien noté).
+export function ligneSoir(jour, c = {}) {
+  const n = c.nota || {};
+  const notas = n.notas || [];
+  if (!c.soir && !n.guardada && !notas.length) return null;
+  const de = t => notas.filter(x => x.t === t).map(x => x.txt).join(" | ");
+  return [jour, n.lecon || c.soirLecon || "", de("bien"), de("err"), n.bien || "", n.error || "", n.mejora || "", n.comida || "", c.ecoute ? "sí" : "no"];
 }

@@ -1,29 +1,29 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=70";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=70";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=70";
-import { ECOUTES } from "./ecoute.js?v=70";
-import { preparerVoix } from "./voix.js?v=70";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=70";
-import { vibrer } from "./retours.js?v=70";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=70";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=70";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=70";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=70";
-import { ecranLivre } from "./ecrans/livre.js?v=70";
-import { ecranLecon } from "./ecrans/lecon.js?v=70";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra } from "./ecrans/soir.js?v=70";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=70";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=70";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=70";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=70";
-import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=70";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=70";
-import { ecranLectures } from "./ecrans/lectures.js?v=70";
-import { ecranJeux } from "./ecrans/jeux.js?v=70";
-import { envoyerGoogle, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=70";
+import { chargerTableau } from "./donnees.js?v=71";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=71";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=71";
+import { ECOUTES } from "./ecoute.js?v=71";
+import { preparerVoix } from "./voix.js?v=71";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=71";
+import { vibrer } from "./retours.js?v=71";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=71";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=71";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=71";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=71";
+import { ecranLivre } from "./ecrans/livre.js?v=71";
+import { ecranLecon } from "./ecrans/lecon.js?v=71";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=71";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=71";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=71";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=71";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=71";
+import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=71";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=71";
+import { ecranLectures } from "./ecrans/lectures.js?v=71";
+import { ecranJeux } from "./ecrans/jeux.js?v=71";
+import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=71";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -114,6 +114,20 @@ app.addEventListener("submit", async e => {
     envoiToucher(ctx, e.target);
     return;
   }
+  // Para Blanca (chantier 20) : « Apuntar » garde la note ; « Guardar » garde la nota, coche « Ce soir » et l'envoie à l'onglet « Soirs ».
+  if (e.target.matches("[data-apuntar-form]")) {
+    e.preventDefault();
+    if (envoiApunte(ctx, e.target)) { vibrer(); afficher(); }
+    return;
+  }
+  if (e.target.matches("[data-nota-form]")) {
+    e.preventDefault();
+    const suite = guardarNota(ctx, e.target, location.hash.includes("/fiche") ? "fiche" : null);
+    vibrer();
+    envoyerSoirs(ctx.jour);
+    location.replace(suite);
+    return;
+  }
   if (e.target.matches("[data-mm-form]")) {
     e.preventDefault();
     if (envoiMesMots(ctx, e.target)) afficher();
@@ -158,6 +172,12 @@ app.addEventListener("click", async e => {
     bloc.querySelectorAll("[data-panneau]").forEach(p => { p.hidden = p.dataset.panneau !== onglet.dataset.temps; });
     // « Conjuguer seulement » (l'ancien « M'entraîner sur ce verbe ») suit l'onglet ouvert (chantier 16).
     document.querySelectorAll("a[data-serie]").forEach(l => { const t = onglet.dataset.temps; l.href = `${l.dataset.serie}/${t}`; l.textContent = `Conjuguer seulement${t === "present" ? "" : ` · ${onglet.dataset.nom}`}`; });
+    return;
+  }
+  // Para Blanca : « Apuntar » (ouvre une case), « Cancelar », « × » sur une note.
+  const bl = actionBlanca(ctx, e);
+  if (bl !== null) {
+    if (bl) afficher();
     return;
   }
   // Para Blanca : « Otra pregunta » tire une question d'une leçon déjà faite, sans redessiner l'écran.
@@ -207,6 +227,8 @@ app.addEventListener("click", async e => {
     const cle = caseCochee.dataset.cocher;
     const oui = !cases(ctx.jour)[cle];
     cocher(ctx.jour, cle, oui);
+    // « C'est fait pour ce soir » sans nota : la leçon du soir, pour la ligne de l'onglet « Soirs ».
+    if (cle === "soir" && oui) cocher(ctx.jour, "soirLecon", leconDuSoir(ctx, location.hash.includes("/fiche") ? "fiche" : null));
     vibrer();
     // L'écoute faite : « Tu as gardé des mots ? »
     if (cle === "ecoute" && oui) location.hash = "#/mes-mots/ecoute";
@@ -241,6 +263,7 @@ app.addEventListener("click", async e => {
 // La recherche du Dico : chaque lettre met à jour la liste, sans redessiner l'écran (le clavier reste ouvert).
 app.addEventListener("input", e => {
   if (e.target.matches("[data-cherche]")) majRecherche(ctx, e.target.value);
+  if (e.target.closest("[data-nota-form]")) brouillonNota(ctx, e.target.closest("[data-nota-form]"));
   if (e.target.matches("[data-cherche-page]")) majRecherchePage(ctx, e.target.dataset.cherchePage, e.target.value);
 });
 

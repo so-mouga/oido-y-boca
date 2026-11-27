@@ -5,14 +5,14 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=70";
-import { corriger } from "../corriger.js?v=70";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=70";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=70";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=70";
-import { motVu } from "../dico.js?v=70";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=70";
-import { vibrer, son } from "../retours.js?v=70";
+import { esc, md, ICONES } from "../ui.js?v=71";
+import { corriger } from "../corriger.js?v=71";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=71";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=71";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=71";
+import { motVu } from "../dico.js?v=71";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=71";
+import { vibrer, son } from "../retours.js?v=71";
 
 // Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
 // travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi

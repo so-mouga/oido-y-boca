@@ -2,12 +2,14 @@
 // L'appli envoie la progression quand elle s'ouvre et quand on la quitte, seulement si elle a changé.
 // Le lien du script (adresse + « #clé ») est collé une fois et gardé sur le téléphone : jamais dans le code.
 
-import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu, fichesErreurs, remplacerErreurs } from "./progression.js?v=70";
-import { dateCourte } from "./ui.js?v=70";
-import { lireCarnet, garderCarnet, carnetActuel, synchroniser } from "./carnet.js?v=70";
+import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu, fichesErreurs, remplacerErreurs, cases } from "./progression.js?v=71";
+import { ligneSoir } from "./donnees.js?v=71";
+import { dateCourte } from "./ui.js?v=71";
+import { lireCarnet, garderCarnet, carnetActuel, synchroniser } from "./carnet.js?v=71";
 
 const CLE_LIEN = "oyb.google";           // { url, cle }
 const CLE_ENVOI = "oyb.google.envoi";    // { empreinte, echec } : le dernier envoi réussi, et s'il a raté depuis
+const CLE_SOIRS = "oyb.google.soirs";    // { "2026-11-27": empreinte } : les lignes « Soirs » déjà écrites dans le tableau
 
 const lireJson = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
 const ecrireJson = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v)); } catch { /* stockage indisponible */ } };
@@ -66,11 +68,46 @@ export async function rafraichirCarnet() {
   }
 }
 
+// L'onglet « Soirs » (chantier 20) : la ligne des 7 derniers soirs, seulement celles qui ont changé depuis leur dernier envoi
+// (la nota de Blanca, ou l'écoute cochée plus tard). Un échec n'abîme pas la sauvegarde : on réessaiera au prochain envoi.
+// Un script pas encore mis à jour répond « sauvegarde incomplète » : rien n'est noté, la ligne repartira après le nouveau déploiement.
+export async function envoyerSoirs(jour, { enPartant = false } = {}) {
+  const l = lien();
+  if (!l || enApercu() || !jour) return false;
+  const faits = lireJson(CLE_SOIRS, {});
+  let ok = false;
+  for (let k = 0; k < 7; k++) {
+    const d = new Date(jour + "T12:00:00"); d.setDate(d.getDate() - k);
+    const j = d.toISOString().slice(0, 10);
+    const ligne = ligneSoir(j, cases(j));
+    if (!ligne) continue;
+    const e = empreinte(JSON.stringify(ligne));
+    if (faits[j] === e) continue;
+    try {
+      await appeler(fetch(l.url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ cle: l.cle, quoi: "soir", ligne }),
+        keepalive: enPartant,
+      }));
+      faits[j] = e;
+      ok = true;
+    } catch (err) {
+      console.warn("Onglet Soirs :", err.message);
+      break;
+    }
+  }
+  const garder = Object.keys(faits).sort().slice(-14);
+  ecrireJson(CLE_SOIRS, Object.fromEntries(garder.map(j => [j, faits[j]])));
+  return ok;
+}
+
 // Envoie la progression si elle a changé. « enPartant » : l'appli passe en arrière-plan, la requête doit survivre.
 // Renvoie true si un envoi a réussi (l'écran peut alors afficher la nouvelle date).
 export async function envoyerGoogle(jour, { force = false, enPartant = false } = {}) {
   const l = lien();
   if (!l || enApercu() || !jour) return false;
+  envoyerSoirs(jour, { enPartant });
   const texte = donneesSauvegarde(jour);
   const e = empreinte(texte);
   const avant = lireJson(CLE_ENVOI, {});

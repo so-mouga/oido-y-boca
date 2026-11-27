@@ -891,3 +891,52 @@ mark .tx-mot.touche { box-shadow: none; }
 .mots-exo .mc-ecoute .ecoute.grand { width: 72px; height: 72px; }
 .mots-exo .mc-sens { display: flex; align-items: center; justify-content: center; gap: 12px; }
 .mots-exo .verdict p + p { margin-top: 4px; }
+
+/* Le soir avec Blanca, une question par écran (chantier 20) */
+.barre-soir { display: flex; gap: 5px; margin-top: -8px; }
+.barre-soir i { flex: 1; height: 4px; border-radius: 2px; background: var(--night-line); }
+.barre-soir i.ok { background: var(--sun); }
+.une-question { display: flex; flex-direction: column; gap: 6px; }
+.une-question .grande { font-size: 25px; line-height: 1.35; font-weight: 500; text-wrap: pretty; margin: 0; }
+.une-question .consigne { font-size: 14px; font-weight: 400; margin-bottom: 4px; }
+.une-question .de { font-size: 12px; color: var(--night-muted); }
+.etiq-abierta { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--sun-halo); }
+.relances { display: flex; flex-direction: column; gap: 4px; padding-top: 14px; border-top: 1px solid var(--night-line); }
+.blanca .relances .puces li { font-size: 15px; padding: 7px 12px; }
+.ayuda { border: 1px dashed #3D5275; border-radius: 16px; padding: 12px 14px; }
+.ayuda summary { cursor: pointer; font-size: 15px; font-weight: 500; color: var(--sun-halo); list-style: none; }
+.ayuda summary::-webkit-details-marker { display: none; }
+.ayuda[open] summary { margin-bottom: 8px; }
+.blanca .ayuda .puces li { border-color: var(--sun-halo); color: var(--sun-halo); }
+.ytu { display: flex; gap: 10px; align-items: baseline; margin: 0; background: #1B3459; border: 1px solid #3D5275; border-radius: 16px; padding: 12px 14px; font-size: 15px; line-height: 1.4; }
+.ytu b { color: var(--sun-halo); font-weight: 600; white-space: nowrap; }
+.notas { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 6px; }
+.notas li { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; border-left: 3px solid var(--sun); padding: 4px 0 4px 10px; font-size: 15px; line-height: 1.4; }
+.notas li.err { border-color: #E98A6B; }
+.notas small { display: block; color: var(--night-muted); font-size: 12px; }
+.notas .suppr { color: var(--night-muted); font-size: 20px; line-height: 1; padding: 2px 6px; }
+.apuntar { display: flex; gap: 8px; }
+.apuntar button, .zone-apuntar .boutons button { flex: 1; font-size: 15px; font-weight: 500; color: var(--sun-ground); border: 1.5px solid #3D5275; border-radius: 14px; padding: 12px 8px; }
+.zone-apuntar { display: flex; flex-direction: column; gap: 8px; background: #1B3459; border-radius: 16px; padding: 12px; }
+.zone-apuntar label { font-size: 14px; color: var(--night-muted); }
+.zone-apuntar textarea, .champ-nota textarea { font: inherit; font-size: 16px; border-radius: 12px; border: 1px solid #3D5275; background: #0F2240; color: var(--sun-ground); padding: 10px; resize: vertical; caret-color: var(--sun); }
+.zone-apuntar .boutons { display: flex; gap: 8px; }
+.zone-apuntar .boutons .ok { background: var(--sun); color: var(--night); border-color: var(--sun); font-weight: 600; }
+.pasos { margin-top: auto; display: flex; gap: 10px; padding-top: 6px; }
+.pasos .prec { display: grid; place-items: center; width: 58px; border: 1.5px solid #3D5275; border-radius: 16px; color: var(--sun-ground); }
+.pasos .suiv { flex: 1; background: var(--sun); color: var(--night); border-radius: 16px; padding: 15px; font-size: 17px; font-weight: 600; text-align: center; }
+.blanca .empezar { font-size: 17px; }
+.nota { display: flex; flex-direction: column; gap: 16px; }
+.champ-nota { display: flex; flex-direction: column; gap: 6px; font-size: 15px; font-weight: 500; }
+.champ-nota small { color: var(--night-muted); font-weight: 400; }
+.comida { border: 0; padding: 0; margin: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.comida legend { font-size: 15px; font-weight: 500; margin-bottom: 8px; padding: 0; }
+.comida label { flex: 1; }
+.comida input { position: absolute; opacity: 0; pointer-events: none; }
+.comida span { display: block; text-align: center; border: 1px solid #3D5275; border-radius: 12px; padding: 10px 4px; font-size: 15px; cursor: pointer; }
+.comida input:checked + span { background: var(--sun); color: var(--night); border-color: var(--sun); font-weight: 600; }
+.comida input:focus-visible + span { outline: 2px solid var(--sun-halo); outline-offset: 2px; }
+.merci { font-size: 26px; font-weight: 600; line-height: 1.3; margin-top: 40px; }
+.nota-blanca .q { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
+.nota-blanca p { margin: 2px 0 0; }
+.nota-blanca .apuntado { list-style: none; padding: 0; margin: 2px 0 0; font-size: 15px; line-height: 1.45; }
