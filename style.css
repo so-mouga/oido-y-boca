@@ -979,3 +979,8 @@ mark .tx-mot.touche { box-shadow: none; }
 /* Mes erreurs, « Traduis » (point 8 quindecies) : la phrase rappelée en plus petit au verso, et la consigne de comparaison. */
 .enonce.petite { font-size: 18px; }
 .verdict .compare { font-size: 13.5px; color: var(--marine-soft); }
+/* « On me comprend ? » (chantier 24) : les mots compris par le téléphone, un indice et jamais une note. */
+.carte-reponse .es.compris span.oui { color: var(--sage-ink); }
+.carte-reponse .es.compris span.non { color: var(--fog); }
+.compris-n { font-size: 13px; font-weight: 600; color: var(--marine-soft); }
+.entendu { font-size: 12.5px; color: var(--muted); font-style: italic; }

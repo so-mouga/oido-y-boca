@@ -1,29 +1,29 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=76";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=76";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=76";
-import { ECOUTES } from "./ecoute.js?v=76";
-import { preparerVoix } from "./voix.js?v=76";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=76";
-import { vibrer } from "./retours.js?v=76";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=76";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=76";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=76";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=76";
-import { ecranLivre } from "./ecrans/livre.js?v=76";
-import { ecranLecon } from "./ecrans/lecon.js?v=76";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=76";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=76";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=76";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=76";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=76";
-import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=76";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=76";
-import { ecranLectures } from "./ecrans/lectures.js?v=76";
-import { ecranJeux } from "./ecrans/jeux.js?v=76";
-import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=76";
+import { chargerTableau } from "./donnees.js?v=77";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=77";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=77";
+import { ECOUTES } from "./ecoute.js?v=77";
+import { preparerVoix } from "./voix.js?v=77";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=77";
+import { vibrer } from "./retours.js?v=77";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=77";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=77";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=77";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=77";
+import { ecranLivre } from "./ecrans/livre.js?v=77";
+import { ecranLecon } from "./ecrans/lecon.js?v=77";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=77";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=77";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=77";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=77";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=77";
+import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=77";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=77";
+import { ecranLectures } from "./ecrans/lectures.js?v=77";
+import { ecranJeux } from "./ecrans/jeux.js?v=77";
+import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=77";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -268,6 +268,8 @@ app.addEventListener("input", e => {
 });
 
 window.addEventListener("hashchange", () => afficher(true));
+// Le micro « On me comprend ? » (chantier 24, micro.js) répond après coup : il demande de redessiner l'écran.
+window.addEventListener("oyb-redessiner", () => afficher());
 
 // Le micro : appuyer et rester appuyé pour parler, relâcher pour arrêter.
 app.addEventListener("pointerdown", async e => {

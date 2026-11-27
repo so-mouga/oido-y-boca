@@ -7,27 +7,30 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=76";
-import { lecon as trouver } from "../position.js?v=76";
-import { EXERCICES } from "../exercices.js?v=76";
-import { corriger } from "../corriger.js?v=76";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=76";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=76";
-import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=76";
-import { dire } from "../voix.js?v=76";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=76";
-import { RESERVE } from "../erreurs-phrases.js?v=76";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=76";
-import { BONUS } from "../bonus.js?v=76";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=76";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=76";
-import { mettreMotEnCours } from "../motsencours.js?v=76";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=76";
-import { vibrer, son } from "../retours.js?v=76";
+import { esc, md, id, ICONES } from "../ui.js?v=77";
+import { lecon as trouver } from "../position.js?v=77";
+import { EXERCICES } from "../exercices.js?v=77";
+import { corriger } from "../corriger.js?v=77";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=77";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=77";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=77";
+import { dire } from "../voix.js?v=77";
+import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=77";
+// Le micro « On me comprend ? » répond plus tard : l'écran se redessine par cet événement (écouté dans app.js).
+const redessiner = () => window.dispatchEvent(new Event("oyb-redessiner"));
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=77";
+import { RESERVE } from "../erreurs-phrases.js?v=77";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=77";
+import { BONUS } from "../bonus.js?v=77";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=77";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=77";
+import { mettreMotEnCours } from "../motsencours.js?v=77";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=77";
+import { vibrer, son } from "../retours.js?v=77";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=76";
+} from "../enregistrement.js?v=77";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -465,23 +468,38 @@ function vueDire(it) {
   const tete = it.phrase
     ? `${sorte("Mes erreurs · à dire à voix haute")}<p class="enonce">${esc(it.fr)}</p>${it.sujet ? `<p class="sous">${esc(it.sujet)}</p>` : ""}`
     : `${sorte("À dire · à voix haute")}<p class="enonce">${esc(it.fr)}</p>`;
+  // « On me comprend ? » (chantier 24) : avec la reconnaissance du téléphone, on touche le micro et on parle ;
+  // la réponse arrive avec les mots compris en vert. Sans elle, l'enregistrement d'avant (rester appuyé).
   if (s.phase === "question") {
-    const micro = enregistrementPossible()
+    const micro = reconnaissancePossible()
+      ? `<button class="micro${s.ecoute ? " on" : ""}" data-p="ecouter-dire" aria-label="${s.ecoute ? "Je t'écoute, touche pour finir" : "Touche pour parler"}">${ICONES.micro}<span class="chrono">${s.ecoute ? "Je t'écoute… touche pour finir" : "Touche le micro et dis la phrase"}</span></button>`
+      : enregistrementPossible()
       ? `${s.astuce ? `<p class="astuce" role="status">${esc(s.astuce)}</p>` : ""}
         <button class="micro" data-micro aria-label="Reste appuyé pour t'enregistrer">${ICONES.micro}<span class="chrono">Appuie et reste appuyé pour parler</span></button>`
       : `<p class="sous">Dis-le à voix haute, puis regarde la réponse.</p>`;
     return `${tete}${zoneIndice(it)}<div class="espace"></div>${micro}<div class="espace"></div>
       <div class="aides">${boutonIndice(it)}<button class="secondaire" data-p="voir">Voir la réponse</button></div>`;
   }
+  // Ce que le téléphone a compris : un indice, jamais une note (Google corrige parfois la grammaire).
+  const x = s.entendu && compris(it.es, s.entendu.alternatives);
+  const phrase = x
+    ? `<p class="es compris" lang="es">${x.liste.map(m => `<span class="${m.oui ? "oui" : "non"}">${esc(m.w)}</span>`).join(" ")}</p>
+      <p class="compris-n" role="status">${!s.entendu.texte ? "Je n'ai rien entendu. Rapproche le téléphone et redis-la." : x.n === x.sur ? "¡Perfecto! Tout est compris." : `${x.n} mot${x.n > 1 ? "s" : ""} sur ${x.sur} compris`}</p>
+      ${s.entendu.texte ? `<p class="entendu">J'ai entendu : « <span lang="es">${esc(s.entendu.texte)}</span> »</p>` : ""}
+      <p class="entendu">Le vert est un indice : le téléphone corrige parfois la grammaire. C'est toi qui notes.</p>`
+    : `<p class="es" lang="es">${phraseTouchable(ctxVue, it.es)}</p>`;
+  const redire = reconnaissancePossible()
+    ? `<button class="reessai${s.ecoute ? " on" : ""}" data-p="ecouter-dire"><span class="chrono">${s.ecoute ? "Je t'écoute… touche pour finir" : x ? "Touche ici pour la redire" : "Touche ici pour la dire"}</span></button>`
+    : "";
   return `${tete}
     <div class="carte-reponse">
       <p class="sous">La réponse</p>
-      <p class="es" lang="es">${phraseTouchable(ctxVue, it.es)}</p>
+      ${phrase}
       <div class="deux">
         <button data-dire="${esc(it.es)}" aria-pressed="false">${ICONES.lecture}Le modèle</button>
         ${aUnEnregistrement() ? `<button data-voix aria-pressed="false">${ICONES.lecture}Ma voix</button>` : ""}
       </div>
-      ${enregistrementPossible() ? `<button class="reessai" data-micro><span class="chrono">${aUnEnregistrement() ? "Reste appuyé ici pour te réenregistrer" : "Reste appuyé ici pour t'enregistrer"}</span></button>` : ""}
+      ${redire || (enregistrementPossible() ? `<button class="reessai" data-micro><span class="chrono">${aUnEnregistrement() ? "Reste appuyé ici pour te réenregistrer" : "Reste appuyé ici pour t'enregistrer"}</span></button>` : "")}
       ${s.astuce ? `<p class="astuce" role="status">${esc(s.astuce)}</p>` : ""}
     </div>
     <div class="espace"></div>
@@ -963,7 +981,9 @@ function suivant() {
   effacerEnregistrement();
   arreterLecture();
   s.depuis = s.i;
+  arreterEcoute();
   s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.formes = null; s.astuce = ""; s.indice = 0; s.dit = false; s.ecoutes = 0;
+  s.entendu = null; s.ecoute = false;
 }
 
 // Renvoie "suivant" quand on passe à un autre exercice (l'écran change, avec la transition),
@@ -1110,6 +1130,22 @@ export async function actionPratique(ctx, action, el) {
     case "suivant":
       suivant();
       return "suivant";
+    case "ecouter-dire": { // « On me comprend ? » : toucher le micro pour parler, toucher encore pour finir
+      if (ecouteEnCours()) { ecouterMicro({}); return false; }
+      arreterLecture();
+      const i = s.i;
+      s.ecoute = true; s.astuce = "";
+      ecouterMicro({
+        fin: r => { if (s?.i !== i) return; s.ecoute = false; s.entendu = r; s.phase = "reponse"; vibrer(8); redessiner(); },
+        echec: () => {
+          if (s?.i !== i) return;
+          s.ecoute = false;
+          s.astuce = "Le téléphone ne peut pas t'écouter (pas de réseau ?) : enregistre-toi, puis compare avec le modèle.";
+          redessiner();
+        },
+      });
+      return true;
+    }
     case "reecoute": { // la carte 5 : 2 réécoutes au plus, normales ou lentes ; l'écran n'est pas redessiné (ta saisie reste)
       if (it.type !== "oreille" || (s.ecoutes || 0) >= REECOUTES) return false;
       s.ecoutes = (s.ecoutes || 0) + 1;

@@ -2,7 +2,7 @@
 // Fait = une ligne de type « leçon » pour cette leçon. L'appli n'ouvre que ce qui est fait.
 // Chantier 22 : la prochaine séance avec le prof (leçon, contrôle, consolidation ou oral), dans l'ordre du prof (prochaineSeance).
 
-import { PARTIES } from "./livre.js?v=76";
+import { PARTIES } from "./livre.js?v=77";
 
 export const UNITES = PARTIES.flatMap(p => p.unites.map(u => ({ ...u, partie: p.n })));
 export const LECONS = UNITES.flatMap(u => u.lecons.map(l => ({ ...l, unite: u, partie: u.partie })));
