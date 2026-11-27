@@ -147,6 +147,19 @@ egal(P.valeurAvant(jour(3), "attente"), 58, "la veille notée (un jour sans chif
 egal(P.valeurAvant(jour(4), "attente"), 0, "0 compte comme une valeur");
 egal(P.valeurAvant(jour(1), "attente"), null, "rien avant");
 
+// ——— « On me comprend ? » (micro.js) : les mots compris, jamais une note ———
+const M = await import(path.join(tmp, "micro.js"));
+const vert = (phrase, alt) => { const x = M.compris(phrase, alt); return `${x.n}/${x.sur}`; };
+const PH = "Este domingo comemos con mi suegro.";
+egal(vert(PH, ["este domingo comemos con mi suegro"]), "6/6", "micro : tout compris");
+egal(vert(PH, ["este domingo comemos mi suegro"]), "5/6", "micro : « con » avalé");
+egal(M.compris(PH, ["este domingo comemos mi suegro"]).liste.filter(x => !x.oui).map(x => x.w), ["con"], "micro : le mot gris est « con »");
+egal(vert(PH, ["el domingo como con mi suegra", "este domingo comemos con mi suegro"]), "6/6", "micro : une des 3 versions suffit");
+egal(vert("¿Puedes repetir, por favor?", ["puedes repetir por favor"]), "4/4", "micro : ¿ ? et virgule ignorés");
+egal(vert("Hace muchos años.", ["hace muchos anos"]), "3/3", "micro : ñ et accents ignorés");
+egal(vert(PH, []), "0/6", "micro : rien entendu");
+ok(!M.reconnaissancePossible(), "micro : sans navigateur, pas de reconnaissance (l'enregistrement prend le relais)");
+
 // ——— tout le Sheet ———
 if (process.argv[2]) {
   const mots = versMots(lireCsv(fs.readFileSync(process.argv[2], "utf8")));
