@@ -3,10 +3,10 @@
 // Les soirs sans nouvelle fiche (celle de la dernière leçon déjà faite un soir d'avant), c'est un soir de révision :
 // 4 questions de 4 anciennes leçons et un autre défi, fixes pour la journée. « /fiche » remet la fiche normale.
 
-import { esc, id, ICONES, barreOnglets } from "../ui.js?v=72";
-import { cases, cocher, dernierJourCoche } from "../progression.js?v=72";
-import { GUIDE_HTML } from "../guide.js?v=72";
-import { lireReto, tirerPregunta, tirerRepaso } from "../donnees.js?v=72";
+import { esc, id, ICONES, barreOnglets } from "../ui.js?v=73";
+import { cases, cocher, dernierJourCoche } from "../progression.js?v=73";
+import { GUIDE_HTML } from "../guide.js?v=73";
+import { lireReto, tirerPregunta, tirerRepaso } from "../donnees.js?v=73";
 
 function fiche(ctx) {
   const l = ctx.pos.derniere;
@@ -102,6 +102,10 @@ const HASARD = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M
 export const RELANCES = ["¿Por qué?", "¿Y antes?", "¿Cuál prefieres?", "Cuéntame más"];
 const relances = titre => `<div class="relances"><span class="sous">${titre}</span><ul class="puces">${RELANCES.map(r => `<li>${esc(r)}</li>`).join("")}</ul></div>`;
 
+// « Tu clase de hoy » (Q20-8) : le premier écran des soirs de fiche (pas des soirs de révision). Toujours la même question,
+// pour que je raconte ma leçon du matin ; les mots de la leçon en aide. Des mots transparents (clase, frase) : une formule apprise à force.
+export const CLASE = "Cuéntame tu clase de hoy: ¿qué palabras nuevas tienes? ¿Qué frase sabes decir?";
+
 // La nota de Blanca, dans les cases du jour : { lecon, notas: [{ t: "bien" | "err", txt, ou }], bien, error, mejora, comida, guardada }.
 export const notaDuJour = jour => cases(jour).nota || null;
 const changerNota = (ctx, champs) => cocher(ctx.jour, "nota", { notas: [], ...notaDuJour(ctx.jour), ...champs });
@@ -129,12 +133,12 @@ function soiree(ctx, mode) {
   } else {
     const f = fiche(ctx);
     if (!f?.soir) return null;
-    s = { repaso: false, mision: f.soir.mision, mots: f.mots, otra: !!tirerPregunta(ctx.soir, ctx.pos.faites, f.lecon.id),
+    s = { repaso: false, mision: f.soir.mision, mots: f.mots, otra: !!tirerPregunta(ctx.soir, ctx.pos.faites, f.lecon.id), clase: true,
       questions: f.soir.questions.map(texte => ({ texte })),
       abierta: f.soir.abierta ? { texte: f.soir.abierta, ayuda: f.soir.ayuda || [] } : null,
       reto: lireReto(f.soir.reto) };
   }
-  const etapes = ["inicio", ...s.questions.map((_, i) => String(i + 1)), s.abierta && "abierta", (s.reto || s.otra) && "reto", "nota", "gracias"].filter(Boolean);
+  const etapes = ["inicio", s.clase && "clase", ...s.questions.map((_, i) => String(i + 1)), s.abierta && "abierta", (s.reto || s.otra) && "reto", "nota", "gracias"].filter(Boolean);
   return { ...s, etapes, base, retour, guia, mode, href: e => `${base}/${e}` };
 }
 
@@ -145,7 +149,7 @@ const pas = (s, etape, suivant = "Siguiente") => {
 };
 // La barre d'avancement : une case par question (ouverte comprise) et une pour le défi.
 const avance = (s, etape) => {
-  const qs = s.etapes.filter(e => /^\d+$|^abierta$|^reto$/.test(e));
+  const qs = s.etapes.filter(e => /^\d+$|^clase$|^abierta$|^reto$/.test(e));
   const k = qs.indexOf(etape);
   return `<div class="barre-soir" aria-hidden="true">${qs.map((_, j) => `<i${j <= k ? ' class="ok"' : ""}></i>`).join("")}</div>`;
 };
@@ -174,6 +178,21 @@ export function ecranBlanca(ctx, a, b) {
         ${s.mots.length ? `<section aria-labelledby="t-pal"><h2 id="t-pal">Las palabras que tiene que usar</h2>${puces(s.mots)}</section>` : ""}
         <a class="primaire soleil empezar" href="${s.href(s.etapes[1])}">Empezar</a>
         <footer class="pie"><a class="lien" href="${s.guia}">Guía para Blanca</a><span class="sous">Al final: tu nota</span></footer>`);
+  }
+
+  if (etape === "clase") {
+    return page(`${enTete(s, "Tu clase de hoy")}
+        ${avance(s, etape)}
+        <div class="une-question">
+          <span class="etiq-abierta">Para empezar · su clase de esta mañana</span>
+          <p class="grande">${esc(CLASE)}</p>
+        </div>
+        ${relances("Si contesta corto:")}
+        ${s.mots.length ? `<details class="ayuda"><summary>Si se bloquea: las palabras de la lección</summary>
+          <span class="sous">Puedes soplarle:</span>${puces(s.mots)}</details>` : ""}
+        ${listeNotas(notasDe(ctx, etape))}
+        ${boutonsApuntar(etape)}
+        ${pas(s, etape)}`);
   }
 
   if (/^\d+$/.test(etape) || etape === "abierta") {

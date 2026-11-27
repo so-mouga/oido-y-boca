@@ -12,16 +12,16 @@
 // jamais ceux des réponses : la bulle donnerait la réponse.
 // Le moteur (choix du jour, réponses, ampoule) est dans charla.js ; les conversations dans charlas/.
 
-import { esc, ICONES, barreOnglets, id } from "../ui.js?v=72";
-import { LECONS } from "../position.js?v=72";
-import { phraseTouchable } from "../toucher.js?v=72";
-import { etatJeux, garderJeux } from "../progression.js?v=72";
-import { dire, taire } from "../voix.js?v=72";
-import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=72";
-import { chispa } from "../mascotte.js?v=72";
-import * as J from "../jeux.js?v=72";
-import * as C from "../charla.js?v=72";
-import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=72";
+import { esc, ICONES, barreOnglets, id } from "../ui.js?v=73";
+import { LECONS } from "../position.js?v=73";
+import { phraseTouchable } from "../toucher.js?v=73";
+import { etatJeux, garderJeux } from "../progression.js?v=73";
+import { dire, taire } from "../voix.js?v=73";
+import { demarrerEnregistrement, arreterEnregistrement, reecouterEnregistrement, effacerEnregistrement, enregistrementEnCours } from "../enregistrement.js?v=73";
+import { chispa } from "../mascotte.js?v=73";
+import * as J from "../jeux.js?v=73";
+import * as C from "../charla.js?v=73";
+import { CHARLAS, TROUPE, BLOCS } from "../charlas/index.js?v=73";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
