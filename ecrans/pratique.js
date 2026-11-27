@@ -7,24 +7,26 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=74";
-import { lecon as trouver } from "../position.js?v=74";
-import { EXERCICES } from "../exercices.js?v=74";
-import { corriger } from "../corriger.js?v=74";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=74";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie } from "../cartes.js?v=74";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=74";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=74";
-import { BONUS } from "../bonus.js?v=74";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=74";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=74";
-import { mettreMotEnCours } from "../motsencours.js?v=74";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=74";
-import { vibrer, son } from "../retours.js?v=74";
+import { esc, md, id, ICONES } from "../ui.js?v=75";
+import { lecon as trouver } from "../position.js?v=75";
+import { EXERCICES } from "../exercices.js?v=75";
+import { corriger } from "../corriger.js?v=75";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=75";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=75";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=75";
+import { dire } from "../voix.js?v=75";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=75";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=75";
+import { BONUS } from "../bonus.js?v=75";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=75";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=75";
+import { mettreMotEnCours } from "../motsencours.js?v=75";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=75";
+import { vibrer, son } from "../retours.js?v=75";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=74";
+} from "../enregistrement.js?v=75";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -65,10 +67,13 @@ export function motsDus(ctx) {
 // Combien de cartes on peut encore revoir aujourd'hui avant le plafond.
 export const resteDuJour = ctx => Math.max(0, PLAFOND - (Number(cases(ctx.jour).revision) || 0));
 
-// Une carte de la révision → une question. Carte 1 : la carte retournée d'avant. Cartes 2, 3… : à écrire.
+// Une carte de la révision → une question. Carte 1 : « Dis-le à voix haute, puis écris-le » (chantier 24, ecrite).
+// Cartes 2, 3, 4 : à écrire. Carte 5 : « à l'oreille », la voix dit l'exemple et je l'écris (chantier 24).
+// (Les cartes d'une leçon, elles, restent des cartes qu'on retourne : serieLecon.)
 function itemDeCarte(c) {
   const m = c.mot;
-  if (c.n === 1) return { type: "carte", mot: m, n: 1 };
+  if (c.n === 1) return { type: "carte", mot: m, n: 1, ecrite: true };
+  if (c.n === ORE) return { type: "oreille", mot: m, n: ORE, cle: cleCarte(m.id, ORE), lecon: m.lecon, phrase: m.ex, motCarte: c.trou.reponse };
   const commun = { type: "ecrire", lecon: m.lecon, mot: m, n: c.n, cle: cleCarte(m.id, c.n) };
   if (c.n === 2) return { ...commun, consigne: "Complète", fr: c.trou.phrase, es: [c.trou.reponse], aideFr: m.fr };
   return { ...commun, consigne: "Traduis", fr: c.phrase.fr, es: c.phrase.es, sens: c.phrase.aide };
@@ -180,7 +185,7 @@ const notes = (question, avecCriteres) => s.indice
 // 1. les lignes de règle de la leçon qui concernent la phrase (regles.js) ; 2. la première lettre de chaque mot (« V··· e· H····· »).
 // Pour une carte (la carte retournée et les cartes à écrire de la révision), jamais de règle (Q18-5) : la première lettre.
 
-const reponseDe = it => it.type === "ecrire" || it.type === "erreur" ? it.es[0] : it.type === "dire" ? it.es : it.mot.es;
+const reponseDe = it => it.type === "ecrire" || it.type === "erreur" ? it.es[0] : it.type === "dire" ? it.es : it.type === "oreille" ? it.phrase : it.mot.es;
 const initiales = texte => texte.replace(/\p{L}+/gu, mot => mot[0] + "·".repeat(mot.length - 1));
 const tousRates = texte => texte.trim().split(/\s+/).map(brut => ({ brut, juste: false }));
 
@@ -190,6 +195,15 @@ const lignesDeLaPhrase = it => it.type === "carte" || it.cle || !it.lecon ? [] :
 function etapesIndice(it) {
   // Mes erreurs : un seul indice, la « Règle en une ligne » du carnet.
   if (it.type === "erreur") return it.carte.regle ? [`<p class="regle">${esc(it.carte.regle)}</p>`] : [];
+  // La carte 5 (Q24-16) : le nombre de mots, le mot de la carte en français, les premières lettres.
+  if (it.type === "oreille") {
+    const mots = it.phrase.replace(/[¿?¡!.,;:«»"()…]/g, " ").split(/\s+/).filter(Boolean);
+    return [
+      `<p class="regle"><b>${mots.length} mots</b></p><div class="blocs" aria-hidden="true">${mots.map(w => `<span style="width:${8 + w.length * 7}px"></span>`).join("")}</div>`,
+      `<p class="regle">Le mot de la carte : <b>${esc(it.mot.fr)}</b></p>`,
+      `<p class="initiales" lang="es">${esc(initiales(it.phrase))}</p>`,
+    ];
+  }
   const etapes = [];
   const lignes = lignesDeLaPhrase(it);
   if (lignes.length) etapes.push(lignes.map(x => `<p class="regle">${md(x.texte)}</p>`).join(""));
@@ -434,20 +448,24 @@ function lignesDuMot(m) {
     `<div class="regle-carte"><span class="etiq">${esc(r.etiquette)}</span><span>${md(r.texte)}</span></div>`).join("");
 }
 
-function vueCarte(it) {
-  // Un de mes mots a pu être corrigé pendant la série (« Modifier ») : on reprend sa dernière version.
-  if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
-  const m = it.mot;
-  const tete = sorte(s.revision ? `${it.repasse ? "On la revoit" : "Tes cartes à revoir"} · carte 1${nbCartes(m) > 1 ? ` sur ${nbCartes(m)}` : ""}` : "Carte · du français à l'espagnol");
-  // En révision, la leçon d'où vient le mot. « Revoir la leçon » s'ouvre par-dessus la série, qui reprend au retour.
+// En révision, la leçon d'où vient le mot. « Revoir la leçon » s'ouvre par-dessus la série, qui reprend au retour.
+function origineDe(m) {
   const l = s.revision && trouver(m.lecon);
   // Un de mes mots : quand je l'ai ajouté, et « Modifier » (après la correction du prof).
-  const origine = s.revision && m.moi
+  return s.revision && m.moi
     ? `<div class="origine"><span>Mes mots · ${esc(origineMonMot(m))}</span><a class="lien" href="#/mes-mots/modifier/${encodeURIComponent(m.id)}">Modifier</a></div>`
     : l && !s.faites.has(l.id) && apprisEnAvance(m.id)
       // Appris en avance : la leçon ne s'ouvre pas encore, la fiche du Dico si.
       ? `<div class="origine"><span>${id(l.id)} · appris en avance</span><a class="lien" href="#/dico/mot/${encodeURIComponent(m.id)}/dico">Voir la fiche</a></div>`
     : l ? `<div class="origine"><span>${id(l.id)} · ${esc(l.titre)}</span><a class="lien" href="#/lecon/${l.id}/revision">Revoir la leçon</a></div>` : "";
+}
+
+function vueCarte(it) {
+  // Un de mes mots a pu être corrigé pendant la série (« Modifier ») : on reprend sa dernière version.
+  if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
+  const m = it.mot;
+  const tete = sorte(s.revision ? `${it.repasse ? "On la revoit" : "Tes cartes à revoir"} · carte 1${nbCartes(m) > 1 ? ` sur ${nbCartes(m)}` : ""}` : "Carte · du français à l'espagnol");
+  const origine = origineDe(m);
   if (s.phase === "question") {
     return `${tete}<div class="carte"><p class="fr-seul">${esc(m.fr)}</p><p class="sous">Dis-le en espagnol, puis retourne la carte.</p></div>
       ${zoneIndice(it)}
@@ -464,6 +482,119 @@ function vueCarte(it) {
     </div>
     <div class="espace"></div>
     ${notes("Tu l'avais trouvé avant de retourner la carte ?", false)}`;
+}
+
+// ——— chantier 24 : les cartes qu'on écrit en révision ———
+
+// Quand la carte revient, dit sous la note (« Noté Oui · elle revient dans 7 jours »).
+function quandTexte(cle, note, repasse) {
+  if (repasse) return note === 1 ? "elle revient demain" : "comptée au 1er passage, elle revient demain";
+  if (note === 1) return "on la revoit à la fin, puis demain";
+  const f = fichesCartes()[cle];
+  const j = INTERVALLES[f?.boite ?? 0];
+  return j <= 1 ? "elle revient demain" : `elle revient dans ${j} jours`;
+}
+const NOTES = { 1: "Non", 2: "Avec peine", 3: "Oui" };
+const ligneNote = (it, cle) => `<p class="suite-note">${it.repasse ? "On la revoit" : `Noté <b>${NOTES[s.resultat.note]}</b>`} · ${quandTexte(cle, s.resultat.note, it.repasse)}</p>`;
+
+// « Écoute, puis répète-le » : la voix le dit toute seule (apres), le micro est facultatif (Q24-13).
+function blocRepete(texte) {
+  return `<div class="repete">
+      <div class="h">${ecouter(texte, "grand")}<span>Écoute, puis répète-le.</span></div>
+      ${aUnEnregistrement() ? `<div class="deux"><button data-voix aria-pressed="false">${ICONES.lecture}Ma voix</button></div>` : ""}
+      ${enregistrementPossible() ? `<button class="reessai" data-micro><span class="chrono">${aUnEnregistrement() ? "Reste appuyé ici pour te réenregistrer" : "Reste appuyé ici pour t'enregistrer (facultatif)"}</span></button>` : ""}
+    </div>`;
+}
+
+// La carte 1 en révision : « Dis-le à voix haute, puis écris-le ». Ce que j'écris note (oreille.js, jugerMot).
+function vueMotEcrit(it, enTete) {
+  if (it.mot.moi) it.mot = { ...it.mot, ...monMot(it.mot.id) };
+  const m = it.mot;
+  const tete = sorte(`${it.repasse ? "On la revoit" : "Tes cartes à revoir"} · carte 1${nbCartes(m) > 1 ? ` sur ${nbCartes(m)}` : ""}`);
+  if (s.phase === "question") {
+    return `<div class="defile">${enTete}${tete}
+        <div class="carte"><p class="fr-seul">${esc(m.fr)}</p><p class="sous">Dis-le à voix haute, puis écris-le.</p></div>${zoneIndice(it)}</div>
+      <form class="saisie" data-p-form>
+        <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
+        <button class="primaire" type="submit">Vérifier</button>
+        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </form>`;
+  }
+  const r = s.resultat;
+  const ok = r.niveau === "juste" || r.niveau === "accents";
+  const titre = { juste: s.indice ? "Juste, avec un indice" : "Juste", accents: s.indice ? "Juste, avec un indice" : "Juste, aux accents près", article: "Presque : l'article", faux: "Pas encore", passe: "La réponse" }[r.niveau];
+  const classe = ok ? "ok" : r.niveau === "article" ? "mi" : r.niveau === "passe" ? "ko passe" : "ko";
+  const surligne = morceaux => morceaux.map(x => x.juste ? esc(x.brut) : `<mark class="faux">${esc(x.brut)}</mark>`).join(" ");
+  const tape = !s.saisie || ok ? "" : `<p class="tape">${r.tape ? surligne(r.tape) : esc(s.saisie)}</p>`;
+  const bonne = r.niveau === "article" ? esc(r.attendu).replace(/^(\S+)/, `<mark class="bon">$1</mark>`) : esc(m.es);
+  return `${enTete}${tete}${tape}
+    <div class="verdict ${classe}" role="status">
+      <b>${titre}</b>
+      <div class="bonne">${ecouter(m.es)}<p lang="es">${bonne}</p></div>
+      ${r.niveau === "accents" || r.accents ? `<p>Regarde les accents : à l'oral, ils disent où appuyer.</p>` : ""}
+      ${r.niveau === "article" ? `<p>Un nom s'apprend avec son article : <i lang="es">${esc(r.attendu)}</i>.</p>` : ""}
+      ${r.astuce ? `<p>${esc(r.astuce)}</p>` : ""}
+    </div>
+    ${m.ex ? `<p class="exemple" lang="es">${phraseTouchable(ctxVue, m.ex)}</p>` : ""}
+    ${lignesDuMot(m)}${formesCarte(m)}
+    ${blocRepete(m.es)}
+    ${origineDe(m)}
+    <div class="espace"></div>
+    ${ligneNote(it, m.id)}
+    <button class="primaire" data-p="suivant">Suivant</button>`;
+}
+
+// La carte 5 « à l'oreille » : la phrase est dite à l'ouverture (apres), puis 2 réécoutes au plus (normales ou lentes).
+const REECOUTES = 2;
+const resteEcoutes = () => {
+  const n = REECOUTES - (s.ecoutes || 0);
+  return `${Array.from({ length: REECOUTES }, (_, k) => `<i class="${k < n ? "" : "vide"}"></i>`).join("")}<span>${n ? `${n} réécoute${n > 1 ? "s" : ""}` : "Plus de réécoute : écris ce que tu as retenu"}</span>`;
+};
+const PICTO_LENT = `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16h15a3 3 0 0 0 3-3v-1M5 16c0-4 3-7 7-7s6 3 6 7"/><circle cx="20" cy="10" r="1.6"/></svg>`;
+function vueOreille(it, enTete) {
+  const tete = sorte(`${it.repasse ? "On la revoit" : "Tes cartes à revoir"} · carte 5 · à l'oreille`);
+  if (s.phase === "question") {
+    const fini = (s.ecoutes || 0) >= REECOUTES ? " disabled" : "";
+    return `<div class="defile">${enTete}${tete}
+        <p class="sous">Écoute la phrase, puis écris-la en entier.</p>
+        <div class="oreilles">
+          <button type="button" data-p="reecoute" aria-label="Réécouter la phrase"${fini}>${ICONES.lecture}<span>Réécouter</span></button>
+          <button type="button" class="lent" data-p="reecoute" data-lent aria-label="Réécouter la phrase lentement"${fini}>${PICTO_LENT}<span>Lente</span></button>
+        </div>
+        <p class="reste-ecoutes" role="status">${resteEcoutes()}</p>${zoneIndice(it)}</div>
+      <form class="saisie" data-p-form>
+        <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          enterkeyhint="done" placeholder="Écris ce que tu entends" value="${esc(s.saisie)}" aria-label="Ce que tu entends, en espagnol">
+        <button class="primaire" type="submit">Vérifier</button>
+        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+      </form>`;
+  }
+  const r = s.resultat;
+  const ok = r.niveau === "juste" || r.niveau === "accents";
+  const titre = { juste: s.indice ? "Juste, avec un indice" : "Juste", accents: s.indice ? "Juste, avec un indice" : "Juste",
+    petit: "Presque : un petit mot", presque: "Presque : un mot", mot: "Pas encore : le mot de la carte", faux: "Pas encore", passe: "La phrase" }[r.niveau];
+  const classe = ok ? "ok" : r.note === 2 ? "mi" : r.niveau === "passe" ? "ko passe" : "ko";
+  const surligne = morceaux => morceaux.map(x => x.juste ? esc(x.brut) : `<mark class="faux">${esc(x.brut)}</mark>`).join(" ");
+  const tape = s.saisie ? `<p class="ligne-o">Tu as écrit</p><p class="tape">${r.tape ? surligne(r.tape) : esc(s.saisie)}</p>` : "";
+  const rappels = [
+    r.petits?.length ? `${r.petits.length > 1 ? "Petits mots oubliés" : "Petit mot oublié"} : <b lang="es">${r.petits.map(esc).join(", ")}</b>` : "",
+    r.accents?.length ? `Et l'accent : <b lang="es">${r.accents.map(esc).join(", ")}</b>` : "",
+  ].filter(Boolean).join(" · ");
+  return `${enTete}${tete}${tape}
+    <div class="verdict ${classe}" role="status">
+      <b>${titre}</b>
+      <div class="bonne">${ecouter(it.phrase)}<p lang="es">${phraseTouchable(ctxVue, it.phrase, { marques: r.reponse ? marquesDe(it.phrase, r.reponse, "bon") : [] })}</p></div>
+    </div>
+    ${rappels ? `<p class="rappel-o">${rappels}</p>` : ""}
+    <p class="sous">Le mot de la carte : <span lang="es">${esc(it.mot.es)}</span> · ${esc(it.mot.fr)}</p>
+    <div class="reec">
+      <button type="button" data-dire="${esc(it.phrase)}" aria-pressed="false">${ICONES.lecture}Réécouter</button>
+      <button type="button" data-dire="${esc(it.phrase)}" data-lent aria-pressed="false">${PICTO_LENT}Lente</button>
+    </div>
+    <div class="espace"></div>
+    ${ligneNote(it, it.cle)}
+    <button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // La fin de la partie écrite : le pourcentage, le détail par thème, et les erreurs avec leur explication.
@@ -702,8 +833,9 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
 
   const it = s.items[s.i];
   const enTete = `${barre()}${s.sansExercices && s.i === 0 ? `<p class="bandeau">Les exercices de cette unité ne sont pas encore écrits : pour l'instant, les cartes.</p>` : ""}`;
-  const question = (it.type === "ecrire" || it.type === "erreur" || it.type === "tableau") && s.phase === "question";
+  const question = (it.type === "ecrire" || it.type === "erreur" || it.type === "tableau" || it.type === "oreille" || it.ecrite) && s.phase === "question";
   const vue = it.type === "ecrire" ? vueEcrire(it, enTete) : it.type === "erreur" ? vueErreur(it, enTete) : it.type === "tableau" ? vueTableau(it, enTete)
+    : it.type === "oreille" ? vueOreille(it, enTete) : it.ecrite ? vueMotEcrit(it, enTete)
     : enTete + (it.type === "dire" ? vueDire(it) : vueCarte(it));
   return {
     onglet: null,
@@ -715,14 +847,17 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         requestAnimationFrame(() => requestAnimationFrame(() => { if (trait) trait.style.width = `${avancee(s.i) * 100}%`; }));
       }
       // Le clavier monte une fois la nouvelle question arrivée, pas pendant qu'elle glisse.
-      if ((it.type === "ecrire" || (it.type === "erreur" && !it.cases)) && s.phase === "question") {
+      // La carte 5 : la voix dit la phrase dès l'ouverture (ce n'est pas une des 2 réécoutes).
+      if (it.type === "oreille" && s.phase === "question" && !s.dit) { s.dit = true; dire(it.phrase); }
+      if ((it.type === "ecrire" || it.type === "oreille" || it.ecrite || (it.type === "erreur" && !it.cases)) && s.phase === "question") {
         const i = s.i;
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
       // La carte retournée dit le mot toute seule, et son bouton s'allume pendant ce temps.
+      // La carte 1 écrite (chantier 24) : la voix le dit après la correction, pour que je le répète.
       if (it.type === "carte" && s.phase === "reponse" && !s.dit) {
         s.dit = true;
-        const b = document.querySelector(".carte .ecoute");
+        const b = document.querySelector(".carte .ecoute, .repete .ecoute");
         if (b) { const tout = b.dataset.dire; b.dataset.dire = it.mot.es; lancerLecture(b); b.dataset.dire = tout; }
       }
       // Le tableau : « Entrée » passe à la personne suivante ; à la dernière, elle vérifie.
@@ -761,11 +896,20 @@ function noterCarteEcrite(ctx, it, n) {
   s.notes.carte.push(n);
 }
 
+// La carte 1 écrite (chantier 24) : même mémoire que la carte retournée d'avant (« Tu bloques sur… » compris).
+function noterCarte1(ctx, it, n) {
+  if (s.indice) s.notes.aide.carte++;
+  if (!apresNote(s.items, s.i, n)) { s.notes.repasse.push(n); return; }
+  if (!it.mot.moi || monMot(it.mot.id)) noterMot(it.mot.id, n, ctx.jour);
+  s.notes.carte.push(n);
+  if (n === 1) (s.rates ||= []).push(it.mot);
+}
+
 function suivant() {
   effacerEnregistrement();
   arreterLecture();
   s.depuis = s.i;
-  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.formes = null; s.astuce = ""; s.indice = 0; s.dit = false;
+  s.i++; s.phase = "question"; s.resultat = null; s.saisie = ""; s.formes = null; s.astuce = ""; s.indice = 0; s.dit = false; s.ecoutes = 0;
 }
 
 // Renvoie "suivant" quand on passe à un autre exercice (l'écran change, avec la transition),
@@ -803,6 +947,15 @@ export async function actionPratique(ctx, action, el) {
       }
       s.saisie = document.getElementById("reponse")?.value.trim() || "";
       if (!s.saisie) return false;
+      if (it.ecrite || it.type === "oreille") {
+        s.resultat = it.ecrite ? jugerMot(s.saisie, it.mot.es, { indice: !!s.indice }) : jugerOreille(s.saisie, it.phrase, it.motCarte, { indice: !!s.indice });
+        if (it.ecrite) noterCarte1(ctx, it, s.resultat.note);
+        else { if (s.indice) s.notes.aide.carte++; noterCarteEcrite(ctx, it, s.resultat.note); }
+        arreterLecture();
+        s.phase = "reponse";
+        vibrer(s.resultat.note === 3 ? 12 : [8, 60, 8]); son(s.resultat.note === 3 ? "juste" : "rate");
+        return true;
+      }
       if (it.type === "erreur") {
         s.resultat = juger(s.saisie, it.carte);
         const ok = s.resultat.ok;
@@ -822,6 +975,14 @@ export async function actionPratique(ctx, action, el) {
       return true;
     }
     case "sais-pas":
+      if (it.ecrite || it.type === "oreille") {
+        s.saisie = "";
+        s.resultat = { niveau: "passe", note: 1, attendu: it.ecrite ? reponsesMot(it.mot.es)[0] : it.phrase };
+        if (it.ecrite) noterCarte1(ctx, it, 1); else noterCarteEcrite(ctx, it, 1);
+        arreterLecture();
+        s.phase = "reponse";
+        return true;
+      }
       if (it.type === "erreur" && it.cases) {
         s.resultat = { ...jugerCases([], it.cases), passe: true };
         noterCarteErreur(ctx, it, "rate");
@@ -881,6 +1042,17 @@ export async function actionPratique(ctx, action, el) {
     case "suivant":
       suivant();
       return "suivant";
+    case "reecoute": { // la carte 5 : 2 réécoutes au plus, normales ou lentes ; l'écran n'est pas redessiné (ta saisie reste)
+      if (it.type !== "oreille" || (s.ecoutes || 0) >= REECOUTES) return false;
+      s.ecoutes = (s.ecoutes || 0) + 1;
+      el.classList.add("parle");
+      dire(it.phrase, { lent: "lent" in el.dataset, fin: () => el.classList.remove("parle") });
+      const reste = document.querySelector(".reste-ecoutes");
+      if (reste) reste.innerHTML = resteEcoutes();
+      if (s.ecoutes >= REECOUTES) document.querySelectorAll('[data-p="reecoute"]').forEach(b => { b.disabled = true; });
+      document.getElementById("reponse")?.focus({ preventScroll: true });
+      return false;
+    }
     case "encore": // « Encore 6 » : un autre tirage du bonus
       { const retour = s.retour; nouvelleSerie(ctx, s.cle, () => serieBonus(s.bonus)); s.retour = retour; }
       return "suivant";

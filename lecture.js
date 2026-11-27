@@ -2,8 +2,8 @@
 // Un seul son à la fois. Le bouton qui joue s'allume (barres de son qui bougent) ;
 // le toucher à nouveau arrête la lecture ; il s'éteint tout seul à la fin.
 
-import { dire, taire } from "./voix.js?v=74";
-import { reecouterEnregistrement, arreterReecoute } from "./enregistrement.js?v=74";
+import { dire, taire } from "./voix.js?v=75";
+import { reecouterEnregistrement, arreterReecoute } from "./enregistrement.js?v=75";
 
 let actif = null;
 
@@ -24,7 +24,7 @@ export function lancerLecture(bouton) {
   actif = bouton;
   allumer(bouton, true);
   const fin = () => { if (actif === bouton) { allumer(bouton, false); actif = null; } };
-  const ok = "voix" in bouton.dataset ? reecouterEnregistrement(fin) : dire(bouton.dataset.dire, { fin });
+  const ok = "voix" in bouton.dataset ? reecouterEnregistrement(fin) : dire(bouton.dataset.dire, { fin, lent: "lent" in bouton.dataset }); // data-lent : la voix lente (carte 5)
   if (!ok) fin();
 }
 

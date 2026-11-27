@@ -3,13 +3,16 @@
 // un ñ ou une lettre fausse compte faux.
 // Avec { accents: true } (Mes erreurs, chantier 11 : la moitié des erreurs notées par le prof sont des accents),
 // un accent oublié compte faux, comme une lettre ; la casse et la ponctuation (¿ ¡ compris) ne comptent toujours pas.
+// Avec { enye: false } (la carte 5 « à l'oreille », chantier 24, réglage du prof) : un ñ oublié ne compte pas non plus
+// (« accents », juste avec un rappel), puisqu'on ne l'écrit pas toujours en tapant ce qu'on entend.
 
 const PONCTUATION = /[¿?¡!.,;:«»"“”'’()…\-–—]/g;
 
 // Les mots, en minuscules, sans ponctuation. sansAccents retire á é í ó ú ü mais garde le ñ.
-function mots(texte, sansAccents) {
+export function mots(texte, sansAccents, sansEnye = false) {
   let t = texte.toLowerCase().replace(PONCTUATION, " ");
-  if (sansAccents) t = t.replace(/ñ/g, "\u0001").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\u0001/g, "ñ");
+  if (sansAccents && sansEnye) t = t.normalize("NFD").replace(/[̀-ͯ]/g, "");
+  else if (sansAccents) t = t.replace(/ñ/g, "\u0001").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\u0001/g, "ñ");
   return t.split(/\s+/).filter(Boolean);
 }
 
@@ -28,10 +31,11 @@ function alignement(a, b) {
 }
 
 // Renvoie { niveau: "juste" | "accents" | "presque" | "faux", attendu, okAttendu, okTape, motsTapes, motsAttendus, astuce }.
-export function corriger(tape, reponses, { accents: stricts = false } = {}) {
-  const tapeNu = mots(tape, !stricts);
+export function corriger(tape, reponses, { accents: stricts = false, enye = true } = {}) {
+  const sansEnye = !stricts && !enye;
+  const tapeNu = mots(tape, !stricts, sansEnye);
   for (const r of reponses) {
-    if (tapeNu.join(" ") === mots(r, !stricts).join(" ")) {
+    if (tapeNu.join(" ") === mots(r, !stricts, sansEnye).join(" ")) {
       const accents = mots(tape, false).join(" ") === mots(r, false).join(" ");
       return { niveau: accents ? "juste" : "accents", attendu: r };
     }
@@ -39,7 +43,7 @@ export function corriger(tape, reponses, { accents: stricts = false } = {}) {
   // La réponse la plus proche, pour montrer où ça coince.
   let meilleur = null;
   for (const r of reponses) {
-    const attendus = mots(r, !stricts);
+    const attendus = mots(r, !stricts, sansEnye);
     const al = alignement(tapeNu, attendus);
     const ecart = Math.max(attendus.length, tapeNu.length) - al.communs;
     if (!meilleur || ecart < meilleur.ecart) meilleur = { r, ecart, al, attendus };

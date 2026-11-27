@@ -431,8 +431,8 @@ mark.bon { background: var(--sun); color: var(--marine); }
 .reste b { font-size: 17px; font-weight: 600; }
 .reste p { font-size: 14px; color: var(--marine-soft); }
 /* Sous une carte retournée de la révision : la leçon d'où vient le mot. */
-.carte .origine { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; border-top: 1px solid var(--hair); padding-top: 12px; font-size: 13px; color: var(--muted); text-align: left; }
-.carte .origine .lien { font-size: 14px; padding: 4px 0; }
+.carte .origine, .exo > .origine { width: 100%; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 12px; border-top: 1px solid var(--hair); padding-top: 12px; font-size: 13px; color: var(--muted); text-align: left; }
+.carte .origine .lien, .exo > .origine .lien { font-size: 14px; padding: 4px 0; }
 /* La règle sur la carte (chantier 18, Q18-7) : un encadré jaune pâle sous l'exemple, avec « La règle · U1-L3 » en petit. */
 .regle-carte { width: 100%; text-align: left; background: var(--sun-deep); border-radius: 14px; padding: 10px 12px;
   font-size: 14px; line-height: 1.45; color: var(--marine-soft); display: flex; flex-direction: column; gap: 3px; }
@@ -940,3 +940,38 @@ mark .tx-mot.touche { box-shadow: none; }
 .nota-blanca .q { font-size: 13px; color: var(--muted); margin: 6px 0 0; }
 .nota-blanca p { margin: 2px 0 0; }
 .nota-blanca .apuntado { list-style: none; padding: 0; margin: 2px 0 0; font-size: 15px; line-height: 1.45; }
+
+/* Chantier 24 : la carte 1 qu'on écrit et la carte 5 « à l'oreille » (révision). */
+.verdict.mi { background: var(--sun-deep); color: var(--sun-ink); }
+.exo > .exemple { font-size: 15px; color: var(--marine-soft); line-height: 1.4; }
+.repete { background: var(--card); border: 1px solid var(--hair); border-radius: 16px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.repete .h { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 500; }
+.suite-note { font-size: 13px; color: var(--muted); text-align: center; }
+.suite-note b { color: var(--marine); font-weight: 600; }
+.oreilles { display: grid; grid-template-columns: 1.3fr 1fr; gap: 10px; margin-top: 4px; }
+.oreilles button { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 18px; padding: 16px 8px; background: var(--marine); color: var(--sun-ground); font-size: 15px; font-weight: 500; }
+.oreilles button.lent { background: var(--sun-deep); color: var(--marine); }
+.oreilles > button > svg.i { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.oreilles .lecture { width: 30px; height: 30px; border-radius: 50%; background: var(--sun); color: var(--marine); display: grid; place-items: center; }
+.oreilles .lecture .i { width: 13px; height: 13px; margin-left: 2px; }
+.oreilles button[disabled] { opacity: .35; }
+.oreilles button.parle { box-shadow: 0 0 0 5px var(--sun-halo); }
+.reste-ecoutes { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 13px; color: var(--marine-soft); }
+.reste-ecoutes i { width: 10px; height: 10px; border-radius: 50%; background: var(--marine); }
+.reste-ecoutes i.vide { background: transparent; box-shadow: inset 0 0 0 2px var(--fog); }
+.reste-ecoutes span { margin-left: 6px; }
+.indice .blocs { display: flex; flex-wrap: wrap; gap: 5px; }
+.indice .blocs span { height: 14px; border-radius: 5px; background: var(--sun-halo); }
+.ligne-o { font-size: 12.5px; font-weight: 500; color: var(--marine-soft); margin-bottom: -6px; }
+.rappel-o { font-size: 14px; background: var(--sun-deep); color: var(--sun-ink); border-radius: 12px; padding: 9px 12px; line-height: 1.4; }
+.rappel-o b { color: var(--marine); font-weight: 600; }
+.reec { display: flex; gap: 8px; }
+.reec button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--card); border: 1px solid var(--hair); border-radius: 12px; padding: 9px; font-size: 14px; font-weight: 500; }
+.reec .lecture { width: 24px; height: 24px; border-radius: 50%; background: var(--sun); display: grid; place-items: center; }
+.reec .lecture .i { width: 10px; height: 10px; margin-left: 1px; }
+.reec > button > svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.reec button.on { background: var(--sun); }
+.cm .txt small { display: block; font-size: 12px; color: var(--muted); }
+.tend { font-weight: 600; border-radius: 999px; padding: 0 7px; font-size: 12px; white-space: nowrap; }
+.tend.monte { background: var(--rose); color: var(--rose-ink); }
+.tend.baisse { background: #DCEBDD; color: var(--sage-ink); }

@@ -111,7 +111,8 @@ ok(P.fichesCartes()[llamarse.id].refus && P.fichesCartes()[llamarse.id].boite ==
 
 // L'état affiché dans le Livre et le Dico.
 const etats = C.cartesDuMot(desde, P.fichesCartes()).map(c => C.etatCarte(c, desde, jour(3), depart, P.fichesCartes()).etat);
-egal(etats, ["revision", "attend", "revision", "revision"], "états de desde hace au jour 3");
+// Chantier 24 : la carte 5 « à l'oreille » est en fin de liste, et attend que la carte 2 soit réussie à 7 jours.
+egal(etats, ["revision", "attend", "revision", "revision", "attend"], "états de desde hace au jour 3");
 
 // ——— les sauvegardes ———
 const d = JSON.parse(P.donneesSauvegarde(jour(3)));

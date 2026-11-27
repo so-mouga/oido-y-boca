@@ -2,18 +2,18 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=74";
-import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=74";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=74";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=74";
-import { EXERCICES } from "../exercices.js?v=74";
-import { controlePret, dernierResultat } from "./controle.js?v=74";
-import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=74";
-import { BONUS } from "../bonus.js?v=74";
-import { motsPourLOral, copieFaite } from "./mesmots.js?v=74";
-import { estOrale } from "../position.js?v=74";
-import { soirRepaso } from "./soir.js?v=74";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=74";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=75";
+import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=75";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=75";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=75";
+import { EXERCICES } from "../exercices.js?v=75";
+import { controlePret, dernierResultat } from "./controle.js?v=75";
+import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=75";
+import { BONUS } from "../bonus.js?v=75";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=75";
+import { estOrale } from "../position.js?v=75";
+import { soirRepaso } from "./soir.js?v=75";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=75";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -180,14 +180,22 @@ export function ecranAujourdhui(ctx) {
   // 3. Tes mots à revoir : faite dès qu'un paquet est fini, ou s'il n'y a rien à revoir.
   if (der) {
     // Chantier 15 : des cartes (jusqu'à 4 par mot, une par jour), 40 au plus par jour (resteDuJour).
-    const dus = Math.min(motsDus(ctx).length, resteDuJour(ctx));
+    // Chantier 24 (Q24-22) : toute la file, pas seulement les 40 du jour ; au-delà de 40, « 40 aujourd'hui · 63 en attente ↑ 5 ».
+    // La flèche compare le nombre en attente au premier passage de la journée avec celui du dernier jour noté.
+    const enAttente = motsDus(ctx).length;
+    const dus = Math.min(enAttente, resteDuJour(ctx));
     const revus = Number(c.revision) || 0;
+    if (c.attente == null) cocher(jour, "attente", enAttente);
+    const avant = valeurAvant(jour, "attente"), ecart = avant == null ? 0 : (cases(jour).attente ?? enAttente) - avant;
+    const fleche = ecart > 0 ? ` <span class="tend monte">↑ ${ecart}</span>` : ecart < 0 ? ` <span class="tend baisse">↓ ${-ecart}</span>` : "";
+    const file = enAttente > dus ? ` · ${enAttente} en attente${fleche}` : "";
     journee.push({
       titre: "Tes cartes à revoir", fait: revus > 0 || dus === 0, href: dus ? "#/revision" : null,
-      detail: revus ? `${cartes(revus)} revue${revus > 1 ? "s" : ""}${dus ? ` · encore ${dus} si tu veux` : ""}`
-        : dus ? cartes(dus) : "rien à revoir aujourd'hui",
+      detail: revus ? `${cartes(revus)} revue${revus > 1 ? "s" : ""}${dus ? ` · encore ${dus} si tu veux${file}` : enAttente ? ` · ${enAttente} attendent demain` : ""}`
+        : dus ? (file ? `${dus} aujourd'hui${file}` : cartes(dus)) : "rien à revoir aujourd'hui",
       carte: { titre: "Tes cartes à revoir",
-        texte: dus > PAQUET ? `${dus} cartes en attente. Un paquet de ${PAQUET}, en commençant par les plus oubliées.`
+        texte: enAttente > dus ? `${enAttente} cartes en attente, dont ${dus} aujourd'hui. Un paquet de ${PAQUET}, en commençant par les plus oubliées.`
+          : dus > PAQUET ? `${dus} cartes en attente. Un paquet de ${PAQUET}, en commençant par les plus oubliées.`
           : `${cartes(dus)} en attente, en commençant par les plus oubliées.`,
         bouton: "Commencer", href: "#/revision" },
     });

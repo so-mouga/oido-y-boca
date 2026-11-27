@@ -31,8 +31,9 @@ const jours = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T1
 // note : 1 = Non, 2 = Avec peine, 3 = Oui. idMot est la clé de la carte : l'id du mot pour la carte 1, « id#n » pour les autres (cartes.js).
 // Chantier 15 : la carte 1 réussie au rendez-vous des 3 jours (boîte 2 → 3) débloque la carte 2, qui arrive le lendemain ;
 // « nons » compte les « Non » de suite à la carte 1 (à 2, la fin du paquet propose les phrases du mot).
+// Chantier 24 : la carte 5 « à l'oreille » (« id#o ») part de la boîte 2 : réussie la première fois, elle revient à 7 jours, puis 14, 30, 60.
 export function noterMot(idMot, note, aujourdhui) {
-  const f = etat.mots[idMot] || { boite: 0, vu: null };
+  const f = etat.mots[idMot] || { boite: idMot.endsWith("#o") ? 2 : 0, vu: null };
   const avant = f.boite;
   f.boite = note === 3 ? Math.min(f.boite + 1, INTERVALLES.length - 1) : note === 1 ? 0 : f.boite;
   f.vu = aujourdhui;
@@ -85,6 +86,12 @@ export function cases(aujourdhui) { return etat.jours[aujourdhui] || {}; }
 export function cocher(aujourdhui, cle, valeur = true) {
   etat.jours[aujourdhui] = { ...cases(aujourdhui), [cle]: valeur };
   sauver();
+}
+
+// Chantier 24 (Q24-22) : la valeur d'une case au dernier jour avant « aujourdhui » où elle a été notée (0 compris), ou null.
+export function valeurAvant(aujourdhui, cle) {
+  const j = Object.keys(etat.jours).filter(x => x < aujourdhui && etat.jours[x]?.[cle] != null).sort().pop();
+  return j ? etat.jours[j][cle] : null;
 }
 
 // La dernière fois qu'une case a été cochée avant « aujourdhui » (date ISO), ou "" si jamais.

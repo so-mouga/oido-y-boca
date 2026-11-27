@@ -4,11 +4,11 @@
 // Les temps (chantier 16) : chaque question porte son temps (« present », « pc », « ps », « imp », « fut », « cond »).
 // Une série mélangée prend les temps vus (leurs leçons faites) ; depuis la fiche d'un verbe, un seul temps, même pas encore vu.
 
-import { conjuguer, sixFormes, PERSONNES, irregulierConnu, TEMPS, ORDRE_TEMPS } from "./controles.js?v=74";
-import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=74";
-import { verbesEnCours } from "./progression.js?v=74";
-import { EXERCICES } from "./exercices.js?v=74";
-import { BONUS } from "./bonus.js?v=74";
+import { conjuguer, sixFormes, PERSONNES, irregulierConnu, TEMPS, ORDRE_TEMPS } from "./controles.js?v=75";
+import { verbeDe, motVu, rangLecon, normaliser } from "./dico.js?v=75";
+import { verbesEnCours } from "./progression.js?v=75";
+import { EXERCICES } from "./exercices.js?v=75";
+import { BONUS } from "./bonus.js?v=75";
 
 // ── Les verbes ──
 // Un verbe qu'on peut travailler : l'appli connaît ses 6 formes, et il ne se construit pas comme gustar.
