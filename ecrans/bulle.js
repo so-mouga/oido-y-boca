@@ -9,12 +9,12 @@
 // - rien de trouvé → « Ajouter à Mes mots » (l'espagnol déjà écrit, le français à écrire soi-même).
 // Toucher un mot ne change rien à la révision : seul le bouton agit. On reste sur l'écran.
 
-import { esc, ICONES, id } from "../ui.js?v=71";
-import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=71";
-import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=71";
-import { motEnCours, mettreMotEnCours } from "../motsencours.js?v=71";
-import { motVu, memeMot, motsAMoi } from "../dico.js?v=71";
-import { vibrer } from "../retours.js?v=71";
+import { esc, ICONES, id } from "../ui.js?v=72";
+import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=72";
+import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=72";
+import { motEnCours, mettreMotEnCours } from "../motsencours.js?v=72";
+import { motVu, memeMot, motsAMoi } from "../dico.js?v=72";
+import { vibrer } from "../retours.js?v=72";
 
 let ouvert = null;            // { mot, ph, bulle }
 const revusIci = new Set();   // les cartes mises « à revoir demain » depuis l'ouverture de l'appli
@@ -98,10 +98,10 @@ function bouton(ctx, s, t, prefill) {
     const st = statut(ctx, m);
     let second;
     // Appris en avance (et sa leçon pas encore faite) : rien de plus à faire, il est déjà dans la révision.
-    if (!m.moi && !ctx.pos.faites.has(m.lecon) && apprisEnAvance(m.id) && !revusIci.has(m.id)) second = fait("Appris en avance : il est dans « Tes mots à revoir ».");
+    if (!m.moi && !ctx.pos.faites.has(m.lecon) && apprisEnAvance(m.id) && !revusIci.has(m.id)) second = fait("Appris en avance : il est dans « Tes cartes à revoir ».");
     else if (st.cas === "loin") second = `<button class="bm-garder bm-second" data-tx-apprendre="${esc(m.id)}">L'apprendre maintenant</button>`;
     else second = revusIci.has(m.id)
-      ? fait("Revient demain dans « Tes mots à revoir ».")
+      ? fait("Revient demain dans « Tes cartes à revoir ».")
       : `<button class="bm-garder bm-second" data-tx-revoir="${esc(m.id)}">${st.cas === "moi" ? "À revoir demain" : "Je l'avais oublié · à revoir demain"}</button>`;
     return cours + second;
   }

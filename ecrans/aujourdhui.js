@@ -2,17 +2,17 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=71";
-import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=71";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=71";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=71";
-import { EXERCICES } from "../exercices.js?v=71";
-import { controlePret, dernierResultat } from "./controle.js?v=71";
-import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=71";
-import { BONUS } from "../bonus.js?v=71";
-import { motsDeLaSemaine } from "./mesmots.js?v=71";
-import { soirRepaso } from "./soir.js?v=71";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=71";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=72";
+import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=72";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=72";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=72";
+import { EXERCICES } from "../exercices.js?v=72";
+import { controlePret, dernierResultat } from "./controle.js?v=72";
+import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=72";
+import { BONUS } from "../bonus.js?v=72";
+import { motsDeLaSemaine } from "./mesmots.js?v=72";
+import { soirRepaso } from "./soir.js?v=72";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=72";
 
 const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
@@ -165,10 +165,10 @@ export function ecranAujourdhui(ctx) {
     const dus = Math.min(motsDus(ctx).length, resteDuJour(ctx));
     const revus = Number(c.revision) || 0;
     journee.push({
-      titre: "Tes mots à revoir", fait: revus > 0 || dus === 0, href: dus ? "#/revision" : null,
+      titre: "Tes cartes à revoir", fait: revus > 0 || dus === 0, href: dus ? "#/revision" : null,
       detail: revus ? `${cartes(revus)} revue${revus > 1 ? "s" : ""}${dus ? ` · encore ${dus} si tu veux` : ""}`
         : dus ? cartes(dus) : "rien à revoir aujourd'hui",
-      carte: { titre: "Tes mots à revoir",
+      carte: { titre: "Tes cartes à revoir",
         texte: dus > PAQUET ? `${dus} cartes en attente. Un paquet de ${PAQUET}, en commençant par les plus oubliées.`
           : `${cartes(dus)} en attente, en commençant par les plus oubliées.`,
         bouton: "Commencer", href: "#/revision" },

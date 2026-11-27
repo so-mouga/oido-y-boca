@@ -9,15 +9,17 @@ import path from "path";
 const ici = path.dirname(new URL(import.meta.url).pathname);
 const racine = path.join(ici, "..");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "oyb-motscours-"));
-for (const f of fs.readdirSync(racine).filter(f => f.endsWith(".js"))) fs.copyFileSync(path.join(racine, f), path.join(tmp, f));
+// Sans les « ?v=N » des imports : un seul exemplaire de progression.js, quel que soit le numéro de version.
+for (const f of fs.readdirSync(racine).filter(f => f.endsWith(".js")))
+  fs.writeFileSync(path.join(tmp, f), fs.readFileSync(path.join(racine, f), "utf8").replace(/\?v=\d+/g, ""));
 fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
 const memoire = {};
 globalThis.localStorage = { getItem: k => memoire[k] ?? null, setItem: (k, v) => { memoire[k] = String(v); } };
 
 const { lireCsv, versMots } = await import(path.join(tmp, "donnees.js"));
-const V = await import(path.join(tmp, "progression.js?v=70"));
+const V = await import(path.join(tmp, "progression.js"));
 const M = await import(path.join(tmp, "motsencours.js"));
-const { LECONS } = await import(path.join(tmp, "position.js?v=70"));
+const { LECONS } = await import(path.join(tmp, "position.js"));
 
 const csv = process.argv[2];
 if (!csv) { console.error("Donne le CSV du vocabulaire."); process.exit(1); }

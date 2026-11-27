@@ -7,9 +7,9 @@
 // La mémoire de chaque carte est dans progression.js (etat.mots), sous la clé du mot pour la carte 1 (les anciennes sauvegardes
 // restent bonnes) et « id#n » pour les autres. Chaque carte a son propre rythme ; une seule carte par mot et par jour.
 
-import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=71";
-import { verbeDe } from "./dico.js?v=71";
-import { INTERVALLES, apprisEnAvance } from "./progression.js?v=71";
+import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=72";
+import { verbeDe } from "./dico.js?v=72";
+import { INTERVALLES, apprisEnAvance } from "./progression.js?v=72";
 
 // Le jour d'où compte la carte 1 d'un mot jamais revu : le jour de sa leçon, de son apprentissage en avance, ou de son ajout (mes mots).
 export const departDe = ctx => m => m.moi ? m.le : apprisEnAvance(m.id) || ctx.pos.dateFaite[m.lecon];
@@ -143,4 +143,20 @@ export function etatCarte(c, m, aujourdhui, depart, fiches) {
   const dans = f?.vu === aujourdhui ? Math.max(-retard, 1) : vuAuj && retard >= 0 ? 1 : Math.max(-retard, 0);
   const texte = dans === 0 ? "aujourd'hui" : dans === 1 ? "demain" : `dans ${dans} j`;
   return { etat: (f?.boite ?? 0) >= 3 ? "sue" : "revision", texte: (f?.boite ?? 0) >= 3 ? `revient ${texte === "aujourd'hui" ? "aujourd'hui" : texte}` : texte };
+}
+
+// Q79 (chantier 21) : dans un paquet de la révision, une carte ratée (note 1) revient une fois à la fin du paquet.
+// Ce 2e passage ne note rien (la carte reste ratée pour aujourd'hui et revient demain) et ne revient pas une 3e fois.
+// Renvoie true si la note doit compter (1er passage). Les 2e passages sont toujours à la fin de items.
+export function apresNote(items, i, note) {
+  const it = items[i];
+  if (it.repasse) return false;
+  if (note === 1) items.push({ ...it, repasse: true });
+  return true;
+}
+// Où en est le paquet : les vraies cartes (« 8 / 20 »), puis la reprise (« On la revoit · 1 / 3 »).
+export function compteSerie(items, i) {
+  const premiers = items.filter(x => !x.repasse).length;
+  return i < premiers ? { repasse: false, n: i + 1, sur: premiers, premiers }
+    : { repasse: true, n: i - premiers + 1, sur: items.length - premiers, premiers };
 }

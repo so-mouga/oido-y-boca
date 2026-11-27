@@ -5,11 +5,11 @@
 // - #/semaine : « Tes mots pour la séance » (la séance orale du jeudi), les mots depuis le dernier envoi et « Copier pour le prof ».
 // Un mot ajouté va dans « Tes mots à revoir » dès le lendemain, toujours appris : si je n'en veux plus, je le supprime.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=71";
-import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=71";
-import { memeMot, motVu } from "../dico.js?v=71";
-import { lecon as trouverLecon } from "../position.js?v=71";
-import { vibrer } from "../retours.js?v=71";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=72";
+import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=72";
+import { memeMot, motVu } from "../dico.js?v=72";
+import { lecon as trouverLecon } from "../position.js?v=72";
+import { vibrer } from "../retours.js?v=72";
 
 const svg = corps => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const CRAYON = svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>');
@@ -65,7 +65,7 @@ function ecranAjout(ctx, via) {
           : `<header class="nav-haut"><a class="retour" href="${fin}" data-remplace>${ICONES.retour}Mes mots</a></header>`}
         <h1>${ecoute ? "Tu as gardé des mots ?" : "Ajouter un mot"}</h1>
         <p class="conseil">${ecoute ? "2 ou 3 au plus : ceux que tu as entendus plusieurs fois. Ils arrivent"
-          : "Un mot entendu, ou donné par le prof. Il arrive"} dans tes mots à revoir dès demain.</p>
+          : "Un mot entendu, ou donné par le prof. Il arrive"} dans tes cartes à revoir dès demain.</p>
         <form class="formulaire" data-mm-form="${ecoute ? "ecoute" : "dico"}">
           ${champs(tape)}
           ${msg ? `<div class="mm-msg" role="status">${msg}</div>` : ""}
@@ -88,7 +88,7 @@ function ecranModifier(ctx, idMot) {
     html: `<main class="colonne mes-mots">
         ${retour}
         <h1>Modifier ton mot</h1>
-        <p class="conseil">Le prof t'a corrigé ? Change le mot : il garde sa place dans tes mots à revoir.</p>
+        <p class="conseil">Le prof t'a corrigé ? Change le mot : il garde sa place dans tes cartes à revoir.</p>
         <form class="formulaire" data-mm-form="modifier" data-id="${esc(m.id)}">
           ${champs(m)}
           <button class="primaire" type="submit">Enregistrer</button>
@@ -172,7 +172,7 @@ export async function actionMesMots(ctx, e) {
   const suppr = e.target.closest("[data-mm-suppr]");
   if (suppr) {
     const m = monMot(suppr.dataset.mmSuppr);
-    if (!m || !confirm(`Supprimer « ${m.es} » ? Il sort aussi de tes mots à revoir.`)) return false;
+    if (!m || !confirm(`Supprimer « ${m.es} » ? Il sort aussi de tes cartes à revoir.`)) return false;
     supprimerMonMot(m.id);
     vibrer();
     if (suppr.hasAttribute("data-retour")) { revenir("#/dico/mes-mots"); return false; }
@@ -184,7 +184,7 @@ export async function actionMesMots(ctx, e) {
     const m = ctx.mots.find(x => x.id === apprendre.dataset.apprendre);
     if (!m) return false;
     apprendreEnAvance(m.id, ctx.jour);
-    if (apprendre.closest("[data-mm-form]")) message = `<span><b lang="es">${esc(m.es)}</b> arrive dans tes mots à revoir dès demain.</span>`;
+    if (apprendre.closest("[data-mm-form]")) message = `<span><b lang="es">${esc(m.es)}</b> arrive dans tes cartes à revoir dès demain.</span>`;
     vibrer();
     return true;
   }

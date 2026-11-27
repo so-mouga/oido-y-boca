@@ -8,7 +8,7 @@
 // Les unités 1 à 3 sont écrites à la main. Les autres leçons sont découpées dans la grammaire du livre
 // (PROGRAMME.md, aux « ; »), en attendant d'être écrites quand on y arrive (Q18-10).
 
-import { PARTIES } from "./livre.js?v=71";
+import { PARTIES } from "./livre.js?v=72";
 
 // Les verbes : la ligne du Dico, de la carte du verbe, de la leçon et de l'explication de conjugaison (Q18-6, Q18-11).
 // Le tiret insécable (‑) garde « ‑imos » en un seul morceau en fin de ligne.

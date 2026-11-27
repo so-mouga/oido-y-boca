@@ -6,15 +6,15 @@
 // Pas de chrono, pas de points, pas de record. La voix dit chaque mot nouveau à son arrivée.
 // Le moteur (pluriel, genre, pièges, choix du jour, correction) est dans missions.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=71";
-import { LECONS } from "../position.js?v=71";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=71";
-import { dire, taire } from "../voix.js?v=71";
-import { chispa } from "../mascotte.js?v=71";
-import * as J from "../jeux.js?v=71";
-import { hasardDuJour } from "../charla.js?v=71";
-import * as M from "../missions.js?v=71";
-import { DUOS } from "../duos.js?v=71";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=72";
+import { LECONS } from "../position.js?v=72";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=72";
+import { dire, taire } from "../voix.js?v=72";
+import { chispa } from "../mascotte.js?v=72";
+import * as J from "../jeux.js?v=72";
+import { hasardDuJour } from "../charla.js?v=72";
+import * as M from "../missions.js?v=72";
+import { DUOS } from "../duos.js?v=72";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -364,7 +364,7 @@ function nouveauxFin(g) {
     return `<li>${ecoute(`${x.art} ${x.mot}`)}<div><b lang="es">${esc(`${x.art} ${x.mot}`)}</b><span>${esc(J.court(x.fr))} · arrive en ${esc(x.lecon)}</span></div>${action}</li>`;
   };
   return `<div class="m-nouveaux"><h2>Les mots nouveaux de la mission</h2><ul class="d-liste">${g.nouveaux.map(ligne).join("")}</ul>
-    <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus). Un mot gardé revient dès demain dans « Tes mots à revoir ».` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p></div>`;
+    <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus). Un mot gardé revient dès demain dans « Tes cartes à revoir ».` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p></div>`;
 }
 function garderMot(k) {
   const g = derniere, x = g?.nouveaux[k];

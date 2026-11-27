@@ -14,20 +14,20 @@
 // Le moteur (mots, fausses réponses, points, records, guirlande) est dans jeux.js, sans écran, et se teste avec node.
 // Pendant une partie l'écran n'est pas redessiné : on change seulement ce qui bouge. Rien ici ne touche à la révision des mots.
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=71";
-import { UNITES } from "../position.js?v=71";
-import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=71";
-import { mesVerbes, verbesCours } from "../verbes.js?v=71";
-import { motsAMoi, motsAVenir } from "../dico.js?v=71";
-import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=71";
-import { dire, taire } from "../voix.js?v=71";
-import { chispa } from "../mascotte.js?v=71";
-import * as J from "../jeux.js?v=71";
-import { ecranDeux } from "./deux.js?v=71";
-import { ecranCaseta, recordCaseta } from "./caseta.js?v=71";
-import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=71";
-import { ecranCharla, standCharla } from "./charla.js?v=71";
-import { ecranMision, standMision } from "./missions.js?v=71";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=72";
+import { UNITES } from "../position.js?v=72";
+import { conjuguer, TEMPS, PERSONNES } from "../controles.js?v=72";
+import { mesVerbes, verbesCours } from "../verbes.js?v=72";
+import { motsAMoi, motsAVenir } from "../dico.js?v=72";
+import { cases, apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=72";
+import { dire, taire } from "../voix.js?v=72";
+import { chispa } from "../mascotte.js?v=72";
+import * as J from "../jeux.js?v=72";
+import { ecranDeux } from "./deux.js?v=72";
+import { ecranCaseta, recordCaseta } from "./caseta.js?v=72";
+import { ecranChiringuito, recordChiringuito } from "./chiringuito.js?v=72";
+import { ecranCharla, standCharla } from "./charla.js?v=72";
+import { ecranMision, standMision } from "./missions.js?v=72";
 
 let partie = null;    // la partie en cours
 let derniere = null;  // la dernière partie finie, pour l'écran de fin et le retour dans la salle
@@ -480,7 +480,7 @@ function carteApporte(g) {
   const m = g.apporte;
   if (!m) return "";
   const suite = g.garde === "oui"
-    ? `<p class="f-suite">Gardé ! Tu le reverras demain dans « Tes mots à revoir », puis dans les jeux.${J.peutSurprendre(jeux(), g.jour) ? "" : " C'était ton 2e mot du jour : le prochain viendra demain."}</p>`
+    ? `<p class="f-suite">Gardé ! Tu le reverras demain dans « Tes cartes à revoir », puis dans les jeux.${J.peutSurprendre(jeux(), g.jour) ? "" : " C'était ton 2e mot du jour : le prochain viendra demain."}</p>`
     : g.garde === "non" ? `<p class="f-suite">D'accord. Tu le verras avec le prof, à sa leçon.</p>`
     : `<div class="f-deux"><button data-j="garder">Je le garde</button><button data-j="pasgarder">Pas maintenant</button></div>`;
   return `<div class="f-apporte"><span class="f-k">${I.etoile}${g.devine ? "Bien deviné !" : "Chispa t'a apporté un mot"} · ${id(m.lecon)}</span>

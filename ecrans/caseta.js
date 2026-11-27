@@ -9,14 +9,14 @@
 // Le moteur (paquets, niveaux, points, pièges de l'oreille) est dans jeux.js ; les paires de pièges dans themes.js.
 // Rien ici ne touche à la révision des mots, sauf « Je le garde » sur un mot nouveau, comme dans le Dico.
 
-import { esc, ICONES } from "../ui.js?v=71";
-import { motsAMoi, motsAVenir } from "../dico.js?v=71";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=71";
-import { dire, taire } from "../voix.js?v=71";
-import { chispa } from "../mascotte.js?v=71";
-import { PIEGES } from "../themes.js?v=71";
-import * as J from "../jeux.js?v=71";
-import { rosette, braises, confettis } from "./jeux.js?v=71";
+import { esc, ICONES } from "../ui.js?v=72";
+import { motsAMoi, motsAVenir } from "../dico.js?v=72";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=72";
+import { dire, taire } from "../voix.js?v=72";
+import { chispa } from "../mascotte.js?v=72";
+import { PIEGES } from "../themes.js?v=72";
+import * as J from "../jeux.js?v=72";
+import { rosette, braises, confettis } from "./jeux.js?v=72";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -429,7 +429,7 @@ function nouveaux(g) {
       <div><b lang="es">${esc(m.es)}</b><span>${esc(J.court(m.fr))}</span></div>${action}</li>`;
   };
   return `<div class="c-nouveaux"><h2>Les mots nouveaux de la partie</h2><ul class="d-liste">${g.nouveaux.map(ligne).join("")}</ul>
-    <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus). Un mot gardé revient dès demain dans « Tes mots à revoir ».` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p></div>`;
+    <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus). Un mot gardé revient dès demain dans « Tes cartes à revoir ».` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p></div>`;
 }
 function garderMot(i) {
   const g = derniere, m = g?.nouveaux[i];

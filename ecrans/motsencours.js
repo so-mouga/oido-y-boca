@@ -3,14 +3,14 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=71";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=71";
-import { tempsVu } from "../verbes.js?v=71";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=71";
-import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=71";
-import { motsAMoi } from "../dico.js?v=71";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=71";
-import { vibrer, son } from "../retours.js?v=71";
+import { esc, md, ICONES } from "../ui.js?v=72";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=72";
+import { tempsVu } from "../verbes.js?v=72";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=72";
+import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=72";
+import { motsAMoi } from "../dico.js?v=72";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=72";
+import { vibrer, son } from "../retours.js?v=72";
 
 let s = null; // la séance en cours
 
@@ -164,7 +164,7 @@ function vueFin() {
   const sais = Object.entries(parMot).filter(([c, ok]) => ok && encours.has(c) && seriesJustes(c) >= 2).map(([c]) =>
     `<div class="tu-le-sais" role="status"><p><b lang="es">${esc(nom(c))}</b> : tout juste ${seriesJustes(c)} séances de suite. Tu le sais ?</p>
       <button class="oui" data-mc="sais" data-cle="${esc(c)}" data-nom="${esc(nom(c))}">Oui, je le sais</button>
-      <small>Il sort de tes mots en cours. Ses cartes continuent dans « Tes mots à revoir ».</small></div>`).join("");
+      <small>Il sort de tes mots en cours. Ses cartes continuent dans « Tes cartes à revoir ».</small></div>`).join("");
   return `<div class="fin">
       <h1>Séance terminée</h1>
       <p class="sous">${esc(s.titre)} · ${s.questions.length} questions</p>
@@ -175,7 +175,7 @@ function vueFin() {
       </ul>
       ${retenir ? `<section aria-labelledby="t-retenir"><h2 id="t-retenir">À retenir</h2><ul class="a-retenir">${retenir}</ul></section>` : ""}
       ${sais}
-      <p class="sous">Rien ne change dans « Tes mots à revoir » : cette séance, c'est en plus.</p>
+      <p class="sous">Rien ne change dans « Tes cartes à revoir » : cette séance, c'est en plus.</p>
     </div>
     <div class="espace"></div>
     <button class="secondaire" data-mc="encore">Encore 10</button>

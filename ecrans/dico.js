@@ -3,16 +3,16 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=71";
-import { lecon as trouver } from "../position.js?v=71";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=71";
-import { etatRevision, apprisEnAvance, fichesCartes } from "../progression.js?v=71";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=71";
-import { mesVerbes, suggestions } from "../verbes.js?v=71";
-import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE } from "../motsencours.js?v=71";
-import { phrasesDe, cleCarte } from "../cartes.js?v=71";
-import { htmlCartes } from "./cartesmot.js?v=71";
-import { phraseTouchable } from "../toucher.js?v=71";
+import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=72";
+import { lecon as trouver } from "../position.js?v=72";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=72";
+import { etatRevision, apprisEnAvance, fichesCartes } from "../progression.js?v=72";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=72";
+import { mesVerbes, suggestions } from "../verbes.js?v=72";
+import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE } from "../motsencours.js?v=72";
+import { phrasesDe, cleCarte } from "../cartes.js?v=72";
+import { htmlCartes } from "./cartesmot.js?v=72";
+import { phraseTouchable } from "../toucher.js?v=72";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -255,7 +255,7 @@ function actionsMot(ctx, m, vb, vu, depuis) {
   }
   const fiches = fichesCartes();
   const n = m.moi ? 0 : phrasesDe(m).filter((_, i) => !fiches[cleCarte(m.id, i + 3)]).length;
-  const effets = [n ? `ses ${n > 1 ? `${n} phrases` : "phrase"} à écrire ${n > 1 ? "entrent" : "entre"} dans tes mots à revoir` : "", !vu ? "sa carte arrive dans tes mots à revoir" : ""].filter(Boolean);
+  const effets = [n ? `ses ${n > 1 ? `${n} phrases` : "phrase"} à écrire ${n > 1 ? "entrent" : "entre"} dans tes cartes à revoir` : "", !vu ? "sa carte arrive dans tes cartes à revoir" : ""].filter(Boolean);
   return `<div class="espace"></div>
     <button class="primaire soleil" data-mc-ajouter="${esc(m.id)}">M'entraîner sur ce mot</button>
     <p class="petit">Il passe dans tes mots en cours${effets.length ? `, et ${effets.join(", et ")}` : ""}.</p>
@@ -306,7 +306,7 @@ function etat(ctx, m) {
   const e = etatRevision(m.id, ctx.jour);
   const depuis = m.moi ? m.le : apprisEnAvance(m.id);
   if (!e && depuis) return depuis >= ctx.jour ? "À revoir demain" : "À revoir aujourd'hui";
-  if (!e) return "Pas encore revu dans tes mots à revoir.";
+  if (!e) return "Pas encore revu dans tes cartes à revoir.";
   return e.dans === 0 ? "À revoir aujourd'hui" : e.dans === 1 ? "À revoir demain" : `À revoir dans ${e.dans} jours`;
 }
 
