@@ -6,7 +6,12 @@
 // d'abord dans « mots » (propre au texte, plusieurs mots possibles : « desde hace »), sinon dans GLOSE (les petits mots).
 // Le plus long morceau gagne : « en el trabajo » avant « en ». Les prénoms (NOMS) ne se touchent pas.
 // « nouveaux » : les mots pas encore vus dans le livre (2 au plus), avec leurs formes ; ils sont soulignés en pointillés.
-// Une question : { es, fr, choix: [3 réponses], bonne: le numéro de la bonne (0, 1 ou 2) }.
+// Deux formats (Q95) : court (2 mots nouveaux au plus, 3 questions) et « format: "long" » (2 à 3 fois plus long,
+// 5 à 8 mots nouveaux, 5 questions, et « glossaire » : le cadre « Mots nouveaux » avant le texte, { espagnol: français }).
+// « parle » (facultatif) : qui parle, paragraphe par paragraphe ("" = le narrateur) ; sinon c'est « de » (un message)
+// ou le narrateur. Il donne la voix et le rond de couleur du mode Écouter.
+// Une question : { es, fr, choix: [3 réponses], bonne: le numéro de la bonne (0, 1 ou 2),
+//   ph: le numéro de la phrase qui donne la réponse (en comptant toutes les phrases du texte depuis 0) }.
 // outils/test-lectures.mjs vérifie chaque mot avec le Sheet, chaque traduction, et les questions.
 
 export const SORTES = {
@@ -18,10 +23,24 @@ export const SORTES = {
   annonce: "Annonce",
   menu: "Menu",
   article: "Vieil article",
+  journal: "Journal intime",
+  telephone: "Au téléphone",
+  interview: "Interview",
+  courriel: "Courriel",
+  recette: "Recette",
+  vocal: "Message vocal",
 };
 
+// Le feuilleton (Q25-6) : un seul, qui avance de niveau en niveau. Un épisode porte « feuilleton: n » ;
+// à partir du 2e, « avant » rappelle l'épisode d'avant, en français.
+export const FEUILLETON = { titre: "Calle del Sol, 5", resume: "Giulia, une Italienne, arrive à Huesca pour apprendre l'espagnol." };
+
+// Les voix du mode Écouter (Q25-9) : deux au plus, jamais trafiquées. La voix d'Espagne du téléphone (un homme)
+// pour les hommes et le narrateur, la voix latino (une femme) pour les femmes.
+export const FEMMES = new Set(["Blanca", "Giulia", "Una amiga", "Su madre"]);
+
 // Les prénoms et les villes : pas de traduction.
-export const NOMS = new Set(["kevin", "blanca", "léo", "dorian", "huesca", "parís", "galicia"]);
+export const NOMS = new Set(["kevin", "blanca", "léo", "dorian", "huesca", "parís", "galicia", "giulia", "roma", "tomás", "rufo"]);
 
 // Les petits mots qu'on retrouve partout. Un texte peut toujours donner une traduction plus juste dans « mots ».
 export const GLOSE = {
@@ -51,9 +70,9 @@ export const NIVEAUX = [
           "española": "espagnole", "se casan": "ils se marient (casarse)",
         },
         questions: [
-          { es: "Kevin vive en…", fr: "Kevin habite à…", choix: ["Francia.", "Huesca.", "un pueblo."], bonne: 1 },
-          { es: "Con la empresa, Kevin habla…", fr: "Avec l'entreprise, Kevin parle…", choix: ["español.", "francés y inglés.", "solo francés."], bonne: 1 },
-          { es: "Kevin y Blanca…", fr: "Kevin et Blanca…", choix: ["se casan.", "trabajan en el despacho.", "viven en Francia."], bonne: 0 },
+          { es: "Kevin vive en…", fr: "Kevin habite à…", choix: ["Francia.", "Huesca.", "un pueblo."], bonne: 1, ph: 1 },
+          { es: "Con la empresa, Kevin habla…", fr: "Avec l'entreprise, Kevin parle…", choix: ["español.", "francés y inglés.", "solo francés."], bonne: 1, ph: 2 },
+          { es: "Kevin y Blanca…", fr: "Kevin et Blanca…", choix: ["se casan.", "trabajan en el despacho.", "viven en Francia."], bonne: 0, ph: 5 },
         ],
       },
       {
@@ -69,6 +88,7 @@ export const NIVEAUX = [
           "— Un poco. ¿Puedes hablar más despacio, por favor?",
           "— Sí, sí… ¡Perdón!",
         ],
+        parle: ["El amigo", "Kevin", "El amigo", "Kevin", "El amigo", "Kevin", "El amigo", "Kevin", "El amigo"],
         nouveaux: { "perdón": ["perdón"] },
         mots: {
           "un amigo": "un ami (el amigo)", "cómo te llamas": "comment tu t'appelles ? (llamarse)",
@@ -79,9 +99,9 @@ export const NIVEAUX = [
           "más despacio": "plus lentement", "perdón": "pardon",
         },
         questions: [
-          { es: "Kevin vive…", fr: "Kevin habite…", choix: ["en Francia.", "en Huesca con Blanca.", "con su jefe."], bonne: 1 },
-          { es: "Kevin trabaja…", fr: "Kevin travaille…", choix: ["en una empresa de Huesca.", "desde casa.", "con Blanca."], bonne: 1 },
-          { es: "Kevin habla español…", fr: "Kevin parle espagnol…", choix: ["mucho.", "un poco.", "nada."], bonne: 1 },
+          { es: "Kevin vive…", fr: "Kevin habite…", choix: ["en Francia.", "en Huesca con Blanca.", "con su jefe."], bonne: 1, ph: 6 },
+          { es: "Kevin trabaja…", fr: "Kevin travaille…", choix: ["en una empresa de Huesca.", "desde casa.", "con Blanca."], bonne: 1, ph: 8 },
+          { es: "Kevin habla español…", fr: "Kevin parle espagnol…", choix: ["mucho.", "un poco.", "nada."], bonne: 1, ph: 10 },
         ],
       },
       {
@@ -98,9 +118,9 @@ export const NIVEAUX = [
           "el domingo": "dimanche (qui vient)", "un beso": "bisous (el beso : le bisou)",
         },
         questions: [
-          { es: "Blanca está…", fr: "Blanca est…", choix: ["en casa.", "en el trabajo.", "en Francia."], bonne: 1 },
-          { es: "El cumpleaños de Léo es…", fr: "L'anniversaire de Léo, c'est…", choix: ["el cuatro de diciembre.", "el catorce de diciembre.", "el domingo."], bonne: 1 },
-          { es: "El domingo, Kevin y Blanca hablan con…", fr: "Dimanche, Kevin et Blanca parlent avec…", choix: ["la hermana de Blanca.", "las hermanas de Kevin.", "el jefe de Blanca."], bonne: 1 },
+          { es: "Blanca está…", fr: "Blanca est…", choix: ["en casa.", "en el trabajo.", "en Francia."], bonne: 1, ph: 2 },
+          { es: "El cumpleaños de Léo es…", fr: "L'anniversaire de Léo, c'est…", choix: ["el cuatro de diciembre.", "el catorce de diciembre.", "el domingo."], bonne: 1, ph: 3 },
+          { es: "El domingo, Kevin y Blanca hablan con…", fr: "Dimanche, Kevin et Blanca parlent avec…", choix: ["la hermana de Blanca.", "las hermanas de Kevin.", "el jefe de Blanca."], bonne: 1, ph: 4 },
         ],
       },
       {
@@ -118,9 +138,54 @@ export const NIVEAUX = [
           "no trabaja": "ne travaille pas (trabajar)", "es fiesta": "c'est un jour férié",
         },
         questions: [
-          { es: "Las fiestas de San Lorenzo son en…", fr: "Les fêtes de San Lorenzo sont en…", choix: ["junio.", "agosto.", "diciembre."], bonne: 1 },
-          { es: "El día de San Lorenzo es el…", fr: "Le jour de San Lorenzo, c'est le…", choix: ["nueve de agosto.", "diez de agosto.", "quince de agosto."], bonne: 1 },
-          { es: "En las fiestas, la gente está en la calle…", fr: "Pendant les fêtes, les gens sont dans la rue…", choix: ["solo por la mañana.", "de la mañana a la noche.", "solo el domingo."], bonne: 1 },
+          { es: "Las fiestas de San Lorenzo son en…", fr: "Les fêtes de San Lorenzo sont en…", choix: ["junio.", "agosto.", "diciembre."], bonne: 1, ph: 0 },
+          { es: "El día de San Lorenzo es el…", fr: "Le jour de San Lorenzo, c'est le…", choix: ["nueve de agosto.", "diez de agosto.", "quince de agosto."], bonne: 1, ph: 1 },
+          { es: "En las fiestas, la gente está en la calle…", fr: "Pendant les fêtes, les gens sont dans la rue…", choix: ["solo por la mañana.", "de la mañana a la noche.", "solo el domingo."], bonne: 1, ph: 2 },
+        ],
+      },
+      {
+        id: "n1-una-italiana-en-huesca", titre: "Una italiana en Huesca", sorte: "histoire", unite: 2, format: "long", feuilleton: 1,
+        texte: [
+          "Giulia es italiana. Tiene veinticinco años y vive en Roma. Pero desde hace una semana vive en Huesca, en un piso: estudia español.",
+          "Hoy es lunes. Por la mañana, Giulia tiene clase de español. Por la tarde, está en casa con su ordenador.",
+          "A las siete, un señor llama a la puerta. Tiene un perro.",
+          "— Hola. Me llamo Tomás. Soy un vecino. Y el perro es Rufo.",
+          "— Hola. Me llamo Giulia. Soy italiana.",
+          "— ¿Hablas español?",
+          "— Un poco. ¿Puedes hablar más despacio, por favor?",
+          "— Sí, sí. Mañana es mi cumpleaños: tengo ochenta años. ¿Comes con nosotros, a las dos? Rufo y yo.",
+          "— ¡Sí, gracias!",
+          "En Huesca, Giulia ya tiene un amigo. ¡Y un perro!",
+        ],
+        parle: ["", "", "", "Tomás", "Giulia", "Tomás", "Giulia", "Tomás", "Giulia", ""],
+        nouveaux: {
+          italiano: ["italiana"], estudiar: ["estudia"], clase: ["clase"], "señor": ["señor"],
+          puerta: ["puerta"], perro: ["perro"], vecino: ["vecino"],
+        },
+        glossaire: {
+          "italiano, italiana": "italien, italienne", estudiar: "étudier", "la clase": "le cours", "el señor": "le monsieur",
+          "la puerta": "la porte", "el perro": "le chien", "el vecino": "le voisin",
+        },
+        mots: {
+          italiana: "italienne (italiano)", "tiene veinticinco años": "elle a 25 ans (tener… años)",
+          vive: "elle habite (vivir)", "en roma": "à Rome", "desde hace una semana": "depuis une semaine",
+          "en huesca": "à Huesca", "en un piso": "dans un appartement (el piso)", estudia: "elle étudie (estudiar)",
+          "español": "espagnol", hoy: "aujourd'hui", "es lunes": "c'est lundi", "por la mañana": "le matin",
+          tiene: "elle a (tener)", "clase de español": "cours d'espagnol (la clase)", "por la tarde": "l'après-midi",
+          "en casa": "à la maison", "su ordenador": "son ordinateur (el ordenador)", "a las siete": "à sept heures",
+          "un señor": "un monsieur (el señor)", "llama a la puerta": "frappe à la porte (llamar, la puerta)",
+          "un perro": "un chien (el perro)", "me llamo": "je m'appelle (llamarse)", "un vecino": "un voisin (el vecino)",
+          "el perro": "le chien", hablas: "tu parles (hablar)", puedes: "tu peux (poder)", hablar: "parler",
+          "más despacio": "plus lentement", "mañana": "demain", "mi cumpleaños": "mon anniversaire",
+          "tengo ochenta años": "j'ai 80 ans (tener… años)", comes: "tu manges (comer)", nosotros: "nous",
+          "a las dos": "à deux heures", gracias: "merci", "un amigo": "un ami (el amigo)", ya: "déjà",
+        },
+        questions: [
+          { es: "Giulia vive en Huesca desde hace…", fr: "Giulia habite à Huesca depuis…", choix: ["un año.", "una semana.", "cinco años."], bonne: 1, ph: 2 },
+          { es: "En Huesca, Giulia…", fr: "À Huesca, Giulia…", choix: ["trabaja en una empresa.", "estudia español.", "vive con su hermana."], bonne: 1, ph: 2 },
+          { es: "Por la tarde, Giulia está…", fr: "L'après-midi, Giulia est…", choix: ["en clase.", "en casa.", "en Roma."], bonne: 1, ph: 5 },
+          { es: "Tomás es…", fr: "Tomás est…", choix: ["un vecino.", "un amigo de Roma.", "el hermano de Giulia."], bonne: 0, ph: 10 },
+          { es: "Mañana es el cumpleaños de…", fr: "Demain, c'est l'anniversaire de…", choix: ["Giulia.", "Tomás.", "Rufo."], bonne: 1, ph: 19 },
         ],
       },
     ],
@@ -146,9 +211,9 @@ export const NIVEAUX = [
           "por la noche": "le soir", descansa: "il se repose (descansar)",
         },
         questions: [
-          { es: "Kevin se despierta…", fr: "Kevin se réveille…", choix: ["a las siete.", "a las nueve.", "a mediodía."], bonne: 0 },
-          { es: "Kevin vuelve del gimnasio…", fr: "Kevin rentre de la salle de sport…", choix: ["a la una y media.", "a las cinco.", "por la noche."], bonne: 0 },
-          { es: "En casa, cenan…", fr: "À la maison, ils dînent…", choix: ["a las siete.", "a las nueve.", "a las dos."], bonne: 1 },
+          { es: "Kevin se despierta…", fr: "Kevin se réveille…", choix: ["a las siete.", "a las nueve.", "a mediodía."], bonne: 0, ph: 0 },
+          { es: "Kevin vuelve del gimnasio…", fr: "Kevin rentre de la salle de sport…", choix: ["a la una y media.", "a las cinco.", "por la noche."], bonne: 0, ph: 3 },
+          { es: "En casa, cenan…", fr: "À la maison, ils dînent…", choix: ["a las siete.", "a las nueve.", "a las dos."], bonne: 1, ph: 4 },
         ],
       },
       {
@@ -170,9 +235,9 @@ export const NIVEAUX = [
           "el precio": "le prix", "la mitad": "la moitié", "quince euros": "quinze euros",
         },
         questions: [
-          { es: "Los domingos, el gimnasio…", fr: "Le dimanche, la salle de sport…", choix: ["está cerrado.", "abre a las nueve.", "abre a las siete."], bonne: 0 },
-          { es: "De lunes a viernes, el gimnasio abre…", fr: "Du lundi au vendredi, la salle ouvre…", choix: ["a las nueve.", "a las siete.", "a las diez."], bonne: 1 },
-          { es: "En enero, el precio es…", fr: "En janvier, le prix est de…", choix: ["treinta euros.", "quince euros.", "cinco euros."], bonne: 1 },
+          { es: "Los domingos, el gimnasio…", fr: "Le dimanche, la salle de sport…", choix: ["está cerrado.", "abre a las nueve.", "abre a las siete."], bonne: 0, ph: 4 },
+          { es: "De lunes a viernes, el gimnasio abre…", fr: "Du lundi au vendredi, la salle ouvre…", choix: ["a las nueve.", "a las siete.", "a las diez."], bonne: 1, ph: 2 },
+          { es: "En enero, el precio es…", fr: "En janvier, le prix est de…", choix: ["treinta euros.", "quince euros.", "cinco euros."], bonne: 1, ph: 6 },
         ],
       },
       {
@@ -190,9 +255,9 @@ export const NIVEAUX = [
           "con él": "avec lui", cocinas: "tu cuisines (cocinar)", gracias: "merci",
         },
         questions: [
-          { es: "Blanca llega tarde porque…", fr: "Blanca arrive en retard parce que…", choix: ["tiene una reunión.", "está cansada.", "va al gimnasio."], bonne: 0 },
-          { es: "Antes de cenar, Dorian tiene que…", fr: "Avant le dîner, Dorian doit…", choix: ["dormir la siesta.", "hacer los deberes.", "ir al gimnasio."], bonne: 1 },
-          { es: "Hoy, Dorian está…", fr: "Aujourd'hui, Dorian est…", choix: ["contento.", "enfadado.", "cansado y triste."], bonne: 2 },
+          { es: "Blanca llega tarde porque…", fr: "Blanca arrive en retard parce que…", choix: ["tiene una reunión.", "está cansada.", "va al gimnasio."], bonne: 0, ph: 1 },
+          { es: "Antes de cenar, Dorian tiene que…", fr: "Avant le dîner, Dorian doit…", choix: ["dormir la siesta.", "hacer los deberes.", "ir al gimnasio."], bonne: 1, ph: 3 },
+          { es: "Hoy, Dorian está…", fr: "Aujourd'hui, Dorian est…", choix: ["contento.", "enfadado.", "cansado y triste."], bonne: 2, ph: 4 },
         ],
       },
       {
@@ -214,9 +279,9 @@ export const NIVEAUX = [
           "cuido de los niños": "je m'occupe des enfants (cuidar de)",
         },
         questions: [
-          { es: "Dorian es…", fr: "Dorian est…", choix: ["el hijo de Kevin.", "el hijo de Blanca.", "el sobrino de Blanca."], bonne: 1 },
-          { es: "La madre de Blanca vive…", fr: "La mère de Blanca habite…", choix: ["en Huesca.", "en París.", "en Galicia."], bonne: 2 },
-          { es: "La hermana pequeña de Kevin vive…", fr: "La petite sœur de Kevin habite…", choix: ["en Galicia.", "en París con sus padres.", "con Kevin."], bonne: 1 },
+          { es: "Dorian es…", fr: "Dorian est…", choix: ["el hijo de Kevin.", "el hijo de Blanca.", "el sobrino de Blanca."], bonne: 1, ph: 3 },
+          { es: "La madre de Blanca vive…", fr: "La mère de Blanca habite…", choix: ["en Huesca.", "en París.", "en Galicia."], bonne: 2, ph: 6 },
+          { es: "La hermana pequeña de Kevin vive…", fr: "La petite sœur de Kevin habite…", choix: ["en Galicia.", "en París con sus padres.", "con Kevin."], bonne: 1, ph: 5 },
         ],
       },
     ],
@@ -244,6 +309,7 @@ export const NIVEAUX = [
           "— ¡Genial! Bueno… me tengo que ir, que tengo prisa. ¡Nos vemos!",
           "— ¡Hasta luego! ¡Que vaya bien!",
         ],
+        parle: ["Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin", "Una amiga", "Kevin"],
         nouveaux: { bueno: ["bueno"] },
         mots: {
           "qué tal": "ça va ?", "bien": "bien", gracias: "merci", "y tú": "et toi ?", "cuánto tiempo": "ça fait longtemps !",
@@ -260,9 +326,9 @@ export const NIVEAUX = [
           "hasta luego": "à plus tard, salut", "que vaya bien": "bonne continuation !",
         },
         questions: [
-          { es: "Hoy, en Huesca…", fr: "Aujourd'hui, à Huesca…", choix: ["hace calor.", "hace mucho frío.", "llueve."], bonne: 1 },
-          { es: "Kevin está…", fr: "Kevin est…", choix: ["de vacaciones.", "muy ocupado.", "enfermo."], bonne: 1 },
-          { es: "Kevin y Blanca se casan…", fr: "Kevin et Blanca se marient…", choix: ["el finde.", "en agosto.", "el diecinueve de junio."], bonne: 2 },
+          { es: "Hoy, en Huesca…", fr: "Aujourd'hui, à Huesca…", choix: ["hace calor.", "hace mucho frío.", "llueve."], bonne: 1, ph: 7 },
+          { es: "Kevin está…", fr: "Kevin est…", choix: ["de vacaciones.", "muy ocupado.", "enfermo."], bonne: 1, ph: 16 },
+          { es: "Kevin y Blanca se casan…", fr: "Kevin et Blanca se marient…", choix: ["el finde.", "en agosto.", "el diecinueve de junio."], bonne: 2, ph: 23 },
         ],
       },
       {
@@ -289,9 +355,9 @@ export const NIVEAUX = [
           "estáis": "vous êtes (estar, vosotros)", "casi cada día": "presque chaque jour", "en parís": "à Paris", hoy: "aujourd'hui",
         },
         questions: [
-          { es: "En invierno, en Huesca…", fr: "En hiver, à Huesca…", choix: ["hace mucho frío por la mañana.", "hace calor.", "llueve mucho."], bonne: 0 },
-          { es: "En verano, a mediodía…", fr: "En été, à midi…", choix: ["la gente pasea.", "casi nadie pasea.", "los niños pasean."], bonne: 1 },
-          { es: "En Huesca…", fr: "À Huesca…", choix: ["llueve mucho.", "nunca hace viento.", "hace sol casi cada día."], bonne: 2 },
+          { es: "En invierno, en Huesca…", fr: "En hiver, à Huesca…", choix: ["hace mucho frío por la mañana.", "hace calor.", "llueve mucho."], bonne: 0, ph: 1 },
+          { es: "En verano, a mediodía…", fr: "En été, à midi…", choix: ["la gente pasea.", "casi nadie pasea.", "los niños pasean."], bonne: 1, ph: 3 },
+          { es: "En Huesca…", fr: "À Huesca…", choix: ["llueve mucho.", "nunca hace viento.", "hace sol casi cada día."], bonne: 2, ph: 7 },
         ],
       },
       {
@@ -321,9 +387,9 @@ export const NIVEAUX = [
           "comer": "manger, déjeuner", "en la terraza": "en terrasse",
         },
         questions: [
-          { es: "El menú del día es…", fr: "Le menu du jour, c'est…", choix: ["los sábados.", "de lunes a viernes.", "por la noche."], bonne: 1 },
-          { es: "Después de la verdura, puedes comer…", fr: "Après les légumes, tu peux manger…", choix: ["carne o pescado.", "solo fruta.", "solo pan."], bonne: 0 },
-          { es: "El precio del menú es…", fr: "Le prix du menu est…", choix: ["dos euros.", "veinte euros.", "doce euros."], bonne: 2 },
+          { es: "El menú del día es…", fr: "Le menu du jour, c'est…", choix: ["los sábados.", "de lunes a viernes.", "por la noche."], bonne: 1, ph: 0 },
+          { es: "Después de la verdura, puedes comer…", fr: "Après les légumes, tu peux manger…", choix: ["carne o pescado.", "solo fruta.", "solo pan."], bonne: 0, ph: 2 },
+          { es: "El precio del menú es…", fr: "Le prix du menu est…", choix: ["dos euros.", "veinte euros.", "doce euros."], bonne: 2, ph: 7 },
         ],
       },
       {
@@ -347,9 +413,9 @@ export const NIVEAUX = [
           "un beso": "bisous",
         },
         questions: [
-          { es: "El sábado, las amigas de Blanca quieren…", fr: "Samedi, les amies de Blanca veulent…", choix: ["quedar.", "trabajar.", "ir al cole."], bonne: 0 },
-          { es: "Después de la terraza, si hace sol…", fr: "Après la terrasse, s'il fait soleil…", choix: ["comen en casa.", "pasean un poco.", "van al gimnasio."], bonne: 1 },
-          { es: "En la terraza, Kevin pide las cañas…", fr: "Sur la terrasse, Kevin commande les bières…", choix: ["en francés.", "en inglés.", "en español."], bonne: 2 },
+          { es: "El sábado, las amigas de Blanca quieren…", fr: "Samedi, les amies de Blanca veulent…", choix: ["quedar.", "trabajar.", "ir al cole."], bonne: 0, ph: 2 },
+          { es: "Después de la terraza, si hace sol…", fr: "Après la terrasse, s'il fait soleil…", choix: ["comen en casa.", "pasean un poco.", "van al gimnasio."], bonne: 1, ph: 5 },
+          { es: "En la terraza, Kevin pide las cañas…", fr: "Sur la terrasse, Kevin commande les bières…", choix: ["en francés.", "en inglés.", "en español."], bonne: 2, ph: 8 },
         ],
       },
     ],
@@ -372,6 +438,7 @@ export const NIVEAUX = [
           "— ¡Blanca! ¿Dónde está mi teléfono?",
           "— En tu bolsa, cariño.",
         ],
+        parle: ["", "Kevin", "Blanca", "Kevin", "Blanca", "Kevin", "Blanca", "Kevin", "", "Kevin", "Blanca"],
         nouveaux: {},
         mots: {
           "son las doce menos cuarto": "il est midi moins le quart", "tiene que salir": "il doit sortir (tener que + salir)",
@@ -386,9 +453,9 @@ export const NIVEAUX = [
           "mi teléfono": "mon téléphone", "en tu bolsa": "dans ton sac",
         },
         questions: [
-          { es: "Kevin no encuentra…", fr: "Kevin ne trouve pas…", choix: ["el ordenador.", "las llaves.", "la bolsa."], bonne: 1 },
-          { es: "Las llaves están…", fr: "Les clés sont…", choix: ["encima de la mesa.", "en la cocina.", "dentro de la bolsa del gimnasio."], bonne: 2 },
-          { es: "Kevin vuelve…", fr: "Kevin rentre…", choix: ["a la una y media.", "a las doce.", "a las dos."], bonne: 0 },
+          { es: "Kevin no encuentra…", fr: "Kevin ne trouve pas…", choix: ["el ordenador.", "las llaves.", "la bolsa."], bonne: 1, ph: 1 },
+          { es: "Las llaves están…", fr: "Les clés sont…", choix: ["encima de la mesa.", "en la cocina.", "dentro de la bolsa del gimnasio."], bonne: 2, ph: 9 },
+          { es: "Kevin vuelve…", fr: "Kevin rentre…", choix: ["a la una y media.", "a las doce.", "a las dos."], bonne: 0, ph: 16 },
         ],
       },
       {
@@ -419,9 +486,9 @@ export const NIVEAUX = [
           "no pueden estar solos": "ne peuvent pas être seuls (poder)", "en el ascensor": "dans l'ascenseur",
         },
         questions: [
-          { es: "El ascensor…", fr: "L'ascenseur…", choix: ["funciona bien.", "no funciona.", "está en el piso tres."], bonne: 1 },
-          { es: "El jueves, un señor viene…", fr: "Jeudi, un monsieur vient…", choix: ["a las diez de la noche.", "a mediodía.", "a las diez de la mañana."], bonne: 2 },
-          { es: "En la mesa del portal, hay…", fr: "Sur la table de l'entrée, il y a…", choix: ["una llave.", "una bolsa.", "la basura."], bonne: 0 },
+          { es: "El ascensor…", fr: "L'ascenseur…", choix: ["funciona bien.", "no funciona.", "está en el piso tres."], bonne: 1, ph: 1 },
+          { es: "El jueves, un señor viene…", fr: "Jeudi, un monsieur vient…", choix: ["a las diez de la noche.", "a mediodía.", "a las diez de la mañana."], bonne: 2, ph: 2 },
+          { es: "En la mesa del portal, hay…", fr: "Sur la table de l'entrée, il y a…", choix: ["una llave.", "una bolsa.", "la basura."], bonne: 0, ph: 5 },
         ],
       },
       {
@@ -445,6 +512,7 @@ export const NIVEAUX = [
           "— ¡Ya estoy listo, papá!",
           "— ¡Muy bien! ¡Vamos, que llegamos tarde!",
         ],
+        parle: ["Kevin", "Léo", "Kevin", "Dorian", "Kevin", "Léo", "Kevin", "Kevin", "Dorian", "Léo", "Kevin", "Léo", "Kevin", "Léo", "Kevin", "Léo", "Kevin"],
         nouveaux: {},
         mots: {
           venga: "allez !", "date prisa": "dépêche-toi (darse prisa)", "ya voy": "j'arrive !", "papá": "papa",
@@ -458,9 +526,9 @@ export const NIVEAUX = [
           "que llegamos tarde": "on va être en retard (llegar tarde)",
         },
         questions: [
-          { es: "Hoy hace…", fr: "Aujourd'hui, il fait…", choix: ["calor.", "frío.", "sol."], bonne: 1 },
-          { es: "La mochila de Dorian está…", fr: "Le cartable de Dorian est…", choix: ["en el cole.", "en el baño.", "en el salón."], bonne: 2 },
-          { es: "Léo se pone los zapatos…", fr: "Léo met les chaussures…", choix: ["azules.", "rojos.", "negros."], bonne: 0 },
+          { es: "Hoy hace…", fr: "Aujourd'hui, il fait…", choix: ["calor.", "frío.", "sol."], bonne: 1, ph: 7 },
+          { es: "La mochila de Dorian está…", fr: "Le cartable de Dorian est…", choix: ["en el cole.", "en el baño.", "en el salón."], bonne: 2, ph: 5 },
+          { es: "Léo se pone los zapatos…", fr: "Léo met les chaussures…", choix: ["azules.", "rojos.", "negros."], bonne: 0, ph: 9 },
         ],
       },
       {
@@ -474,6 +542,7 @@ export const NIVEAUX = [
           "— No, Léo: son las nueve. ¡A la cama!",
           "Léo está muy cansado y duerme enseguida. Y Dorian lee solo en su cama: ¡ya tiene siete años! Luego, Kevin y Blanca descansan un poco en el salón.",
         ],
+        parle: ["", "Kevin", "Léo", "", "Léo", "Kevin", ""],
         nouveaux: { perro: ["perro"] },
         mots: {
           "son las ocho de la noche": "il est huit heures du soir", "se baña": "il prend son bain (bañarse)", "y después": "et après",
@@ -487,9 +556,9 @@ export const NIVEAUX = [
           "un poco": "un peu", "en el salón": "dans le salon", "en su cama": "dans son lit", "ya tiene siete años": "il a déjà sept ans",
         },
         questions: [
-          { es: "Antes del cuento, Léo…", fr: "Avant l'histoire, Léo…", choix: ["se baña.", "come.", "va al cole."], bonne: 0 },
-          { es: "El cuento es de…", fr: "L'histoire parle…", choix: ["un perro rojo.", "un perro azul.", "un niño."], bonne: 1 },
-          { es: "Dorian…", fr: "Dorian…", choix: ["juega con Léo.", "apaga la luz.", "lee solo en su cama."], bonne: 2 },
+          { es: "Antes del cuento, Léo…", fr: "Avant l'histoire, Léo…", choix: ["se baña.", "come.", "va al cole."], bonne: 0, ph: 1 },
+          { es: "El cuento es de…", fr: "L'histoire parle…", choix: ["un perro rojo.", "un perro azul.", "un niño."], bonne: 1, ph: 5 },
+          { es: "Dorian…", fr: "Dorian…", choix: ["juega con Léo.", "apaga la luz.", "lee solo en su cama."], bonne: 2, ph: 12 },
         ],
       },
     ],
@@ -501,6 +570,14 @@ export const texte = id => TEXTES.find(t => t.id === id) || null;
 // Le niveau d'une unité du livre : U1-U2 → 1, U3-U4 → 2… (Noël, sans numéro, compte avec l'unité d'avant.)
 export const niveauDe = n => Math.max(1, Math.ceil((n || 1) / 2));
 export const nbMots = t => t.texte.join(" ").match(/\p{L}+/gu).length;
+
+// Toutes les phrases d'un texte, dans l'ordre, avec qui les dit : [{ ph, qui, femme, p }] (p : le paragraphe).
+export function phrasesDe(t) {
+  return t.texte.flatMap((par, p) => {
+    const qui = t.parle ? t.parle[p] || "" : t.de || "";
+    return phrases(par).map(ph => ({ ph, qui, femme: FEMMES.has(qui), p }));
+  });
+}
 
 // ── Le découpage : paragraphes → phrases → morceaux ──
 // Une phrase finit par . ! ? ou … suivi d'un espace (« ¿Cómo te llamas? » reste entière).

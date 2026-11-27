@@ -176,9 +176,18 @@ export function noterSerieVerbes(resultats, aujourdhui) {
 
 // Les lectures : pour chaque texte lu, le dernier résultat aux questions ({ id du texte: { le, score, sur } }).
 // Un texte est « lu » dès qu'il a un résultat. Serviront plus tard aux jeux (« Remets l'histoire dans l'ordre », « Vrai ou faux »).
-export const resultatLecture = idTexte => (etat.lectures || {})[idTexte] || null;
-export function noterLecture(idTexte, aujourdhui, score, sur) {
-  etat.lectures = { ...(etat.lectures || {}), [idTexte]: { le: aujourdhui, score, sur } };
+// Le mode Écouter (chantier 25) garde son score à part, dans le même objet : { le, score, sur, ecoute: { le, score, sur } }.
+// Une vieille sauvegarde (sans « ecoute ») reste bonne : le texte est lu, pas encore écouté.
+export function resultatLecture(idTexte, mode = "lu") {
+  const r = (etat.lectures || {})[idTexte];
+  if (!r) return null;
+  if (mode === "ecoute") return r.ecoute || null;
+  return "score" in r ? { le: r.le, score: r.score, sur: r.sur } : null;
+}
+export function noterLecture(idTexte, aujourdhui, score, sur, mode = "lu") {
+  const avant = (etat.lectures || {})[idTexte] || {};
+  const neuf = mode === "ecoute" ? { ...avant, ecoute: { le: aujourdhui, score, sur } } : { ...avant, le: aujourdhui, score, sur };
+  etat.lectures = { ...(etat.lectures || {}), [idTexte]: neuf };
   sauver();
 }
 

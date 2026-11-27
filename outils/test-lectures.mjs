@@ -1,9 +1,11 @@
 // Vérifie les lectures (lectures.js) avec le vrai vocabulaire du Sheet :
 // - chaque mot d'un texte, de son titre et de ses questions est vu dans le livre jusqu'à l'unité du texte
 //   (une carte du Sheet, une forme conjuguée d'un verbe vu, un petit mot de grammaire déjà vu),
-//   ou fait partie des mots nouveaux du texte (2 au plus) ;
+//   ou fait partie des mots nouveaux du texte (2 au plus pour un texte court, 5 à 8 pour un long) ;
 // - chaque mot du texte a sa traduction (dans le texte ou dans GLOSE), sauf les prénoms ;
-// - chaque question a 3 choix et une bonne réponse ; les textes d'un niveau vont de la plus petite unité à la plus grande.
+// - chaque question a 3 choix, une bonne réponse et la phrase qui la donne (ph) ; 3 questions pour un court, 5 pour un long ;
+// - « parle » a un nom par paragraphe, deux voix au plus ; les épisodes du feuilleton se suivent ;
+// - les textes d'un niveau vont de la plus petite unité à la plus grande.
 // Lancer depuis appli/ : node outils/test-lectures.mjs [chemin/vers/vocabulaire.csv]
 // Sans chemin, le test lit l'onglet « Vocabulaire » du Sheet directement.
 import fs from "fs";
@@ -112,7 +114,11 @@ for (const nv of L.NIVEAUX) {
     avant = t.unite;
     const vus = cache[t.unite] ||= vusJusqua(t.unite);
     const nouveaux = Object.entries(t.nouveaux || {});
-    if (nouveaux.length > 2) signaler(t, `${nouveaux.length} mots nouveaux (2 au plus)`);
+    const long = t.format === "long";
+    if (t.format && !long) signaler(t, `format inconnu « ${t.format} »`);
+    if (!long && nouveaux.length > 2) signaler(t, `${nouveaux.length} mots nouveaux (2 au plus pour un texte court)`);
+    if (long && (nouveaux.length < 5 || nouveaux.length > 8)) signaler(t, `${nouveaux.length} mots nouveaux (5 à 8 pour un texte long)`);
+    if (long && Object.keys(t.glossaire || {}).length !== nouveaux.length) signaler(t, "le glossaire doit avoir un mot par mot nouveau");
     const formesNouvelles = new Set(nouveaux.flatMap(([, f]) => f.map(min)));
     for (const [lemme, f] of nouveaux) if (f.every(x => vus.has(min(x)))) signaler(t, `« ${lemme} » est déjà vu : pas besoin de le compter comme nouveau`);
     const nouveauxUtilises = new Set();
@@ -138,7 +144,13 @@ for (const nv of L.NIVEAUX) {
     for (const cle of Object.keys(t.mots || {})) if (!servies.has(cle)) signaler(t, `traduction inutilisée « ${cle} »`);
 
     // 3. Les questions.
-    if (t.questions.length !== 3) signaler(t, `${t.questions.length} questions (3 attendues)`);
+    if (t.questions.length !== (long ? 5 : 3)) signaler(t, `${t.questions.length} questions (${long ? 5 : 3} attendues)`);
+
+    // 4. L'écoute : qui parle (un nom par paragraphe, deux voix au plus) et la phrase de chaque réponse.
+    if (t.parle && t.parle.length !== t.texte.length) signaler(t, `« parle » a ${t.parle.length} noms pour ${t.texte.length} paragraphes`);
+    const dites = L.phrasesDe(t);
+    if (new Set(dites.map(d => d.femme)).size > 2) signaler(t, "plus de deux voix");
+    for (const q of t.questions) if (!(Number.isInteger(q.ph) && q.ph >= 0 && q.ph < dites.length)) signaler(t, `« ${q.es} » : ph ${q.ph} hors du texte (${dites.length} phrases)`);
     for (const q of t.questions) {
       if (!q.es || !q.fr) signaler(t, `question sans espagnol ou sans français : ${q.es}`);
       if (q.choix.length !== 3 || new Set(q.choix).size !== 3) signaler(t, `« ${q.es} » : il faut 3 choix différents`);
@@ -147,6 +159,13 @@ for (const nv of L.NIVEAUX) {
     console.log(`${erreurs ? "·" : "✓"} niveau ${nv.n} · U${t.unite} · ${t.titre} · ${L.nbMots(t)} mots`);
   }
 }
+
+// Le feuilleton : les épisodes se suivent (1, 2, 3…) dans l'ordre des niveaux, et dès le 2e, « avant » le rappelle.
+const episodes = L.TEXTES.filter(t => t.feuilleton);
+episodes.forEach((t, i) => {
+  if (t.feuilleton !== i + 1) signaler(t, `épisode ${t.feuilleton} à la place ${i + 1} du feuilleton`);
+  if (i > 0 && !t.avant) signaler(t, "un épisode sans « avant »");
+});
 
 const ids = L.TEXTES.map(t => t.id);
 if (new Set(ids).size !== ids.length) { erreurs++; console.log("✗ deux textes ont le même id"); }

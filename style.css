@@ -984,3 +984,74 @@ mark .tx-mot.touche { box-shadow: none; }
 .carte-reponse .es.compris span.non { color: var(--fog); }
 .compris-n { font-size: 13px; font-weight: 600; color: var(--marine-soft); }
 .entendu { font-size: 12.5px; color: var(--muted); font-style: italic; }
+
+/* Lectures 2 (chantier 25, maquette lectures-2.html) : deux marques par texte (lu, écouté), Court / Long / Feuilleton,
+   le choix Lire | Écouter, le lecteur du mode Écouter (texte caché), le cadre « Mots nouveaux », « Avant ». */
+.lx-info { display: flex !important; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 2px; }
+.lx-tag { font-size: 10.5px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; border-radius: 6px; padding: 2px 6px; background: var(--sun-deep); color: var(--sun-ink); }
+.lx-tag.long { background: #DCE6F2; color: #2D4F7C; }
+.lx-tag.feu { background: #DCEBDD; color: var(--sage-ink); }
+.lx-deux { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; flex: none; }
+.lx-marque { display: flex; align-items: center; gap: 4px; font-size: 11.5px; font-weight: 500; color: var(--fog); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.lx-marque .i { width: 13px; height: 13px; }
+.lx-marque.ok { color: var(--sage-ink); }
+.lx-feu { background: var(--card); border: 1px solid var(--hair); border-radius: 20px; padding: 14px 15px 4px; }
+.lectures .lx-feu h2 { font-size: 17px; font-weight: 600; color: var(--marine); margin: 6px 0 2px; }
+.lx-feu .sous { margin-bottom: 4px; }
+.lx-feu .lx-texte { border-top: 1px solid var(--hair); }
+.lx-ep .num { width: 28px; height: 28px; border-radius: 8px; flex: none; display: grid; place-items: center; font-size: 12.5px; font-weight: 600; background: #DCEBDD; color: var(--sage-ink); }
+.lx-ep.loin { color: var(--fog); }
+.lx-ep.loin .num { background: transparent; border: 1px solid var(--hair); color: var(--fog); }
+.lx-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.lx-avant { background: #DCEBDD; color: var(--sage-ink); border-radius: 16px; padding: 11px 13px; font-size: 14px; line-height: 1.45; }
+.lx-avant b { display: block; font-size: 11.5px; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 2px; }
+.lx-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; background: var(--sun-deep); border-radius: 15px; padding: 4px; }
+.lx-mode a { display: flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; border-radius: 12px; font-size: 15px; font-weight: 500; color: var(--marine-soft); }
+.lx-mode a.on { background: var(--card); color: var(--marine); box-shadow: 0 1px 3px rgba(122, 85, 16, .18); }
+.lx-mode small { font-size: 12px; color: var(--sage-ink); font-weight: 500; }
+.lx-mn { background: var(--card); border: 1px solid var(--hair); border-radius: 18px; padding: 12px 13px; }
+.lectures .lx-mn h2 { font-size: 12.5px; font-weight: 600; color: var(--sun-ink); margin: 0 0 6px; }
+.lx-mn ul { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.lx-mn-mot { display: flex; flex-direction: column; align-items: flex-start; text-align: left; font-size: 14px; line-height: 1.3; color: var(--marine); padding: 2px 0; }
+.lx-mn-mot b { font-weight: 500; }
+.lx-mn-mot span { font-size: 12px; color: var(--muted); }
+.lx-mn-mot.on b { background: var(--sun-deep); border-radius: 5px; }
+
+/* Le lecteur */
+.lx-lecteur { background: var(--marine); color: var(--sun-ground); border-radius: 22px; padding: 14px 14px 12px; display: flex; flex-direction: column; gap: 11px; }
+.lx-l-haut { display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; color: #C9D3E4; }
+.lx-l-haut b { color: var(--sun-ground); font-weight: 600; font-size: 13.5px; }
+.lx-points { display: flex; flex-wrap: wrap; gap: 4px; }
+.lx-points span { width: 14px; height: 6px; border-radius: 3px; background: #34507A; }
+.lx-points span.lx-f { background: var(--halo, #F9DA8C); }
+.lx-points span.lx-i { background: var(--sun); width: 22px; }
+.lx-cache { background: #1F3A63; border-radius: 14px; padding: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.lx-qui { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-size: 14px; font-weight: 600; flex: none; color: var(--marine); }
+.lx-qui.a { background: var(--sun); } .lx-qui.b { background: #8FB8E8; } .lx-qui.c { background: #A8D5B0; } .lx-qui.x { background: #34507A; color: var(--sun-ground); }
+.lx-lignes { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 80px; }
+.lx-lignes i { display: block; height: 8px; border-radius: 4px; background: #34507A; width: 92%; }
+.lx-lignes.bouge i { background: linear-gradient(90deg, #34507A, #5A7BA8, #34507A); background-size: 200% 100%; animation: lx-onde 1.1s linear infinite; }
+@keyframes lx-onde { to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .lx-lignes.bouge i { animation: none; background: #5A7BA8; } }
+.lx-nom { width: 100%; font-size: 12px; color: #9FB0CA; }
+.lx-cmds { display: grid; grid-template-columns: 1fr 1.25fr 1fr; gap: 8px; }
+.lx-cmds button { display: flex; flex-direction: column; align-items: center; gap: 4px; border-radius: 14px; padding: 10px 4px; min-height: 56px; font-size: 13px; font-weight: 500; background: #25426E; color: var(--sun-ground); }
+.lx-cmds button .i { width: 20px; height: 20px; }
+.lx-cmds button.jouer { background: var(--sun); color: var(--marine); }
+.lx-cmds button:disabled { opacity: .4; cursor: default; }
+.lx-l-bas { display: flex; justify-content: space-between; align-items: center; }
+.lx-lent { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #C9D3E4; min-height: 40px; }
+.lx-lent .sw { width: 32px; height: 19px; border-radius: 10px; background: #34507A; position: relative; transition: background .2s; }
+.lx-lent .sw::after { content: ""; position: absolute; left: 2px; top: 2px; width: 15px; height: 15px; border-radius: 50%; background: var(--sun-ground); transition: left .2s; }
+.lx-lent.on .sw { background: var(--sun); }
+.lx-lent.on .sw::after { left: 15px; }
+.lx-tout { font-size: 13px; color: #F9DA8C; text-decoration: underline; text-underline-offset: 4px; min-height: 40px; }
+.lx-mini { position: sticky; top: 8px; z-index: 5; display: flex; align-items: center; gap: 10px; background: var(--marine); color: var(--sun-ground); border-radius: 16px; padding: 8px 10px; box-shadow: 0 6px 16px rgba(19, 41, 75, .2); }
+.lx-mini[hidden] { display: none; }
+.lx-mini .rond { width: 36px; height: 36px; border-radius: 50%; background: var(--sun); color: var(--marine); display: grid; place-items: center; flex: none; }
+.lx-mini .lx-txt b { font-size: 13px; font-weight: 600; }
+.lx-mini .lx-txt > span { color: #9FB0CA; font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lx-mini > button:not(.rond) { font-size: 12.5px; color: #F9DA8C; padding: 6px 4px; }
+.lx-mini > button:disabled { opacity: .4; }
+.lx-ph.rate { background: var(--rose); border-radius: 6px; box-shadow: 0 0 0 3px var(--rose); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+.lx-fin button.primaire { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
