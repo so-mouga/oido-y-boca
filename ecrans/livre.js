@@ -1,11 +1,11 @@
 // « Le livre » : les 4 parties, les unités, les leçons. Le prof débloque en écrivant dans « Suivi » ;
 // ici on n'ouvre que les leçons faites. Une unité à la fois est dépliée (#/livre/U3).
 
-import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=73";
-import { PARTIES } from "../livre.js?v=73";
-import { etatLecon, uniteCourante, LECONS } from "../position.js?v=73";
-import { controlePret } from "./controle.js?v=73";
-import { carteLectures } from "./lectures.js?v=73";
+import { esc, id, titre, ICONES, barreOnglets } from "../ui.js?v=74";
+import { PARTIES } from "../livre.js?v=74";
+import { etatLecon, uniteCourante, LECONS } from "../position.js?v=74";
+import { controlePret } from "./controle.js?v=74";
+import { carteLectures } from "./lectures.js?v=74";
 
 function ligneLecon(l, pos) {
   const etat = etatLecon(l.id, pos);

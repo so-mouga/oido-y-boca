@@ -9,12 +9,12 @@
 // - rien de trouvé → « Ajouter à Mes mots » (l'espagnol déjà écrit, le français à écrire soi-même).
 // Toucher un mot ne change rien à la révision : seul le bouton agit. On reste sur l'écran.
 
-import { esc, ICONES, id } from "../ui.js?v=73";
-import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=73";
-import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=73";
-import { motEnCours, mettreMotEnCours } from "../motsencours.js?v=73";
-import { motVu, memeMot, motsAMoi } from "../dico.js?v=73";
-import { vibrer } from "../retours.js?v=73";
+import { esc, ICONES, id } from "../ui.js?v=74";
+import { sens, statut, personneEtTemps, lireExtras } from "../toucher.js?v=74";
+import { noterMot, apprendreEnAvance, apprisEnAvance, mettreEnCours, verbeEnCours, ajouterMonMot } from "../progression.js?v=74";
+import { motEnCours, mettreMotEnCours } from "../motsencours.js?v=74";
+import { motVu, memeMot, motsAMoi } from "../dico.js?v=74";
+import { vibrer } from "../retours.js?v=74";
 
 let ouvert = null;            // { mot, ph, bulle }
 const revusIci = new Set();   // les cartes mises « à revoir demain » depuis l'ouverture de l'appli

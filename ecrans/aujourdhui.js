@@ -2,19 +2,19 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=73";
-import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=73";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=73";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=73";
-import { EXERCICES } from "../exercices.js?v=73";
-import { controlePret, dernierResultat } from "./controle.js?v=73";
-import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=73";
-import { BONUS } from "../bonus.js?v=73";
-import { motsDeLaSemaine } from "./mesmots.js?v=73";
-import { soirRepaso } from "./soir.js?v=73";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=73";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=74";
+import { cases, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=74";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=74";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=74";
+import { EXERCICES } from "../exercices.js?v=74";
+import { controlePret, dernierResultat } from "./controle.js?v=74";
+import { motsDus, PAQUET, resteDuJour } from "./pratique.js?v=74";
+import { BONUS } from "../bonus.js?v=74";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=74";
+import { estOrale } from "../position.js?v=74";
+import { soirRepaso } from "./soir.js?v=74";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=74";
 
-const HEURE_SEANCE = "12 h"; // la séance orale du jeudi
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
 const cartes = n => `${n} carte${n > 1 ? "s" : ""}`;
@@ -117,27 +117,45 @@ export function ecranAujourdhui(ctx) {
   // Ta journée, dans l'ordre. Seules les lignes avec « carte » peuvent monter dans la carte du haut.
   const journee = [];
 
-  // 1. La leçon avec le prof : cochée toute seule grâce à « Suivi ». Cachée le week-end s'il n'y en a pas eu.
-  // Le jeudi, c'est la séance orale (jeux de rôle, pas de nouvelle leçon) : la ligne propose de copier
-  // tes mots depuis la dernière séance, à coller au début. La copie compte comme l'envoi (case « dimanche »).
+  // 1. La séance avec le prof : cochée toute seule grâce à « Suivi ». Cachée le week-end s'il n'y en a pas eu.
+  // Chantier 22 : plus de jour fixe pour l'oral. Après 4 séances de travail, la suivante est orale (pos.seance, règle du prof) :
+  // la ligne propose alors de copier tes mots depuis le dernier oral, à coller au début (voir copieFaite dans mesmots.js).
+  // Avant l'oral, le prof peut demander une consolidation (grammaire non validée, contrôle raté) : la ligne l'annonce.
   const numJour = new Date(jour + "T12:00:00").getDay();
   const semaine = [1, 2, 3, 4, 5].includes(numJour);
-  if (numJour === 4) {
-    const n = motsDeLaSemaine(jour).length;
-    const copie = !!c.dimanche;
+  const sea = pos.seance;
+  const duJour = pos.ligneDuJour;
+  if (duJour) {
+    // Déjà faite aujourd'hui : on dit laquelle, et si la prochaine est l'oral (pour préparer ses mots).
+    const ensuite = sea.type === "orale" ? " · prochaine séance : l'oral" : sea.type === "consolidation" ? " · prochaine séance : une consolidation" : "";
+    const unite = duJour.lecon.replace(/-contr[oô]le$/i, "").replace(/^U/, "");
+    journee.push(estOrale(duJour) ? { titre: "Séance orale avec le prof", fait: true, href: "#/semaine", detail: "faite" }
+      : duJour.type === "consolidation" ? { titre: "Consolidation avec le prof", fait: true, detail: `${id(duJour.lecon)}, ce matin${ensuite}` }
+      : duJour.type === "contrôle" ? { titre: `Contrôle de l'unité ${esc(unite)} avec le prof`, fait: true,
+        detail: `${Number.isNaN(duJour.score) ? "fait ce matin" : `${duJour.score} %`}${ensuite}` }
+      : { titre: "Leçon avec le prof", fait: true,
+        detail: `${leconDuJour ? `${id(der.id)}, ce matin` : "séance notée aujourd'hui"}${ensuite}` });
+  } else if (semaine && sea.type === "orale") {
+    const n = motsPourLOral(ctx).length;
+    const copie = copieFaite(ctx);
     journee.push({
-      titre: "Séance orale avec le prof", fait: pos.seanceDuJour, href: "#/semaine",
-      detail: pos.seanceDuJour ? "faite" : copie && n ? `${HEURE_SEANCE} · ${mots(n)} copié${n > 1 ? "s" : ""}, à coller au début`
-        : `${HEURE_SEANCE} · jeux de rôle, pas de nouvelle leçon`,
-      bouton: !n || pos.seanceDuJour ? "" : copie ? `<span class="mini copiee">Copié ✓</span>`
+      titre: "Séance orale avec le prof", fait: false, href: "#/semaine",
+      detail: copie && n ? `${mots(n)} copié${n > 1 ? "s" : ""}, à coller au début` : "jeux de rôle, pas de nouvelle leçon",
+      bouton: !n ? "" : copie ? `<span class="mini copiee">Copié ✓</span>`
         : `<button class="mini" data-mm-copier>Copier ${mots(n)}</button>`,
     });
-  } else if (pos.seanceDuJour || semaine) {
+  } else if (semaine && sea.type === "consolidation") {
     journee.push({
-      titre: "Leçon avec le prof", fait: pos.seanceDuJour,
-      detail: pos.seanceDuJour ? (leconDuJour ? `${id(der.id)}, ce matin` : "séance notée aujourd'hui")
-        : !pro ? "le livre est terminé" : pro.type === "contrôle" ? `contrôle de l'unité ${pro.unite.n}`
-        : `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}`,
+      titre: "Consolidation avec le prof", fait: false,
+      detail: sea.apresControle ? `avant de refaire le contrôle${sea.unite ? ` de l'unité ${sea.unite.n}` : ""}`
+        : `${id(sea.idLecon)} · ${sea.n === 1 ? "1re sur 2" : "2e sur 2 (une 3e si tu la choisis)"}, pas de nouveaux mots`,
+    });
+  } else if (semaine && sea.type === "contrôle") {
+    journee.push({ titre: `Contrôle de l'unité ${sea.unite.n} avec le prof`, fait: false, detail: "pas de nouvelle leçon" });
+  } else if (semaine) {
+    journee.push({
+      titre: "Leçon avec le prof", fait: false,
+      detail: !pro ? "le livre est terminé" : `${id(pro.lecon.id)} · ${esc(pro.lecon.titre)}`,
     });
   }
 

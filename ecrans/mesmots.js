@@ -2,14 +2,14 @@
 // - #/mes-mots/ecoute : « Tu as gardé des mots ? », juste après « C'est fait » sur l'écoute (« entendu le… ») ;
 // - #/mes-mots/ajouter : le même écran, depuis la page « Mes mots » du Dico (« ajouté le… », pour les mots du prof) ;
 // - #/mes-mots/modifier/ID : corriger ou supprimer un mot (depuis une carte, une liste ou le Dico) ;
-// - #/semaine : « Tes mots pour la séance » (la séance orale du jeudi), les mots depuis le dernier envoi et « Copier pour le prof ».
+// - #/semaine : « Tes mots pour la séance » (la séance orale, après 4 séances de travail), les mots depuis le dernier oral et « Copier pour le prof ».
 // Un mot ajouté va dans « Tes mots à revoir » dès le lendemain, toujours appris : si je n'en veux plus, je le supprime.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=73";
-import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=73";
-import { memeMot, motVu } from "../dico.js?v=73";
-import { lecon as trouverLecon } from "../position.js?v=73";
-import { vibrer } from "../retours.js?v=73";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=74";
+import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=74";
+import { memeMot, motVu } from "../dico.js?v=74";
+import { lecon as trouverLecon, DEBUT_ORAL, SEANCES_AVANT_ORAL } from "../position.js?v=74";
+import { vibrer } from "../retours.js?v=74";
 
 const svg = corps => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const CRAYON = svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>');
@@ -21,16 +21,26 @@ const pluriel = n => `${n} mot${n > 1 ? "s" : ""}`;
 let message = "";
 let saisie = null;
 
-// Les mots de la semaine : ceux ajoutés depuis le dernier envoi au prof (la dernière copie, un autre jour : case « dimanche »,
-// le nom d'avant, gardé pour que les anciennes sauvegardes restent bonnes),
-// ou des 7 derniers jours s'il n'y en a jamais eu.
-export function motsDeLaSemaine(jour) {
-  let depuis = dernierJourCoche(jour, "dimanche");
+// Chantier 22 : les mots pour l'oral sont ceux ajoutés depuis la dernière séance orale (ligne « orale » de « Suivi »).
+// Avant le premier oral : depuis la dernière copie d'avant le 30 nov. (l'ancien oral du jeudi), ou les 7 derniers jours.
+// La copie se note dans la case « dimanche » du jour (le nom d'avant, gardé pour que les anciennes sauvegardes restent bonnes).
+// Le jour de l'oral compte (≥) : un mot gardé l'après-midi après l'oral part au suivant ; au pire, un mot du matin revient deux fois.
+export function motsPourLOral(ctx) {
+  const oral = ctx.pos.seance.derniereOrale;
+  if (oral) return mesMots().filter(m => m.le >= oral && m.le <= ctx.jour);
+  let depuis = dernierJourCoche(DEBUT_ORAL, "dimanche");
   if (!depuis) {
-    const d = new Date(jour + "T12:00:00"); d.setDate(d.getDate() - 7);
+    const d = new Date(ctx.jour + "T12:00:00"); d.setDate(d.getDate() - 7);
     depuis = d.toISOString().slice(0, 10);
   }
-  return mesMots().filter(m => m.le > depuis);
+  return mesMots().filter(m => m.le > depuis && m.le <= ctx.jour);
+}
+
+// « Copié ✓ » suit la séance orale, pas le jour : une copie faite depuis le dernier oral (ou depuis le 30 nov.
+// s'il n'y en a pas encore eu), même la veille, vaut pour l'oral qui vient.
+export function copieFaite(ctx) {
+  const derniere = cases(ctx.jour).dimanche ? ctx.jour : dernierJourCoche(ctx.jour, "dimanche");
+  return !!derniere && derniere > (ctx.pos.seance.derniereOrale || "") && derniere >= DEBUT_ORAL;
 }
 
 // Une ligne de liste : le mot, ce qu'il veut dire, modifier, supprimer.
@@ -99,23 +109,27 @@ function ecranModifier(ctx, idMot) {
   };
 }
 
-// ── Tes mots pour la séance orale du jeudi ── (la phrase d'exemple entre parenthèses, pour que le prof la corrige aussi)
+// ── Tes mots pour la séance orale ── (la phrase d'exemple entre parenthèses, pour que le prof la corrige aussi)
 export const texteProf = mots => `Mis palabras de la semana: ${mots.map(m => `${m.es} = ${m.fr}${m.ex ? ` (${m.ex})` : ""}`).join(", ")}`;
 
 function ecranSemaine(ctx) {
-  const mots = motsDeLaSemaine(ctx.jour);
-  const copie = !!cases(ctx.jour).dimanche;
+  const mots = motsPourLOral(ctx);
+  const copie = copieFaite(ctx);
+  const sea = ctx.pos.seance;
+  const reste = Math.max(1, SEANCES_AVANT_ORAL - sea.compteur);
+  const quand = sea.type === "orale" ? "C'est ta prochaine séance avec le prof"
+    : `Ta prochaine séance orale, après encore ${reste} séance${reste > 1 ? "s" : ""} de travail`;
   return {
     onglet: "jour",
     html: `<main class="colonne mes-mots semaine">
         <header class="nav-haut"><a class="retour" href="#/" data-arriere>${ICONES.retour}Aujourd'hui</a></header>
-        <div><h1>Tes mots pour la séance</h1><p class="sous">${copie && mots.length ? "Copiés aujourd'hui" : "La séance orale avec le prof, le jeudi à 12 h"}</p></div>
+        <div><h1>Tes mots pour la séance</h1><p class="sous">${copie && mots.length ? "Copiés pour ta prochaine séance orale" : quand}</p></div>
         <p class="conseil">Colle-les au début de la séance : le prof les corrige et les réutilise dans les jeux de rôle.
           Ensuite, modifie-les ici ou dans « Mes mots ».</p>
-        ${mots.length ? `<section><h2>Tes mots depuis la dernière séance · ${mots.length}</h2><ul class="mm-liste">${mots.map(ligne).join("")}</ul></section>
+        ${mots.length ? `<section><h2>Tes mots depuis le dernier oral · ${mots.length}</h2><ul class="mm-liste">${mots.map(ligne).join("")}</ul></section>
           <button class="copier" data-mm-copier>${COPIER}Copier pour le prof</button>
           <p class="copie" role="status" data-mm-copie></p>`
-          : `<p class="sous">Pas de mot gardé depuis ta dernière séance.</p>`}
+          : `<p class="sous">Pas de mot gardé depuis ton dernier oral.</p>`}
         <div class="espace"></div>
         <a class="secondaire cadre" href="#/" data-remplace>Revenir à aujourd'hui</a>
       </main>${barreOnglets("jour")}`,
@@ -193,9 +207,9 @@ export async function actionMesMots(ctx, e) {
     return true;
   }
   if (e.target.closest("[data-mm-copier]")) {
-    const texte = texteProf(motsDeLaSemaine(ctx.jour));
+    const texte = texteProf(motsPourLOral(ctx));
     const ok = await copier(texte);
-    // La copie compte comme l'envoi au prof : jeudi prochain, les mots partiront d'ici.
+    // La copie compte comme l'envoi au prof : « Copié ✓ » jusqu'au prochain oral (copieFaite).
     if (ok) cocher(ctx.jour, "dimanche", true);
     vibrer(8);
     // Depuis « Ta journée », on redessine : le bouton devient « Copié ✓ ». Si la copie échoue,

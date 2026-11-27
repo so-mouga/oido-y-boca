@@ -1,29 +1,29 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=73";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=73";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=73";
-import { ECOUTES } from "./ecoute.js?v=73";
-import { preparerVoix } from "./voix.js?v=73";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=73";
-import { vibrer } from "./retours.js?v=73";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=73";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=73";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=73";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=73";
-import { ecranLivre } from "./ecrans/livre.js?v=73";
-import { ecranLecon } from "./ecrans/lecon.js?v=73";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=73";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=73";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=73";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=73";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=73";
-import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=73";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=73";
-import { ecranLectures } from "./ecrans/lectures.js?v=73";
-import { ecranJeux } from "./ecrans/jeux.js?v=73";
-import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=73";
+import { chargerTableau } from "./donnees.js?v=74";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=74";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=74";
+import { ECOUTES } from "./ecoute.js?v=74";
+import { preparerVoix } from "./voix.js?v=74";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=74";
+import { vibrer } from "./retours.js?v=74";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=74";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=74";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=74";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=74";
+import { ecranLivre } from "./ecrans/livre.js?v=74";
+import { ecranLecon } from "./ecrans/lecon.js?v=74";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=74";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=74";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=74";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=74";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=74";
+import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=74";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=74";
+import { ecranLectures } from "./ecrans/lectures.js?v=74";
+import { ecranJeux } from "./ecrans/jeux.js?v=74";
+import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=74";
 
 const app = document.getElementById("app");
 let ctx = null;

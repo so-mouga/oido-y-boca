@@ -9,12 +9,12 @@
 //
 // La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { corriger } from "./corriger.js?v=73";
-import { trouDe, phrasesDe, cleCarte } from "./cartes.js?v=73";
-import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=73";
-import { trouverVerbe, phrasesDe as phrasesDuVerbe, exempleDe, sensDe, tempsVus } from "./verbes.js?v=73";
-import { conjuguer, sixFormes } from "./controles.js?v=73";
-import { verbesEnCours, derniereSerie, mettreEnCours, prendreCarte, apprendreEnAvance } from "./progression.js?v=73";
+import { corriger } from "./corriger.js?v=74";
+import { trouDe, phrasesDe, cleCarte } from "./cartes.js?v=74";
+import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=74";
+import { trouverVerbe, phrasesDe as phrasesDuVerbe, exempleDe, sensDe, tempsVus } from "./verbes.js?v=74";
+import { conjuguer, sixFormes } from "./controles.js?v=74";
+import { verbesEnCours, derniereSerie, mettreEnCours, prendreCarte, apprendreEnAvance } from "./progression.js?v=74";
 
 export const MOTS_PAR_SEANCE = 5;
 export const QUESTIONS = 10;

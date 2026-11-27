@@ -7,7 +7,7 @@
 // - UNE SEULE bonne réponse possible : jamais « la paella {es|está} rica » (les deux sont justes).
 // - Le français dit ce qui manque (demain ou le matin, ce lundi ou tous les lundis).
 // - Les mots de Kevin (le Sheet) ; au plus un mot nouveau par phrase, avec son sens (« regalo = cadeau »).
-// - Seulement sa vraie vie et sa vraie famille (Blanca, Léo, Dorian ; le mariage le samedi 19 juin 2027 ; le prof le jeudi).
+// - Seulement sa vraie vie et sa vraie famille (Blanca, Léo, Dorian ; le mariage le samedi 19 juin 2027 ; le prof du lundi au vendredi).
 // - por / para : seulement les cas nets (para + qui reçoit, para + un but, por + moment de la journée, gracias por, por favor).
 // lecon : la leçon qui ouvre le duo (null = ouvert tout de suite, décidé avec Kevin : la Feria sert aussi à découvrir).
 // À faire relire par Blanca.
@@ -121,7 +121,7 @@ export const DUOS = [
       ["{El sábado|Los sábados} como con amigos.", 1, "Le samedi (tous les samedis), je mange avec des amis.", "sábado = samedi"],
       ["{El viernes|Los viernes} no trabajo.", 0, "Vendredi (ce vendredi-ci), je ne travaille pas.", "viernes = vendredi"],
       ["¿Trabajas {el sábado|los sábados}?", 0, "Tu travailles samedi (ce samedi-ci) ?", "sábado = samedi"],
-      ["{El jueves|Los jueves} hablo con mi profesor.", 1, "Le jeudi (tous les jeudis), je parle avec mon prof.", "jueves = jeudi"],
+      ["{El sábado|Los sábados} no hablo con mi profesor.", 1, "Le samedi (tous les samedis), je ne parle pas avec mon prof.", "sábado = samedi"],
       ["{El lunes|Los lunes} es fiesta.", 0, "Lundi (ce lundi-ci), c'est férié.", "fiesta = jour férié"],
       ["{El domingo|Los domingos} no trabajo.", 1, "Le dimanche (tous les dimanches), je ne travaille pas.", "domingo = dimanche"],
       ["{El miércoles|Los miércoles} tengo una reunión a las diez.", 0, "Mercredi (ce mercredi-ci), j'ai une réunion à dix heures.", "miércoles = mercredi"],

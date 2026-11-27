@@ -155,7 +155,7 @@ button.case::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 
 .tache.faite .aller b { color: var(--muted); }
 .tache.ici .aller b { font-weight: 600; }
 .mini { flex: none; font-size: 13px; font-weight: 500; color: var(--marine); background: var(--sun-deep); border-radius: 999px; padding: 8px 12px; }
-.mini.copiee { background: #DCEBDD; color: var(--sage-ink); } /* « Copié ✓ » sur la ligne de la séance du jeudi */
+.mini.copiee { background: #DCEBDD; color: var(--sage-ink); } /* « Copié ✓ » sur la ligne de la séance orale */
 .id { white-space: nowrap; }
 
 @media (prefers-reduced-motion: reduce) {

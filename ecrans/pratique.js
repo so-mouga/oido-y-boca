@@ -7,24 +7,24 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=73";
-import { lecon as trouver } from "../position.js?v=73";
-import { EXERCICES } from "../exercices.js?v=73";
-import { corriger } from "../corriger.js?v=73";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=73";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie } from "../cartes.js?v=73";
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=73";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=73";
-import { BONUS } from "../bonus.js?v=73";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=73";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=73";
-import { mettreMotEnCours } from "../motsencours.js?v=73";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=73";
-import { vibrer, son } from "../retours.js?v=73";
+import { esc, md, id, ICONES } from "../ui.js?v=74";
+import { lecon as trouver } from "../position.js?v=74";
+import { EXERCICES } from "../exercices.js?v=74";
+import { corriger } from "../corriger.js?v=74";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=74";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie } from "../cartes.js?v=74";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS } from "../carnet.js?v=74";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=74";
+import { BONUS } from "../bonus.js?v=74";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=74";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=74";
+import { mettreMotEnCours } from "../motsencours.js?v=74";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=74";
+import { vibrer, son } from "../retours.js?v=74";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=73";
+} from "../enregistrement.js?v=74";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
