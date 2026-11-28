@@ -1088,3 +1088,6 @@ mark .tx-mot.touche { box-shadow: none; }
 .en-plus .aller b { font-size: 14px; color: var(--marine-soft); }
 .en-plus li.faite .aller b { color: var(--muted); }
 .en-plus .ok-plus { color: var(--sage-ink); font-weight: 600; }
+
+/* Mes erreurs : le sens voulu (Q107), au-dessus de la faute à corriger. */
+.sens-voulu { font-size: 15px; line-height: 1.4; color: var(--marine-soft); background: var(--card); border: 1px solid var(--hair); border-radius: 12px; padding: 8px 12px; }

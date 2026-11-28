@@ -3,9 +3,9 @@
 // Gris : pas encore là ; jaune : dans « Tes mots à revoir » ; vert : réussie au rendez-vous des 3 jours.
 // Étape 3 (28 nov.) : plus de carte 2 (la phrase à trou reste dans « Mes mots en cours »).
 
-import { esc } from "../ui.js?v=84";
-import { cartesDuMot, etatCarte, cleCarte, departDe, ORE } from "../cartes.js?v=84";
-import { fichesCartes } from "../progression.js?v=84";
+import { esc } from "../ui.js?v=85";
+import { cartesDuMot, etatCarte, cleCarte, departDe, ORE } from "../cartes.js?v=85";
+import { fichesCartes } from "../progression.js?v=85";
 
 export function htmlCartes(ctx, m) {
   if (m.moi) return "";

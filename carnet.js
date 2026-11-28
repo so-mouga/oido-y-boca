@@ -9,7 +9,7 @@
 // La clé vient de la bonne forme (ou de la phrase) : si le prof change la règle ou le nombre de fois, la carte garde ses progrès ;
 // s'il change la bonne forme, c'est une autre carte, qui repart de zéro.
 
-import { corriger } from "./corriger.js?v=84";
+import { corriger } from "./corriger.js?v=85";
 
 const CLE_COPIE = "oyb.carnet";
 export const MAX_PAR_JOUR = 5; // dont 1 phrase à dire au plus
@@ -43,7 +43,8 @@ export function lireCarnet(brut) {
   if (iEntete >= 0) {
     const entete = lignes[iEntete].map(minuscules);
     const col = debut => entete.findIndex(c => c.startsWith(debut));
-    const [cE, cB, cR, cV] = [col("erreur"), col("bonne forme"), col("règle"), col("vue")];
+    // « Sens (français) » (Q107, 28 nov.) : ce que la phrase veut dire, pour qu'une seule correction soit juste ; absente des vieux carnets.
+    const [cE, cB, cR, cV, cS] = [col("erreur"), col("bonne forme"), col("règle"), col("vue"), col("sens")];
     for (const l of lignes.slice(iEntete + 1)) {
       const e = separer(l[cE]), b = separer(l[cB]);
       if (!e.texte || !b.texte) continue;
@@ -51,7 +52,7 @@ export function lireCarnet(brut) {
       if (erreurs.some(x => x.cle === cle)) continue;
       erreurs.push({
         type: "erreur", cle, erreur: e.texte, note: e.note, bonne: b.texte,
-        regle: cR >= 0 ? l[cR] || "" : "", vue: Math.max(1, parseInt(cV >= 0 ? l[cV] : "", 10) || 1),
+        regle: cR >= 0 ? l[cR] || "" : "", sens: cS >= 0 ? l[cS] || "" : "", vue: Math.max(1, parseInt(cV >= 0 ? l[cV] : "", 10) || 1),
       });
     }
   }
@@ -135,12 +136,21 @@ export function synchroniser(fiches, carnet) {
 // ——— juger une réponse écrite ———
 // Les accents et le ñ comptent (corriger avec accents: true) ; la casse et la ponctuation non.
 // Un ¿ ou un ¡ oublié ne compte pas faux, mais on le rappelle.
+// Un accent ou un ñ oublié (Q108, 28 nov.) compte « Avec peine » (peine: true : même boîte), avec un rappel des mots accentués ;
+// sauf sur une carte d'orthographe, dont la faute est justement l'accent ou le ñ : là, il compte faux.
 export function juger(tape, carte) {
   const r = corriger(tape, [carte.bonne], { accents: true });
-  const ok = r.niveau === "juste";
   const oubli = ["¿", "¡"].find(s => carte.bonne.includes(s) && !String(tape).includes(s));
-  const rappel = ok && oubli ? `N'oublie pas le ${oubli} au début ${oubli === "¿" ? "d'une question" : "d'une exclamation"}.` : "";
-  return { ...r, ok, rappel };
+  const signe = oubli ? `N'oublie pas le ${oubli} au début ${oubli === "¿" ? "d'une question" : "d'une exclamation"}.` : "";
+  if (r.niveau === "juste") return { ...r, ok: true, peine: false, rappel: signe };
+  const ortho = carte.erreur && morceauPiege(carte.erreur, carte.bonne)?.ortho;
+  const tapes = motsDe(tape), attendus = motsDe(carte.bonne);
+  if (!ortho && tapes.join(" ") === attendus.join(" ")) {
+    const exacts = motsDe(tape, true);
+    const accentues = motsDe(carte.bonne, true).filter((w, i) => w !== exacts[i]);
+    return { ...r, niveau: "accents", ok: true, peine: true, astuce: "", rappel: [`Accent : « ${accentues.join(" », « ")} ».`, signe].filter(Boolean).join(" ") };
+  }
+  return { ...r, ok: false, peine: false, rappel: "" };
 }
 
 // ——— plusieurs fautes sur une ligne (Q11-11) : une case par faute ———
@@ -162,12 +172,12 @@ export function decouper(carte) {
 export function jugerCases(saisies, cases) {
   const lignes = cases.map((c, i) => {
     const saisie = String(saisies[i] || "").trim();
-    const r = saisie ? juger(saisie, { bonne: c.bonne }) : { ok: false, niveau: "faux" };
+    const r = saisie ? juger(saisie, { bonne: c.bonne, erreur: c.faute }) : { ok: false, niveau: "faux" };
     return { ...c, saisie, ok: r.ok, r };
   });
   const premiere = lignes.find(l => !l.ok && l.r.astuce);
   const rappel = lignes.find(l => l.ok && l.r.rappel)?.r.rappel || "";
-  return { ok: lignes.every(l => l.ok), justes: lignes.filter(l => l.ok).length, lignes, astuce: premiere?.r.astuce || "", rappel };
+  return { ok: lignes.every(l => l.ok), peine: lignes.some(l => l.r.peine), justes: lignes.filter(l => l.ok).length, lignes, astuce: premiere?.r.astuce || "", rappel };
 }
 
 // ——— une phrase nouvelle à traduire (point 8 quindecies, Q11-13 à Q11-18) ———
@@ -261,6 +271,7 @@ export function jugerTraduction(tape, phrase) {
   const position = chercherMorceau(tape, phrase.piege, phrase.ortho);
   const ok = position >= 0;
   const exact = ok && chercherMorceau(tape, phrase.piege, true) >= 0;
+  // Un accent ou un ñ oublié dans le piège : « Avec peine » (Q108, Q11-19), comme sur les autres cartes.
   const rappel = ok && !exact ? `Accent : « ${phrase.piege} ».` : "";
-  return { ok, position, rappel };
+  return { ok, position, rappel, peine: ok && !exact };
 }

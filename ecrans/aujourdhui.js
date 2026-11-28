@@ -2,23 +2,23 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=84";
-import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs, etatJeux } from "../progression.js?v=84";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=84";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=84";
-import { EXERCICES } from "../exercices.js?v=84";
-import { controlePret, dernierResultat } from "./controle.js?v=84";
-import { motsDus, PAQUET } from "./pratique.js?v=84";
-import { BONUS } from "../bonus.js?v=84";
-import { motsPourLOral, copieFaite } from "./mesmots.js?v=84";
-import { estOrale } from "../position.js?v=84";
-import { soirRepaso } from "./soir.js?v=84";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=84";
-import { rattraperEntrees, motsEnCours, nbQuestions } from "../motsencours.js?v=84";
-import { missionDuJour } from "./missions.js?v=84";
-import { faiteAujourdhui } from "../missions.js?v=84";
-import { JEUX_VIDE } from "../jeux.js?v=84";
-import { motsAMoi } from "../dico.js?v=84";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=85";
+import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs, etatJeux } from "../progression.js?v=85";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=85";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=85";
+import { EXERCICES } from "../exercices.js?v=85";
+import { controlePret, dernierResultat } from "./controle.js?v=85";
+import { motsDus, PAQUET } from "./pratique.js?v=85";
+import { BONUS } from "../bonus.js?v=85";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=85";
+import { estOrale } from "../position.js?v=85";
+import { soirRepaso } from "./soir.js?v=85";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=85";
+import { rattraperEntrees, motsEnCours, nbQuestions } from "../motsencours.js?v=85";
+import { missionDuJour } from "./missions.js?v=85";
+import { faiteAujourdhui } from "../missions.js?v=85";
+import { JEUX_VIDE } from "../jeux.js?v=85";
+import { motsAMoi } from "../dico.js?v=85";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;

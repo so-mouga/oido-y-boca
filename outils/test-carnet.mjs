@@ -115,14 +115,14 @@ const juge = (tape, bonne) => { const r = C.juger(tape, carte(bonne)); return [r
 verifier("juste", juge("vivo en Huesca, en casa", "vivo en Huesca, en casa"), [true, "juste", ""]);
 verifier("majuscules et virgules libres", juge("Vivo en Huesca en casa.", "vivo en Huesca, en casa"), [true, "juste", ""]);
 verifier("4 formes d'un coup", juge("mañana años español mujer", "mañana, años, español, mujer"), [true, "juste", ""]);
-verifier("un ñ oublié : faux, avec l'astuce", juge("mañana, años, espanol, mujer", "mañana, años, español, mujer"),
-  [false, "presque", "« español » prend un ñ : sans lui, c'est un autre mot."]);
+verifier("un ñ oublié : avec peine (Q108), rappel", juge("mañana, años, espanol, mujer", "mañana, años, español, mujer"),
+  [true, "accents", "Accent : « español »."]);
 verifier("un accent oublié : faux", juge("mas despacio, ¿cómo?, ¿qué?", "más despacio, ¿cómo…?, ¿qué…?"),
   [false, "presque", "« más » prend un accent : à l'oral, il dit où appuyer."]);
 verifier("les ¿ et … ne comptent pas", juge("más despacio cómo qué", "más despacio, ¿cómo…?, ¿qué…?"), [true, "juste", "N'oublie pas le ¿ au début d'une question."]);
 verifier("¿ oublié : juste, avec le rappel", juge("Habláis francés", "¿Habláis francés?"), [true, "juste", "N'oublie pas le ¿ au début d'une question."]);
 verifier("¿ présent : pas de rappel", juge("¿habláis francés?", "¿Habláis francés?"), [true, "juste", ""]);
-verifier("accent oublié sur habláis : faux", juge("¿Hablais francés?", "¿Habláis francés?")[0], false);
+verifier("accent oublié sur habláis : avec peine (Q108)", [C.juger("¿Hablais francés?", carte("¿Habláis francés?")).ok, C.juger("¿Hablais francés?", carte("¿Habláis francés?")).peine], [true, true]);
 verifier("la note n'est pas à écrire", juge("pero", "pero"), [true, "juste", ""]);
 verifier("deux phrases avec ;", juge("Blanca está en Huesca, sois de Huesca", "Blanca está en Huesca ; sois de Huesca"), [true, "juste", ""]);
 verifier("l'ancienne faute : faux", juge("Blanca es en Huesca ; sois en Huesca", "Blanca está en Huesca ; sois de Huesca")[0], false);
@@ -139,8 +139,9 @@ verifier("une seule faute : une case", [cases("vivimos"), cases("¿Habláis fran
 verifier("découpage qui ne tombe pas juste : une case", C.decouper({ erreur: "a, b, c", bonne: "x, y" }), null);
 const jc = (saisies, bonne) => { const r = C.jugerCases(saisies, cases(bonne)); return [r.ok, r.justes, r.astuce || r.rappel]; };
 verifier("4 cases justes", jc(["mañana", " años ", "Español", "mujer"], "mañana, años, español, mujer"), [true, 4, ""]);
-verifier("1 case fausse : 3 sur 4, astuce du ñ", jc(["mañana", "años", "espanol", "mujer"], "mañana, años, español, mujer"),
-  [false, 3, "« español » prend un ñ : sans lui, c'est un autre mot."]);
+verifier("1 ñ oublié dans une case : 4 sur 4, avec peine (Q108)", jc(["mañana", "años", "espanol", "mujer"], "mañana, años, español, mujer"),
+  [true, 4, "Accent : « español »."]);
+verifier("1 case vraiment fausse : 3 sur 4", jc(["mañana", "años", "espagnol", "mujer"], "mañana, años, español, mujer").slice(0, 2), [false, 3]);
 verifier("case vide : fausse", jc(["mañana", "", "español", "mujer"], "mañana, años, español, mujer").slice(0, 2), [false, 3]);
 verifier("¿ oublié dans une case : rappel", jc(["más despacio", "cómo", "¿qué?"], "más despacio, ¿cómo…?, ¿qué…?"), [true, 3, "N'oublie pas le ¿ au début d'une question."]);
 verifier("deux mots collés : faux", jc(["Blancaestá en Huesca", "sois de Huesca"], "Blanca está en Huesca ; sois de Huesca").slice(0, 2), [false, 1]);
@@ -204,6 +205,28 @@ verifier("lignes coupées : nouvelles cartes, de zéro ; supprimée : partie ; g
 verifier("les cartes coupées sont toutes à faire", C.cartesDuJour(apres, synchro, demain).map(c => c.bonne), ["Blanca está en Huesca", "estamos en casa"]);
 const vieille = { ...fichesAvant, "e:une carte disparue": { boite: 3, vu: "2026-11-20" } };
 verifier("vieille sauvegarde : les cartes inconnues sont ignorées puis effacées", [C.cartesDuJour(apres, vieille, demain).length, Object.keys(C.synchroniser(vieille, apres))], [2, ["e:vivimos"]]);
+
+// 9. Le sens en français (Q107) et l'accent oublié « Avec peine » (Q108), 28 nov.
+const T5 = [["Erreur", "Bonne forme", "Règle en une ligne", "Vue (fois)", "Sens (français)"],
+  ["sois en Huesca", "sois de Huesca", "Origine : ser de.", "2", "Vous êtes de Huesca (l'origine)."],
+  ["vivemos", "vivimos", "-imos", "3", ""]];
+const c5 = C.lireCarnet({ tableau: T5 });
+verifier("le sens est lu", c5.erreurs.map(e => e.sens), ["Vous êtes de Huesca (l'origine).", ""]);
+verifier("la clé ne change pas avec le sens", c5.erreurs[0].cle, C.lireCarnet({ tableau: [T5[0].slice(0, 4), T5[1].slice(0, 4)] }).erreurs[0].cle);
+verifier("vieux carnet sans la colonne : sens vide", carnet.erreurs[0].sens, "");
+const vieilleCopie = { erreurs: carnet.erreurs.map(({ sens, ...e }) => e), phrases: [] };
+C.garderCarnet(vieilleCopie, "x");
+verifier("vieille copie du téléphone (sans sens) : relue et utilisable", [C.carnetActuel().erreurs[0].sens, C.cartesDuJour(C.carnetActuel(), {}, J).length], [undefined, 5]);
+const estar = { erreur: "Blanca es en Huesca", bonne: "Blanca está en Huesca" };
+const jj = (tape, c) => { const r = C.juger(tape, c); return [r.ok, !!r.peine, r.rappel]; };
+verifier("accent oublié : avec peine, rappel du mot", jj("Blanca esta en Huesca", estar), [true, true, "Accent : « está »."]);
+verifier("accent juste : juste sans peine", jj("Blanca está en Huesca", estar), [true, false, ""]);
+verifier("vraie faute : faux", jj("Blanca es en Huesca", estar)[0], false);
+verifier("carte d'orthographe : l'accent compte", jj("mas despacio", { erreur: "mas despacio", bonne: "más despacio" })[0], false);
+verifier("carte d'orthographe : le ñ compte", jj("manana", { erreur: "manana", bonne: "mañana" })[0], false);
+verifier("traduction : accent oublié, avec peine", [C.jugerTraduction("Blanca esta en casa", { piege: "está en", ortho: false }).peine, C.jugerTraduction("Blanca está en casa", { piege: "está en", ortho: false }).peine], [true, false]);
+const fp = C.nouvelleFiche({ boite: 1, vu: J }, "aide", demain);
+verifier("« Avec peine » : même boîte", fp.boite, 1);
 
 console.log(fautes ? `\n${fautes} erreur(s) sur ${essais} vérifications.` : `✓ ${essais} vérifications, tout est juste.`);
 process.exit(fautes ? 1 : 0);

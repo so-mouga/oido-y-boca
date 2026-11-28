@@ -7,31 +7,31 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=84";
-import { lecon as trouver } from "../position.js?v=84";
-import { EXERCICES } from "../exercices.js?v=84";
-import { corriger } from "../corriger.js?v=84";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, compterNon } from "../progression.js?v=84";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=84";
-import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=84";
-import { dire } from "../voix.js?v=84";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=84";
-import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=84";
+import { esc, md, id, ICONES } from "../ui.js?v=85";
+import { lecon as trouver } from "../position.js?v=85";
+import { EXERCICES } from "../exercices.js?v=85";
+import { corriger } from "../corriger.js?v=85";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, compterNon } from "../progression.js?v=85";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=85";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=85";
+import { dire } from "../voix.js?v=85";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=85";
+import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=85";
 // Le micro « On me comprend ? » répond plus tard : l'écran se redessine par cet événement (écouté dans app.js).
 const redessiner = () => window.dispatchEvent(new Event("oyb-redessiner"));
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=84";
-import { RESERVE } from "../erreurs-phrases.js?v=84";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=84";
-import { BONUS } from "../bonus.js?v=84";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=84";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=84";
-import { entrerSiBloque } from "../motsencours.js?v=84";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=84";
-import { vibrer, son } from "../retours.js?v=84";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=85";
+import { RESERVE } from "../erreurs-phrases.js?v=85";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=85";
+import { BONUS } from "../bonus.js?v=85";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=85";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=85";
+import { entrerSiBloque } from "../motsencours.js?v=85";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=85";
+import { vibrer, son } from "../retours.js?v=85";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=84";
+} from "../enregistrement.js?v=85";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -367,7 +367,7 @@ function vueErreurCases(it, enTete) {
         <input id="case${i}" data-forme lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="${i < it.cases.length - 1 ? "next" : "done"}" value="${esc(s.formes?.[i] || "")}" aria-label="Correction de « ${esc(x.faute)} »">
       </label>`).join("");
-    return `<div class="defile">${enTete}${consigne}<p class="corrige">Corrige chaque faute :</p>
+    return `<div class="defile">${enTete}${consigne}${sensVoulu(c)}<p class="corrige">Corrige chaque faute :</p>
         ${c.note ? `<p class="faute-note">${esc(c.note)}</p>` : ""}
         <form class="${classe}" data-p-form>${titres}${lignes}</form>
         <p class="faute-vue">Notée ${c.vue} fois en séance</p>${zoneIndice(it)}</div>
@@ -377,7 +377,7 @@ function vueErreurCases(it, enTete) {
       </div>`;
   }
   const r = s.resultat;
-  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : "Juste") : r.passe ? "La réponse" : `Pas encore : ${r.justes} sur ${it.cases.length}`;
+  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : r.peine ? "Juste, aux accents près" : "Juste") : r.passe ? "La réponse" : `Pas encore : ${r.justes} sur ${it.cases.length}`;
   const lignes = r.lignes.map(l => `<div class="case-erreur">
       <s class="f" lang="es">${esc(l.faute)}</s>
       <p class="c ${l.ok ? "ok" : "ko"}" lang="es">${l.ok ? `${esc(l.saisie)} <span class="coche" aria-label="juste">✓</span>`
@@ -396,6 +396,10 @@ function vueErreurCases(it, enTete) {
     <div class="espace"></div>
     ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
+
+// Le sens voulu (Q107, colonne « Sens (français) » du carnet) : au-dessus de la faute, pour qu'une seule correction soit juste.
+// Sans sens (vieux carnet, colonne vide), rien ne s'affiche.
+const sensVoulu = c => c.sens ? `<p class="sens-voulu">${esc(c.sens)}</p>` : "";
 
 // Mes erreurs, « Traduis » (point 8 quindecies) : une phrase en français ; l'appli ne vérifie que le morceau piège,
 // surligné ensuite dans ta réponse et dans la phrase modèle. Le reste, tu le compares toi-même.
@@ -429,7 +433,7 @@ function vueTraduire(it, enTete) {
   const r = s.resultat;
   const n = (t.piege.match(/\p{L}+/gu) || []).length;
   const modele = surlignerMorceau(t.es, jugerTraduction(t.es, t).position, n, "bon");
-  const titre = r.ok ? `${s.indice ? "Juste, avec l'indice" : "Juste"} : « ${esc(t.piege)} »` : r.passe ? "La réponse" : `Pas encore : il fallait « ${esc(t.piege)} »`;
+  const titre = r.ok ? `${s.indice ? "Juste, avec l'indice" : r.peine ? "Juste, aux accents près" : "Juste"} : « ${esc(t.piege)} »` : r.passe ? "La réponse" : `Pas encore : il fallait « ${esc(t.piege)} »`;
   return `${enTete}${consigne}<p class="enonce petite">${esc(t.fr)}</p>
     ${s.saisie ? `<p class="tape" lang="es">${surlignerMorceau(s.saisie, r.position, n, "bon")}</p>` : ""}
     <div class="verdict ${r.ok ? "ok" : r.passe ? "ko passe" : "ko"}" role="status">
@@ -449,7 +453,7 @@ function vueErreur(it, enTete) {
   if (it.traduire) return vueTraduire(it, enTete);
   if (it.cases) return vueErreurCases(it, enTete);
   const c = it.carte;
-  const faute = (taille = "") => `<p class="corrige">Corrige :</p>
+  const faute = (taille = "") => `${sensVoulu(c)}<p class="corrige">Corrige :</p>
     <p class="faute${taille}" lang="es"><s>${esc(c.erreur)}</s></p>
     ${c.note ? `<p class="faute-note">${esc(c.note)}</p>` : ""}`;
   const consigne = sorte("Mes erreurs · à corriger");
@@ -465,7 +469,7 @@ function vueErreur(it, enTete) {
   }
   const r = s.resultat;
   const unSeulMot = c.bonne.trim().split(/\s+/).length === 1;
-  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : "Juste") : r.niveau === "passe" ? "La réponse" : r.niveau === "presque" && !unSeulMot ? "Presque : un mot" : "Pas encore";
+  const titre = r.ok ? (s.indice ? "Juste, avec l'indice" : r.peine ? "Juste, aux accents près" : "Juste") : r.niveau === "passe" ? "La réponse" : r.niveau === "presque" && !unSeulMot ? "Presque : un mot" : "Pas encore";
   const surligne = (morceaux, cls) => morceaux.map(m => m.juste ? esc(m.brut) : `<mark class="${cls}">${esc(m.brut)}</mark>`).join(" ");
   const tape = s.saisie ? `<p class="tape" lang="es">${r.tape ? surligne(r.tape, "faux") : esc(s.saisie)}</p>` : "";
   return `${enTete}${consigne}${faute(" petite")}
@@ -810,7 +814,7 @@ function vueFinErreurs() {
   const resume = [erreurs.length && `${erreurs.filter(x => x.ok).length} corrigée${erreurs.filter(x => x.ok).length > 1 ? "s" : ""} sur ${erreurs.length}`,
     phrase && "ta phrase redite"].filter(Boolean).join(", et ");
   const etiquette = x => x.it.phrase ? (x.ok ? ["ok", "Dite"] : ["ko", "À revoir"])
-    : x.aide ? ["mi", "Indice"] : x.ok ? ["ok", "Juste"] : ["ko", "Demain"];
+    : x.peine ? ["mi", "Accent"] : x.aide ? ["mi", "Indice"] : x.ok ? ["ok", "Juste"] : ["ko", "Demain"];
   const lignes = r.map(x => {
     const [cls, mot] = etiquette(x);
     const texte = x.it.phrase ? x.it.es : x.it.traduire ? x.it.traduire.es : x.it.carte.bonne;
@@ -972,7 +976,7 @@ function noterCarteErreur(ctx, it, resultat, extra = {}) {
   const fiche = nouvelleFiche(fichesErreurs()[carte.cle], resultat, ctx.jour, carte.vue);
   noterErreur(carte.cle, fiche);
   s.fiche = fiche;
-  s.resultats.push({ it, ok: resultat !== "rate", aide: resultat === "aide", fiche, ...extra });
+  s.resultats.push({ it, ok: resultat !== "rate", aide: resultat === "aide", peine: !!s.resultat?.peine, fiche, ...extra });
 }
 
 // Les cartes 3, 4, 5 de « Tes mots à revoir » (chantier 15) : juste du premier coup = Oui ; avec un indice ou à un mot près = Avec peine ;
@@ -1028,7 +1032,7 @@ export async function actionPratique(ctx, action, el) {
         s.formes = formes;
         s.resultat = jugerCases(formes, it.cases);
         const ok = s.resultat.ok;
-        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
+        noterCarteErreur(ctx, it, ok ? (s.indice || s.resultat.peine ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
         s.phase = "reponse";
         vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
         return true;
@@ -1062,7 +1066,7 @@ export async function actionPratique(ctx, action, el) {
       if (it.type === "erreur" && it.traduire) {
         s.resultat = jugerTraduction(s.saisie, it.traduire);
         const ok = s.resultat.ok;
-        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate");
+        noterCarteErreur(ctx, it, ok ? (s.indice || s.resultat.peine ? "aide" : "juste") : "rate");
         s.phase = "reponse";
         vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
         return true;
@@ -1070,7 +1074,7 @@ export async function actionPratique(ctx, action, el) {
       if (it.type === "erreur") {
         s.resultat = juger(s.saisie, it.carte);
         const ok = s.resultat.ok;
-        noterCarteErreur(ctx, it, ok ? (s.indice ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
+        noterCarteErreur(ctx, it, ok ? (s.indice || s.resultat.peine ? "aide" : "juste") : "rate", { astuce: s.resultat.astuce });
         s.phase = "reponse";
         vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
         return true;
