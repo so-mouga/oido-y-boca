@@ -10,7 +10,7 @@ const ici = path.dirname(new URL(import.meta.url).pathname);
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "oyb-soir-"));
 fs.copyFileSync(path.join(ici, "..", "donnees.js"), path.join(tmp, "donnees.js"));
 fs.writeFileSync(path.join(tmp, "package.json"), '{"type":"module"}');
-const { versSoir, lireReto, tirerPregunta, tirerRepaso, ligneSoir, COLONNES_SOIRS } = await import(path.join(tmp, "donnees.js"));
+const { versSoir, lireReto, tirerPregunta, tirerRepaso, ligneSoir, COLONNES_SOIRS, versMots, motsDuSoir } = await import(path.join(tmp, "donnees.js"));
 
 let fautes = 0;
 const verifier = (nom, obtenu, attendu) => {
@@ -114,6 +114,22 @@ const nota = { lecon: "U1-L4", guardada: true, bien: "Habla sin francés", error
 verifier("la nota complète", ligneSoir("2026-11-27", { soir: true, ecoute: true, nota }),
   ["2026-11-27", "U1-L4", "estoy cansado | trabajo desde casa", "a Huesca → en Huesca", "Habla sin francés", "es en casa → está en casa", "Se bloquea con los números", "Un poco", "sí"]);
 verifier("des notes prises, soir pas encore gardé : une ligne quand même", ligneSoir("2026-11-27", { nota: { notas: [{ t: "err", txt: "x" }] } })?.[3], "x");
+
+// 8. Chantier 27 : la colonne « rôle » sépare les mots à dire (5 mots + verbe de grammaire) des mots en plus (U1-L5).
+const vocab = versMots([
+  ["espagnol", "français", "exemple", "leçon", "catégorie", "Rôle"],
+  ["la boda", "le mariage", "", "U1-L5", "nom", "mot"],
+  ["los primos", "les cousins", "", "U1-L5", "nom", "mot"],
+  ["comer", "manger", "", "U1-L5", "verbe", "verbe"],
+  ["saber", "savoir", "", "U1-L5", "verbe", "en plus"],
+  ["la gente", "les gens", "", "U1-L5", "nom", "En plus"],
+]);
+const duSoir = motsDuSoir(vocab);
+verifier("à dire : les mots et le verbe", duSoir.aDire.map(m => m.es), ["la boda", "los primos", "comer"]);
+verifier("en plus : saber et la gente (majuscule tolérée)", duSoir.enPlus.map(m => m.es), ["saber", "la gente"]);
+const sansRole = motsDuSoir(versMots([["espagnol", "français", "leçon"], ["saber", "savoir", "U1-L5"]]));
+verifier("sans colonne « rôle » : tout est à dire, comme avant", [sansRole.aDire.length, sansRole.enPlus.length], [1, 0]);
+verifier("copie hors ligne sans le champ role", motsDuSoir([{ es: "la boda" }]).aDire.length, 1);
 
 console.log(fautes ? `\n${fautes} faute(s)` : "✓ Le soir : tout est bon");
 process.exit(fautes ? 1 : 0);

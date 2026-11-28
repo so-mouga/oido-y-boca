@@ -3,10 +3,10 @@
 // Les soirs sans nouvelle fiche (celle de la dernière leçon déjà faite un soir d'avant), c'est un soir de révision :
 // 4 questions de 4 anciennes leçons et un autre défi, fixes pour la journée. « /fiche » remet la fiche normale.
 
-import { esc, id, ICONES, barreOnglets } from "../ui.js?v=82";
-import { cases, cocher, dernierJourCoche } from "../progression.js?v=82";
-import { GUIDE_HTML } from "../guide.js?v=82";
-import { lireReto, tirerPregunta, tirerRepaso } from "../donnees.js?v=82";
+import { esc, id, ICONES, barreOnglets } from "../ui.js?v=83";
+import { cases, cocher, dernierJourCoche } from "../progression.js?v=83";
+import { GUIDE_HTML } from "../guide.js?v=83";
+import { lireReto, tirerPregunta, tirerRepaso, motsDuSoir } from "../donnees.js?v=83";
 
 function fiche(ctx) {
   const l = ctx.pos.derniere;
@@ -38,6 +38,15 @@ function carteNota(ctx) {
 }
 
 const puces = mots => `<ul class="puces" lang="es">${mots.map(m => `<li>${esc(m.es)}</li>`).join("")}</ul>`;
+
+// Chantier 27 (maquette soir-palabras, Q27-2) : en pastilles les 5 mots et le verbe de grammaire, que Kevin doit dire ;
+// dessous, en petit, les mots en plus, que Blanca peut placer.
+export function palabras(mots) {
+  const { aDire, enPlus } = motsDuSoir(mots);
+  if (!aDire.length && !enPlus.length) return "";
+  return `<section class="palabras" aria-labelledby="t-pal"><h2 id="t-pal">Las palabras que tiene que usar</h2>${puces(aDire)}
+          ${enPlus.length ? `<p class="tambien">También puede usar: <span lang="es">${enPlus.map(m => esc(m.es)).join(" · ")}</span></p>` : ""}</section>`;
+}
 
 export function ecranSoir(ctx, mode) {
   const f = fiche(ctx);
@@ -187,7 +196,7 @@ export function ecranBlanca(ctx, a, b) {
         <p class="sous parar">Podéis parar cuando queráis.</p>
         ${relances("Una pregunta por pantalla. Si contesta corto, sigue con:", rel)}
         <p class="sous">Si dice una frase bien o se equivoca, apúntalo. Al final, le das tu nota. Nada es obligatorio.</p>
-        ${s.mots.length ? `<section aria-labelledby="t-pal"><h2 id="t-pal">Las palabras que tiene que usar</h2>${puces(s.mots)}</section>` : ""}
+        ${palabras(s.mots)}
         <a class="primaire soleil empezar" href="${s.href(s.etapes[1])}">Empezar</a>
         <footer class="pie"><a class="lien" href="${s.guia}">Guía para Blanca</a><span class="sous">Al final: tu nota</span></footer>`);
   }

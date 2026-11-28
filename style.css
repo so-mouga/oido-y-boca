@@ -278,6 +278,9 @@ body.nuit ::selection { background: var(--sun); color: var(--night); }
 .blanca .lien { color: var(--sun-ground); }
 /* Le soir à 5 éléments (chantier 9) : le défi en jaune, « Otra pregunta » */
 .blanca .parar { margin-top: -14px; }
+/* Chantier 27 : les mots en plus, sous les pastilles, en petit */
+.blanca .tambien { margin-top: 10px; font-size: 14px; line-height: 1.5; color: var(--night-muted); }
+.blanca .tambien span { color: var(--sun-ground); }
 .reto { background: var(--sun); color: var(--night); border-radius: 22px; padding: 18px 18px 20px; display: flex; flex-direction: column; gap: 8px; }
 .reto .etiq { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
 .reto .etiq .i { width: 18px; height: 18px; }

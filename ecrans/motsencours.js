@@ -3,15 +3,15 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=82";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=82";
-import { tempsVu } from "../verbes.js?v=82";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=82";
-import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce } from "../progression.js?v=82";
-import { motsAMoi } from "../dico.js?v=82";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=82";
-import { vibrer, son } from "../retours.js?v=82";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=82";
+import { esc, md, ICONES } from "../ui.js?v=83";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=83";
+import { tempsVu } from "../verbes.js?v=83";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=83";
+import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce } from "../progression.js?v=83";
+import { motsAMoi } from "../dico.js?v=83";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=83";
+import { vibrer, son } from "../retours.js?v=83";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=83";
 
 let s = null; // la séance en cours
 

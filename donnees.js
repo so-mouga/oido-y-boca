@@ -72,10 +72,19 @@ function phrasesDesLignes(lignes) {
 
 export function versMots(lignes) {
   const phrases = phrasesDesLignes(lignes);
-  return versObjets(lignes, { es: "espagnol", fr: "français", ex: "exemple", lecon: "leçon", categorie: "catégorie" })
-    .map((m, i) => ({ ...m, phrases: phrases[i] }))
+  return versObjets(lignes, { es: "espagnol", fr: "français", ex: "exemple", lecon: "leçon", categorie: "catégorie", role: "rôle" })
+    .map((m, i) => ({ ...m, phrases: phrases[i], role: m.role.toLowerCase() }))
     .filter(m => m.es && m.fr && m.lecon)
     .map(m => ({ ...m, id: `${m.lecon}|${m.es}` }));
+}
+
+// Chantier 27 (décisions du 28 nov., 7 bis.1) : la colonne « rôle » de « Vocabulaire » dit ce qu'est chaque mot dans sa leçon :
+// « mot » (les 5 mots de la page), « verbe » (le verbe de grammaire), « en plus » (les mots fréquents ajoutés le 23 nov.).
+// Le soir, Blanca voit les mots et le verbe, que Kevin doit dire, puis les mots en plus, qu'elle peut placer.
+// Sans la colonne (ancienne copie hors ligne), tous les mots restent à dire, comme avant.
+export function motsDuSoir(mots) {
+  const plus = m => m.role === "en plus";
+  return { aDire: mots.filter(m => !plus(m)), enPlus: mots.filter(plus) };
 }
 
 export function versSuivi(lignes) {
