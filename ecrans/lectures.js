@@ -11,13 +11,13 @@
 // Dessous, 3 questions (5 pour un texte long) ; à la dernière réponse, le score est enregistré.
 // Tout se passe sur la page (écouteurs posés dans « apres ») : l'écran n'est pas redessiné pendant la lecture.
 
-import { esc, ICONES, barreOnglets, dateCourte } from "../ui.js?v=79";
-import { uniteCourante } from "../position.js?v=79";
-import { NIVEAUX, TEXTES, SORTES, FEUILLETON, texte as trouver, niveauDe, nbMots, phrases, phrasesDe, morceaux } from "../lectures.js?v=79";
-import { resultatLecture, noterLecture } from "../progression.js?v=79";
-import { vibrer } from "../retours.js?v=79";
-import { phraseTouchable, pourLaVoix } from "../toucher.js?v=79";
-import { dire, taire } from "../voix.js?v=79";
+import { esc, ICONES, barreOnglets, dateCourte } from "../ui.js?v=80";
+import { uniteCourante } from "../position.js?v=80";
+import { NIVEAUX, TEXTES, SORTES, FEUILLETON, texte as trouver, niveauDe, nbMots, phrases, phrasesDe, morceaux } from "../lectures.js?v=80";
+import { resultatLecture, noterLecture } from "../progression.js?v=80";
+import { vibrer } from "../retours.js?v=80";
+import { phraseTouchable, pourLaVoix } from "../toucher.js?v=80";
+import { dire, taire } from "../voix.js?v=80";
 
 // L'unité où j'en suis (Noël compte comme la fin de l'unité 8), et donc mon niveau.
 const uniteDuMoment = pos => uniteCourante(pos).n ?? 8;

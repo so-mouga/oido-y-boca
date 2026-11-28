@@ -1055,3 +1055,13 @@ mark .tx-mot.touche { box-shadow: none; }
 .lx-mini > button:disabled { opacity: .4; }
 .lx-ph.rate { background: var(--rose); border-radius: 6px; box-shadow: 0 0 0 3px var(--rose); -webkit-box-decoration-break: clone; box-decoration-break: clone; }
 .lx-fin button.primaire { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+
+/* Après une erreur (étape 2 des décisions du 28 nov., maquette apres-erreur) */
+.sais-pas.attend { visibility: hidden; } /* « Je ne sais pas » : sa place est gardée pendant 5 s */
+.sais-pas.arrive { animation: arrive .5s var(--ease) both; }
+.deux-fois { display: flex; align-items: center; gap: 10px; background: var(--card); border: 1px solid var(--hair); border-radius: 14px; padding: 11px 14px; font-size: 15px; font-weight: 500; }
+.x2 { flex: none; font-size: 12.5px; font-weight: 600; line-height: 1.6; background: var(--marine); color: var(--sun-ground); border-radius: 999px; padding: 1px 9px; }
+.suite-auto { display: flex; flex-direction: column; gap: 6px; min-height: 22px; margin-bottom: -8px; }
+.suite-auto .txt { font-size: 13px; color: var(--muted); text-align: center; }
+.piste-auto { height: 5px; border-radius: 999px; background: var(--hair); overflow: hidden; }
+.piste-auto i { display: block; height: 100%; background: var(--marine-soft); border-radius: 999px; transform-origin: left; }

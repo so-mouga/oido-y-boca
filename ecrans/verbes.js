@@ -5,14 +5,15 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=79";
-import { corriger } from "../corriger.js?v=79";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=79";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=79";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=79";
-import { motVu } from "../dico.js?v=79";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=79";
-import { vibrer, son } from "../retours.js?v=79";
+import { esc, md, ICONES } from "../ui.js?v=80";
+import { corriger } from "../corriger.js?v=80";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=80";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=80";
+import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=80";
+import { motVu } from "../dico.js?v=80";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=80";
+import { vibrer, son } from "../retours.js?v=80";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=80";
 
 // Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
 // travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi
@@ -64,6 +65,20 @@ const sixFormes = (q, ouvert = false) => {
 const majuscule = (q, f) => q.avant.trim() ? f : f[0].toUpperCase() + f.slice(1);
 const phrase = (q, forme) => `${esc(q.avant)}${forme ? `<mark class="bon">${esc(majuscule(q, forme))}</mark>` : `<span class="trou" aria-label="trou"></span>`}${esc(q.apres)}`;
 
+// Après une erreur (étape 2) : ce que la voix dit, ou null si c'est juste. Le tableau à dire n'est pas noté : rien.
+function texteErreur(q) {
+  if (s.phase === "question") return null;
+  if (q.type === "envers") { const c = q.choix[s.choisi]; return c && c.v === q.v && c.p === q.p ? null : q.forme; }
+  if (q.type !== "forme" && q.type !== "phrase") return null;
+  const r = s.resultat;
+  if (!r || r.niveau === "juste" || r.niveau === "accents") return null;
+  return q.type === "phrase" ? `${q.avant}${majuscule(q, q.es[0])}${q.apres}` : q.es[0];
+}
+function suiteErreur(q) {
+  const t = texteErreur(q);
+  return t ? `${blocDeuxFois(t)}${zoneCompte()}` : "";
+}
+
 function vueEcrire(ctx, q) {
   const tete = q.type === "forme"
     ? `${sorte("Verbes · trouve la forme")}
@@ -81,7 +96,7 @@ function vueEcrire(ctx, q) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="La forme en espagnol" value="${esc(s.saisie)}" aria-label="La forme en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides"><button class="secondaire" type="button" data-v="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonSaisPas('data-v="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -98,7 +113,7 @@ function vueEcrire(ctx, q) {
       ${sixFormes(q, !ok)}
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-v="suivant">Suivant</button>`;
+    ${suiteErreur(q)}<button class="primaire" data-v="suivant">Suivant</button>`;
 }
 
 function vueEnvers(q) {
@@ -122,7 +137,7 @@ function vueEnvers(q) {
       ${sixFormes(q, !ok)}
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-v="suivant">Suivant</button>`;
+    ${suiteErreur(q)}<button class="primaire" data-v="suivant">Suivant</button>`;
 }
 
 // Le tableau à dire : on dit la forme à voix haute, on touche, elle s'affiche et se prononce. Pas de note.
@@ -219,11 +234,25 @@ export function ecranVerbes(ctx, mode, a, b, c, d) {
         const i = s.i;
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
+      // Étape 2 (28 nov.) : « Je ne sais pas » après 5 s ; après une erreur, la voix, puis la suite toute seule.
+      if (s.phase === "question") armerSaisPas(q);
+      else if (!s.compte) {
+        const textes = texteErreur(q);
+        if (textes) {
+          s.compte = true;
+          apresErreur({
+            textes, zone: document.querySelector("[data-compte]"), bouton: document.querySelector(".verdict .bonne .ecoute"),
+            suivre: () => document.querySelector('[data-v="suivant"]')?.click(),
+          });
+        }
+      }
     },
   };
 }
 
 function suivant() {
+  arreterCompte();
+  s.compte = false;
   arreterLecture();
   s.depuis = s.i;
   s.i++; s.phase = "question"; s.saisie = ""; s.resultat = null; s.choisi = null; s.montres = new Set();

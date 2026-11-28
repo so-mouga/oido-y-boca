@@ -6,15 +6,15 @@
 // Pas de chrono, pas de points, pas de record. La voix dit chaque mot nouveau à son arrivée.
 // Le moteur (pluriel, genre, pièges, choix du jour, correction) est dans missions.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=79";
-import { LECONS } from "../position.js?v=79";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=79";
-import { dire, taire } from "../voix.js?v=79";
-import { chispa } from "../mascotte.js?v=79";
-import * as J from "../jeux.js?v=79";
-import { hasardDuJour } from "../charla.js?v=79";
-import * as M from "../missions.js?v=79";
-import { DUOS } from "../duos.js?v=79";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=80";
+import { LECONS } from "../position.js?v=80";
+import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=80";
+import { dire, taire } from "../voix.js?v=80";
+import { chispa } from "../mascotte.js?v=80";
+import * as J from "../jeux.js?v=80";
+import { hasardDuJour } from "../charla.js?v=80";
+import * as M from "../missions.js?v=80";
+import { DUOS } from "../duos.js?v=80";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;

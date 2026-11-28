@@ -7,30 +7,31 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=79";
-import { lecon as trouver } from "../position.js?v=79";
-import { EXERCICES } from "../exercices.js?v=79";
-import { corriger } from "../corriger.js?v=79";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=79";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=79";
-import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=79";
-import { dire } from "../voix.js?v=79";
-import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=79";
+import { esc, md, id, ICONES } from "../ui.js?v=80";
+import { lecon as trouver } from "../position.js?v=80";
+import { EXERCICES } from "../exercices.js?v=80";
+import { corriger } from "../corriger.js?v=80";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, refuserPhrases, PLAFOND } from "../progression.js?v=80";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=80";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=80";
+import { dire } from "../voix.js?v=80";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=80";
+import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=80";
 // Le micro « On me comprend ? » répond plus tard : l'écran se redessine par cet événement (écouté dans app.js).
 const redessiner = () => window.dispatchEvent(new Event("oyb-redessiner"));
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=79";
-import { RESERVE } from "../erreurs-phrases.js?v=79";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=79";
-import { BONUS } from "../bonus.js?v=79";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=79";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=79";
-import { mettreMotEnCours } from "../motsencours.js?v=79";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=79";
-import { vibrer, son } from "../retours.js?v=79";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=80";
+import { RESERVE } from "../erreurs-phrases.js?v=80";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=80";
+import { BONUS } from "../bonus.js?v=80";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=80";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=80";
+import { mettreMotEnCours } from "../motsencours.js?v=80";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=80";
+import { vibrer, son } from "../retours.js?v=80";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=79";
+} from "../enregistrement.js?v=80";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));
@@ -227,6 +228,26 @@ function boutonIndice(it) {
   return `<button class="secondaire" type="button" data-p="indice" data-garde-focus>${s.indice ? "Un autre indice" : "Un indice"}</button>`;
 }
 
+// Après une erreur (étape 2, Q26-1 à Q26-8) : ce que la voix dit, ou null quand c'est juste (« Juste, avec un indice » compris).
+// Tout ce qui n'est pas juste compte, « Presque » aussi. Le tableau : seulement les formes ratées. Une phrase à trou : la phrase entière.
+// Pas pendant un contrôle blanc : on y lit l'explication de chaque réponse.
+function texteErreur(it) {
+  const r = s.resultat;
+  if (!r || it.controle) return null;
+  const juste = r.niveau === "juste" || r.niveau === "accents";
+  if (it.type === "tableau") { const f = r.lignes.filter(l => !l.ok).map(l => l.attendu); return f.length ? f : null; }
+  if (it.type === "erreur") return r.ok ? null : it.traduire ? it.traduire.es : it.carte.bonne;
+  if (it.ecrite) return juste ? null : it.mot.es;
+  if (it.type === "oreille") return juste ? null : it.phrase;
+  if (it.type === "ecrire") return juste ? null : it.fr.includes("___") ? it.fr.replace("___", it.es[0]) : r.attendu;
+  return null;
+}
+// En bas de l'écran de réponse : « Dis-le deux fois » (sauf la carte 1, qui l'a dans son bloc) et la zone du compte.
+function suiteErreur(it) {
+  const t = texteErreur(it);
+  return t ? `${it.ecrite ? "" : blocDeuxFois(t)}${zoneCompte()}` : "";
+}
+
 // Pendant la question, le champ et les boutons restent collés en bas (juste au-dessus du clavier quand il est ouvert) ;
 // le haut (barre, phrase, indice) défile s'il manque de place.
 function vueEcrire(it, enTete) {
@@ -254,7 +275,7 @@ function vueEcrire(it, enTete) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -279,7 +300,7 @@ function vueEcrire(it, enTete) {
       ${!it.controle && !s.revision && !ok ? `<a class="lien revoir" href="#/lecon/${it.lecon}/exercice">Revoir la leçon</a>` : ""}
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // Pourquoi c'est la bonne réponse : l'explication écrite pour la phrase s'il y en a une,
@@ -316,7 +337,7 @@ function vueTableau(it, enTete) {
           <input id="forme${i}" data-forme lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
             enterkeyhint="${i < 5 ? "next" : "done"}" value="${esc(s.formes?.[i] || "")}">`).join("")}</div>
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides"><button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -332,7 +353,7 @@ function vueTableau(it, enTete) {
       ${n < 6 ? `<p class="explication">${md(regleVerbe(it.v, it.d, it.t))}</p>` : ""}
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // Plusieurs fautes sur une ligne (Q11-11) : la faute à gauche, ta correction à droite ; empilées si un morceau est long.
@@ -355,7 +376,7 @@ function vueErreurCases(it, enTete) {
         <p class="faute-vue">Notée ${c.vue} fois en séance</p>${zoneIndice(it)}</div>
       <div class="saisie">
         <button class="primaire" type="button" data-p="verifier">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </div>`;
   }
   const r = s.resultat;
@@ -376,7 +397,7 @@ function vueErreurCases(it, enTete) {
       <p class="revient">Elle revient ${quandRevient(s.fiche)}.</p>
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // Mes erreurs, « Traduis » (point 8 quindecies) : une phrase en français ; l'appli ne vérifie que le morceau piège,
@@ -405,7 +426,7 @@ function vueTraduire(it, enTete) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -423,7 +444,7 @@ function vueTraduire(it, enTete) {
       <p class="revient">Elle revient ${quandRevient(s.fiche)}, avec une autre phrase.</p>
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // Mes erreurs : la faute telle que le prof l'a notée (en rose), sa note entre parenthèses en petit, et combien de fois.
@@ -442,7 +463,7 @@ function vueErreur(it, enTete) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -461,7 +482,7 @@ function vueErreur(it, enTete) {
       <p class="revient">Elle revient ${quandRevient(s.fiche)}.</p>
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 function vueDire(it) {
@@ -570,9 +591,10 @@ const NOTES = { 1: "Non", 2: "Avec peine", 3: "Oui" };
 const ligneNote = (it, cle) => `<p class="suite-note">${it.repasse ? "On la revoit" : `Noté <b>${NOTES[s.resultat.note]}</b>`} · ${quandTexte(cle, s.resultat.note, it.repasse)}</p>`;
 
 // « Écoute, puis répète-le » : la voix le dit toute seule (apres), le micro est facultatif (Q24-13).
-function blocRepete(texte) {
+// Carte 1 ratée (étape 2, Q26-5) : « Dis-le deux fois » remplace « Écoute, puis répète-le » ; le micro reste, facultatif.
+function blocRepete(texte, rate = false) {
   return `<div class="repete">
-      <div class="h">${ecouter(texte, "grand")}<span>Écoute, puis répète-le.</span></div>
+      <div class="h">${ecouter(texte, "grand")}${rate ? `<span class="x2" aria-hidden="true">× 2</span><span>Dis-le deux fois, à voix haute.</span>` : `<span>Écoute, puis répète-le.</span>`}</div>
       ${aUnEnregistrement() ? `<div class="deux"><button data-voix aria-pressed="false">${ICONES.lecture}Ma voix</button></div>` : ""}
       ${enregistrementPossible() ? `<button class="reessai" data-micro><span class="chrono">${aUnEnregistrement() ? "Reste appuyé ici pour te réenregistrer" : "Reste appuyé ici pour t'enregistrer (facultatif)"}</span></button>` : ""}
     </div>`;
@@ -590,7 +612,7 @@ function vueMotEcrit(it, enTete) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Ta réponse en espagnol" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -610,11 +632,11 @@ function vueMotEcrit(it, enTete) {
     </div>
     ${m.ex ? `<p class="exemple" lang="es">${phraseTouchable(ctxVue, m.ex)}</p>` : ""}
     ${lignesDuMot(m)}${formesCarte(m)}
-    ${blocRepete(m.es)}
+    ${blocRepete(m.es, !ok)}
     ${origineDe(m)}
     <div class="espace"></div>
     ${ligneNote(it, m.id)}
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // La carte 5 « à l'oreille » : la phrase est dite à l'ouverture (apres), puis 2 réécoutes au plus (normales ou lentes).
@@ -639,7 +661,7 @@ function vueOreille(it, enTete) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="Écris ce que tu entends" value="${esc(s.saisie)}" aria-label="Ce que tu entends, en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonIndice(it)}<button class="secondaire" type="button" data-p="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonIndice(it)}${boutonSaisPas('data-p="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -666,7 +688,7 @@ function vueOreille(it, enTete) {
     </div>
     <div class="espace"></div>
     ${ligneNote(it, it.cle)}
-    <button class="primaire" data-p="suivant">Suivant</button>`;
+    ${suiteErreur(it)}<button class="primaire" data-p="suivant">Suivant</button>`;
 }
 
 // La fin de la partie écrite : le pourcentage, le détail par thème, et les erreurs avec leur explication.
@@ -927,7 +949,7 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
       }
       // La carte retournée dit le mot toute seule, et son bouton s'allume pendant ce temps.
       // La carte 1 écrite (chantier 24) : la voix le dit après la correction, pour que je le répète.
-      if (it.type === "carte" && s.phase === "reponse" && !s.dit) {
+      if (it.type === "carte" && s.phase === "reponse" && !s.dit && !texteErreur(it)) {
         s.dit = true;
         const b = document.querySelector(".carte .ecoute, .repete .ecoute");
         if (b) { const tout = b.dataset.dire; b.dataset.dire = it.mot.es; lancerLecture(b); b.dataset.dire = tout; }
@@ -943,6 +965,19 @@ function ecranSerie(ctx, cle, construire, retour, vide = "") {
         setTimeout(() => { if (s?.i === i && s.phase === "question") champs[0]?.focus({ preventScroll: true }); }, 400);
       }
       s.vientDeTourner = false;
+      // Étape 2 (28 nov.) : « Je ne sais pas » après 5 s ; après une erreur, la voix, puis la suite toute seule.
+      if (s.phase === "question") armerSaisPas(it);
+      else if (!s.compte) {
+        const textes = texteErreur(it);
+        if (textes) {
+          s.compte = true;
+          apresErreur({
+            textes, zone: document.querySelector("[data-compte]"),
+            bouton: document.querySelector(".repete .ecoute") || document.querySelector(".verdict .bonne .ecoute"),
+            suivre: () => document.querySelector('[data-p="suivant"]')?.click(),
+          });
+        }
+      }
     },
     html: `<main class="colonne exo${question ? ` ecrire-q${it.type === "tableau" ? " tableau-q" : ""}` : ""}">${vue}</main>`,
   };
@@ -978,6 +1013,8 @@ function noterCarte1(ctx, it, n) {
 }
 
 function suivant() {
+  arreterCompte();
+  s.compte = false;
   effacerEnregistrement();
   arreterLecture();
   s.depuis = s.i;

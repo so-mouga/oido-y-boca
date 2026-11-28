@@ -5,11 +5,11 @@
 // - #/semaine : « Tes mots pour la séance » (la séance orale, après 4 séances de travail), les mots depuis le dernier oral et « Copier pour le prof ».
 // Un mot ajouté va dans « Tes mots à revoir » dès le lendemain, toujours appris : si je n'en veux plus, je le supprime.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=79";
-import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=79";
-import { memeMot, motVu } from "../dico.js?v=79";
-import { lecon as trouverLecon, DEBUT_ORAL, SEANCES_AVANT_ORAL } from "../position.js?v=79";
-import { vibrer } from "../retours.js?v=79";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=80";
+import { mesMots, monMot, ajouterMonMot, modifierMonMot, supprimerMonMot, cases, cocher, dernierJourCoche, apprendreEnAvance } from "../progression.js?v=80";
+import { memeMot, motVu } from "../dico.js?v=80";
+import { lecon as trouverLecon, DEBUT_ORAL, SEANCES_AVANT_ORAL } from "../position.js?v=80";
+import { vibrer } from "../retours.js?v=80";
 
 const svg = corps => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${corps}</svg>`;
 const CRAYON = svg('<path d="M4 20h4L19 9l-4-4L4 16z"/>');

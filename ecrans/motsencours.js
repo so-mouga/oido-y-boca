@@ -3,14 +3,15 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=79";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=79";
-import { tempsVu } from "../verbes.js?v=79";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=79";
-import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=79";
-import { motsAMoi } from "../dico.js?v=79";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=79";
-import { vibrer, son } from "../retours.js?v=79";
+import { esc, md, ICONES } from "../ui.js?v=80";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=80";
+import { tempsVu } from "../verbes.js?v=80";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=80";
+import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=80";
+import { motsAMoi } from "../dico.js?v=80";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=80";
+import { vibrer, son } from "../retours.js?v=80";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=80";
 
 let s = null; // la séance en cours
 
@@ -79,6 +80,18 @@ function rappels(r) {
   return l.map(x => `<p>${x}</p>`).join("");
 }
 
+// Après une erreur (étape 2) : ce que la voix dit, ou null si c'est juste. Le tableau à dire n'est pas noté : rien.
+function texteErreur(q) {
+  if (s.phase === "question") return null;
+  if (q.type === "sens") return sensJuste(q, s.choisi) ? null : q.es;
+  if (q.type === "tableau" || !s.resultat || s.resultat.ok) return null;
+  return q.type === "conj-phrase" || q.type === "trou" ? `${q.avant}${majuscule(q, q.es[0])}${q.apres}` : q.es[0];
+}
+function suiteErreur(q) {
+  const t = texteErreur(q);
+  return t ? `${blocDeuxFois(t)}${zoneCompte()}` : "";
+}
+
 function vueEcrire(ctx, q) {
   const conj = q.type.startsWith("conj");
   if (s.phase === "question") {
@@ -87,7 +100,7 @@ function vueEcrire(ctx, q) {
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="${q.type === "phrase" ? "La phrase en espagnol" : conj ? "La forme en espagnol" : "En espagnol"}" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides"><button class="secondaire" type="button" data-mc="sais-pas">Je ne sais pas</button></div>
+        <div class="aides">${boutonSaisPas('data-mc="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
@@ -104,7 +117,7 @@ function vueEcrire(ctx, q) {
       ${conj ? sixFormes(q, !r.ok) : ""}
     </div>
     <div class="espace"></div>
-    <button class="primaire" data-mc="suivant">Suivant</button>`;
+    ${suiteErreur(q)}<button class="primaire" data-mc="suivant">Suivant</button>`;
 }
 
 function vueSens(q) {
@@ -119,7 +132,7 @@ function vueSens(q) {
       : `<button data-mc="choix" data-k="${k}">${esc(c)}</button>`).join("")}</div>
     ${fini ? `<div class="verdict ${ok ? "ok" : "ko"}" role="status"><b>${ok ? "Juste" : "Pas encore"}</b>
         <div class="bonne">${ecouter(q.es)}<p><b lang="es">${esc(q.es)}</b> = ${esc(q.bon)}</p></div></div>
-      <button class="primaire" data-mc="suivant">Suivant</button>` : ""}`;
+      ${suiteErreur(q)}<button class="primaire" data-mc="suivant">Suivant</button>` : ""}`;
 }
 
 const ligneMontree = (f, i) => `<button class="f vu" data-dire="${esc(f)}" aria-label="Écouter : ${esc(f)}" aria-pressed="false" data-k="${i}"><span lang="es">${esc(f)}</span>${ICONES.lecture}</button>`;
@@ -219,11 +232,25 @@ export function ecranMots(ctx, mode, a, b, c) {
         if (q.type === "ecoute") { const b = document.querySelector(".mc-ecoute .ecoute"); if (b) lancerLecture(b); }
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
+      // Étape 2 (28 nov.) : « Je ne sais pas » après 5 s ; après une erreur, la voix, puis la suite toute seule.
+      if (s.phase === "question") armerSaisPas(q);
+      else if (!s.compte) {
+        const textes = texteErreur(q);
+        if (textes) {
+          s.compte = true;
+          apresErreur({
+            textes, zone: document.querySelector("[data-compte]"), bouton: document.querySelector(".verdict .bonne .ecoute"),
+            suivre: () => document.querySelector('[data-mc="suivant"]')?.click(),
+          });
+        }
+      }
     },
   };
 }
 
 function suivant() {
+  arreterCompte();
+  s.compte = false;
   arreterLecture();
   s.depuis = s.i;
   s.i++; s.phase = "question"; s.saisie = ""; s.resultat = null; s.choisi = null; s.montres = new Set();
