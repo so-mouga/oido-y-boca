@@ -1065,3 +1065,14 @@ mark .tx-mot.touche { box-shadow: none; }
 .suite-auto .txt { font-size: 13px; color: var(--muted); text-align: center; }
 .piste-auto { height: 5px; border-radius: 999px; background: var(--hair); overflow: hidden; }
 .piste-auto i { display: block; height: 100%; background: var(--marine-soft); border-radius: 999px; transform-origin: left; }
+
+/* Mes mots en cours, étape 4 (maquette mots-en-cours-v2) : mon astuce, l'indice, la ligne « entre dans Mes mots en cours » */
+.astuce-mc { background: var(--sun-deep); border-radius: 14px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 1.4; }
+.astuce-mc .k { font-size: 11px; font-weight: 600; color: var(--sun-ink); text-transform: uppercase; letter-spacing: .04em; }
+.astuce-mc .lien { align-self: flex-start; font-size: 13px; }
+.mots-exo > .lien { align-self: flex-start; }
+.zone-indice:empty { display: none; }
+.zone-indice { display: flex; flex-direction: column; gap: 8px; }
+.astuce-zone { width: 100%; font: inherit; font-size: 16px; color: var(--marine); background: #fff; border: 2px solid var(--hair); border-radius: 14px; padding: 10px 12px; resize: vertical; }
+.astuce-zone:focus { outline: none; border-color: var(--marine-soft); }
+.entre-cours { background: var(--card); border: 1px solid var(--hair); border-radius: 14px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }

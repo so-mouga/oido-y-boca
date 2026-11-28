@@ -1,17 +1,17 @@
-// « Mes mots en cours » (chantier 19) : la séance de 10 questions (#/mots/cours, #/mots/un/CLE/ID-DU-MOT/DEPUIS),
+// « Mes mots en cours » (chantier 19 ; étape 4 du 28 nov. : 3 questions par mot, 10 au plus) : la séance (#/mots/cours, #/mots/un/CLE/ID-DU-MOT/DEPUIS),
 // et les boutons « M'entraîner sur ce mot » / « Je le sais » du Dico. Le moteur est dans motsencours.js.
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=81";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=81";
-import { tempsVu } from "../verbes.js?v=81";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours } from "../motsencours.js?v=81";
-import { retirerDesCours, verbesEnCours, seriesJustes, noterSerieVerbes } from "../progression.js?v=81";
-import { motsAMoi } from "../dico.js?v=81";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=81";
-import { vibrer, son } from "../retours.js?v=81";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=81";
+import { esc, md, ICONES } from "../ui.js?v=82";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=82";
+import { tempsVu } from "../verbes.js?v=82";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=82";
+import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce } from "../progression.js?v=82";
+import { motsAMoi } from "../dico.js?v=82";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=82";
+import { vibrer, son } from "../retours.js?v=82";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=82";
 
 let s = null; // la séance en cours
 
@@ -21,7 +21,7 @@ function nouvelleSeance(ctx, cle, mode, un, retour) {
     cle, mode, un, retour, items,
     titre: mode === "un" ? items[0]?.es || un : "Mes mots en cours",
     questions: tirerSeance(ctx, items),
-    i: 0, phase: "question", saisie: "", resultat: null, choisi: null, montres: new Set(), resultats: [], fini: false,
+    i: 0, phase: "question", saisie: "", resultat: null, choisi: null, montres: new Set(), resultats: [], fini: false, indice: 0, edition: false,
   };
 }
 
@@ -80,6 +80,37 @@ function rappels(r) {
   return l.map(x => `<p>${x}</p>`).join("");
 }
 
+// ——— L'astuce et l'indice (étape 4, Q26-21) ———
+// Jusqu'à l'étape 6, seulement mon astuce (« Écrire mon astuce »), gardée sur le téléphone. Jamais avant ma réponse :
+// « Un indice » montre d'abord mon astuce, puis les premières lettres ; après la réponse, elle s'affiche avec « Changer la mienne ».
+const astuceDe = cle => difficile(cle).astuce || "";
+const lettres = es => es.split(/\s+/).map(w => w.length <= 3 ? w : `${w.slice(0, 2)}…`).join(" ");
+function indicesDe(q) {
+  const l = [];
+  if (astuceDe(q.cle)) l.push({ k: "Ton astuce", t: astuceDe(q.cle) });
+  l.push({ k: "Les premières lettres", t: lettres(q.es[0]), es: true });
+  return l;
+}
+const zoneIndice = q => {
+  const vus = indicesDe(q).slice(0, s.indice);
+  return `<div class="zone-indice">${vus.map(x => `<div class="astuce-mc"><span class="k">Un indice · ${x.k.toLowerCase()}</span><span${x.es ? ' lang="es"' : ""}>${esc(x.t)}</span></div>`).join("")}</div>`;
+};
+const boutonIndice = q => s.indice < indicesDe(q).length ? `<button class="secondaire" type="button" data-mc="indice">${s.indice ? "Un autre indice" : "Un indice"}</button>` : "";
+function blocAstuce(q) {
+  const a = astuceDe(q.cle);
+  return a ? `<div class="astuce-mc"><span class="k">Ton astuce</span><span>${esc(a)}</span><button class="lien" data-mc="astuce">Changer la mienne</button></div>`
+    : `<button class="lien" data-mc="astuce">Écrire mon astuce</button>`;
+}
+function vueAstuce(q) {
+  const it = s.items.find(i => i.cle === q.cle);
+  return `${barre()}${sorte(`Mon astuce · <span lang="es">${esc(it?.es || q.cle)}</span>`)}
+    <p class="sous">Une image, un son, une histoire à toi. Elle s'affichera avec « Un indice » et après tes réponses.</p>
+    <textarea id="astuce-texte" class="astuce-zone" rows="4" aria-label="Mon astuce">${esc(astuceDe(q.cle))}</textarea>
+    <div class="duo"><button class="primaire" data-mc="garder-astuce">Garder</button><button class="secondaire" data-mc="annuler-astuce">Annuler</button></div>
+    <div class="espace"></div>
+    <p class="sous">Gardée sur ton téléphone et dans la sauvegarde Google.</p>`;
+}
+
 // Après une erreur (étape 2) : ce que la voix dit, ou null si c'est juste. Le tableau à dire n'est pas noté : rien.
 function texteErreur(q) {
   if (s.phase === "question") return null;
@@ -95,16 +126,16 @@ function suiteErreur(q) {
 function vueEcrire(ctx, q) {
   const conj = q.type.startsWith("conj");
   if (s.phase === "question") {
-    return `<div class="defile">${barre()}${tete(ctx, q)}</div>
+    return `<div class="defile">${barre()}${tete(ctx, q)}${zoneIndice(q)}</div>
       <form class="saisie" data-mc-form>
         <input id="reponse" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           enterkeyhint="done" placeholder="${q.type === "phrase" ? "La phrase en espagnol" : conj ? "La forme en espagnol" : "En espagnol"}" value="${esc(s.saisie)}" aria-label="Ta réponse en espagnol">
         <button class="primaire" type="submit">Vérifier</button>
-        <div class="aides">${boutonSaisPas('data-mc="sais-pas"')}</div>
+        <div class="aides">${boutonIndice(q)}${boutonSaisPas('data-mc="sais-pas"')}</div>
       </form>`;
   }
   const r = s.resultat;
-  const titre = r.niveau === "passe" ? "La réponse" : r.ok ? (r.niveau === "accents" ? "Juste, aux accents près" : "Juste") : "Pas encore";
+  const titre = r.niveau === "passe" ? "La réponse" : r.ok ? (s.indice ? "Juste, avec un indice" : r.niveau === "accents" ? "Juste, aux accents près" : "Juste") : "Pas encore";
   const bonne = q.type === "conj-phrase" || q.type === "trou" ? `${q.avant}${majuscule(q, q.es[0])}${q.apres}`
     : q.type === "conj-forme" ? q.es[0] : q.es[0];
   const montre = q.type === "conj-forme" ? `${esc(PERSONNES[q.p])} → <b>${esc(q.es[0])}</b>` : q.type === "conj-phrase" || q.type === "trou" ? trouee(q, q.es[0]) : esc(q.es[0]);
@@ -116,6 +147,7 @@ function vueEcrire(ctx, q) {
       ${rappels(r)}
       ${conj ? sixFormes(q, !r.ok) : ""}
     </div>
+    ${blocAstuce(q)}
     <div class="espace"></div>
     ${suiteErreur(q)}<button class="primaire" data-mc="suivant">Suivant</button>`;
 }
@@ -177,7 +209,7 @@ function vueFin() {
   const sais = Object.entries(parMot).filter(([c, ok]) => ok && encours.has(c) && seriesJustes(c) >= 2).map(([c]) =>
     `<div class="tu-le-sais" role="status"><p><b lang="es">${esc(nom(c))}</b> : tout juste ${seriesJustes(c)} séances de suite. Tu le sais ?</p>
       <button class="oui" data-mc="sais" data-cle="${esc(c)}" data-nom="${esc(nom(c))}">Oui, je le sais</button>
-      <small>Il sort de tes mots en cours. Ses cartes continuent dans « Tes cartes à revoir ».</small></div>`).join("");
+      <small>Il sort de tes mots en cours (retenu aujourd'hui). Ses cartes continuent dans « Tes cartes à revoir ». Raté 3 fois de nouveau, il reviendra.</small></div>`).join("");
   return `<div class="fin">
       <h1>Séance terminée</h1>
       <p class="sous">${esc(s.titre)} · ${s.questions.length} questions</p>
@@ -191,7 +223,7 @@ function vueFin() {
       <p class="sous">Rien ne change dans « Tes cartes à revoir » : cette séance, c'est en plus.</p>
     </div>
     <div class="espace"></div>
-    <button class="secondaire" data-mc="encore">Encore 10</button>
+    <button class="secondaire" data-mc="encore">Encore une séance</button>
     <a class="primaire" href="${s.retour}" data-remplace>${s.mode === "un" ? "Retour à la fiche" : "Retour au Dico"}</a>`;
 }
 
@@ -216,7 +248,7 @@ export function ecranMots(ctx, mode, a, b, c) {
   }
   const q = s.questions[s.i];
   const ecrire = !["sens", "tableau"].includes(q.type);
-  const vue = q.type === "sens" ? vueSens(q) : q.type === "tableau" ? vueTableau(ctx, q) : vueEcrire(ctx, q);
+  const vue = s.edition ? vueAstuce(q) : q.type === "sens" ? vueSens(q) : q.type === "tableau" ? vueTableau(ctx, q) : vueEcrire(ctx, q);
   return {
     onglet: null,
     html: `<main class="colonne exo verbes-exo mots-exo${ecrire && s.phase === "question" ? " ecrire-q" : ""}">${vue}</main>`,
@@ -233,6 +265,7 @@ export function ecranMots(ctx, mode, a, b, c) {
         setTimeout(() => { if (s?.i === i && s.phase === "question") document.getElementById("reponse")?.focus({ preventScroll: true }); }, 400);
       }
       // Étape 2 (28 nov.) : « Je ne sais pas » après 5 s ; après une erreur, la voix, puis la suite toute seule.
+      if (s.edition) { document.getElementById("astuce-texte")?.focus({ preventScroll: true }); return; }
       if (s.phase === "question") armerSaisPas(q);
       else if (!s.compte) {
         const textes = texteErreur(q);
@@ -253,11 +286,11 @@ function suivant() {
   s.compte = false;
   arreterLecture();
   s.depuis = s.i;
-  s.i++; s.phase = "question"; s.saisie = ""; s.resultat = null; s.choisi = null; s.montres = new Set();
+  s.i++; s.phase = "question"; s.saisie = ""; s.resultat = null; s.choisi = null; s.montres = new Set(); s.indice = 0; s.edition = false;
 }
 
 function noter(q, ok, r = null) {
-  s.resultats.push({ q, ok, r });
+  s.resultats.push({ q, ok, r, aide: s.indice > 0 });
   s.phase = "reponse";
   vibrer(ok ? 12 : [8, 60, 8]); son(ok ? "juste" : "rate");
 }
@@ -275,7 +308,7 @@ export function verifierMot() {
 
 // Les boutons d'ici. Renvoie "suivant" (nouvel écran, qui glisse), true (redessiner), false (rien), ou null si ce n'est pas un bouton d'ici.
 export function actionMots(ctx, e) {
-  // « M'entraîner sur ce mot » (fiche du Dico) : le mot passe en cours, ses phrases 3 et 4 entrent dans la révision.
+  // « M'entraîner sur ce mot » (fiche du Dico) : le mot passe en cours (ses cartes ne changent pas, Q26-14).
   const ajouter = e.target.closest("[data-mc-ajouter]");
   if (ajouter) {
     const id = ajouter.dataset.mcAjouter;
@@ -284,9 +317,11 @@ export function actionMots(ctx, e) {
     vibrer(12);
     return true;
   }
-  // La croix d'une puce, ou « Je le sais » sur une fiche.
+  // La croix d'une puce : retiré (sans date). « Je le sais » sur une fiche : retenu aujourd'hui (Q26-17).
   const retirer = e.target.closest("[data-mc-retirer]");
-  if (retirer) { retirerDesCours(retirer.dataset.mcRetirer); vibrer(); return true; }
+  if (retirer) { sortirDesCours(ctx, retirer.dataset.mcRetirer, null); vibrer(); return true; }
+  const sait = e.target.closest("[data-mc-sais]");
+  if (sait) { sortirDesCours(ctx, sait.dataset.mcSais, ctx.jour); vibrer(); return true; }
 
   const b = e.target.closest("[data-mc]");
   if (!b || !s) return null;
@@ -295,6 +330,25 @@ export function actionMots(ctx, e) {
     case "sais-pas":
       s.saisie = ""; s.resultat = { niveau: "passe", ok: false };
       s.resultats.push({ q, ok: false }); s.phase = "reponse";
+      return true;
+    case "indice": {
+      // Sans redessiner : ta saisie et le clavier restent en place.
+      s.indice++;
+      document.querySelector(".zone-indice")?.replaceWith(document.createRange().createContextualFragment(zoneIndice(q)));
+      if (boutonIndice(q)) b.textContent = "Un autre indice"; else b.remove();
+      vibrer(8);
+      return false;
+    }
+    case "astuce":
+      s.edition = true;
+      return true;
+    case "garder-astuce":
+      garderAstuce(q.cle, document.getElementById("astuce-texte")?.value || "", ctx.jour);
+      s.edition = false;
+      vibrer();
+      return true;
+    case "annuler-astuce":
+      s.edition = false;
       return true;
     case "choix":
       s.choisi = Number(b.dataset.k);
@@ -323,7 +377,7 @@ export function actionMots(ctx, e) {
     }
     case "sais": {
       // Sans redessiner (l'écran de fin ne doit pas relancer une séance).
-      retirerDesCours(b.dataset.cle);
+      sortirDesCours(ctx, b.dataset.cle, ctx.jour);
       b.closest(".tu-le-sais").outerHTML = `<p class="tu-le-sais sorti" role="status"><b lang="es">${esc(b.dataset.nom)}</b> sort de tes mots en cours. Bravo.</p>`;
       vibrer();
       return false;

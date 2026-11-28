@@ -1,6 +1,7 @@
 // Vérifie le moteur de « Mes mots en cours » (motsencours.js, chantier 19) sur le vrai vocabulaire du Sheet :
-// les anciens verbes en cours restent là, une séance a 10 questions bien rangées, la correction de l'article
-// et de la confusion pueblo / barrio, et chaque mot du Sheet peut faire une séance seul.
+// les anciens verbes en cours restent là, une séance a 3 questions par mot (10 au plus) bien rangées, la correction de l'article
+// et de la confusion pueblo / barrio, chaque mot du Sheet peut faire une séance seul, et (étape 4) l'entrée toute seule,
+// la sortie, le compteur de « Non », mon astuce et la sauvegarde.
 // Lancer depuis appli/ : node outils/test-motsencours.mjs chemin/vers/vocabulaire.csv
 import fs from "fs";
 import os from "os";
@@ -55,43 +56,29 @@ liste = M.motsEnCours(ctx);
 ok(liste.length === 4, "4 mots en cours", liste.map(i => i.cle));
 ok(M.motEnCours(ctx, pueblo) && M.motEnCours(ctx, casarse), "motEnCours");
 
-// 4. Les séances : forme, ordre, pas de doublon bête.
-const NOTEES = new Set(["fres", "ecoute", "trou", "phrase", "sens", "conj-forme", "conj-phrase"]);
+// 4. Les séances (étape 4, Q26-18 à Q26-20) : 3 questions par mot au plus, 10 au plus, pas de « choisir le sens »
+// ni de tableau ; un verbe = le mot + 2 conjugaisons ; chaque mot commence à froid.
+const NOTEES = new Set(["fres", "ecoute", "trou", "phrase", "conj-forme", "conj-phrase"]);
 function verifierSeance(c, items, nom) {
   for (let k = 0; k < 300; k++) {
-    const s = M.tirerSeance(c, items);
-    ok(s.length === 10, nom, "pas 10 questions", s.length);
-    const tableaux = s.filter(q => q.type === "tableau");
-    ok(tableaux.length === (items.some(i => i.x) ? 1 : 0), nom, "tableaux", tableaux.length);
-    ok(s.filter(q => q.type === "sens").length <= 1, nom, "plus d'un « choisir le sens »");
-    ok(s.every(q => q.type === "tableau" || NOTEES.has(q.type)), nom, "type inconnu");
-    ok(s.every(q => q.type === "tableau" || q.type === "sens" || (q.es?.length && q.es.every(Boolean))), nom, "question sans réponse");
+    const s = M.tirerSeance(c, items, { tour: k });
+    ok(s.length <= M.nbQuestions(items.length) && s.length >= Math.min(M.nbQuestions(items.length), items.length), nom, "nombre de questions", s.length);
+    ok(s.every(q => NOTEES.has(q.type)), nom, "type inattendu (sens ou tableau ?)", s.map(q => q.type).join(" "));
+    ok(s.every(q => q.es?.length && q.es.every(Boolean)), nom, "question sans réponse");
     const cles = new Set(items.map(i => i.cle));
     ok(s.every(q => cles.has(q.cle)), nom, "question hors des mots de la séance");
-    // Chaque mot commence par sa question « à froid » (fres), s'il en a une.
-    const vus = new Set();
-    for (const q of s) {
-      if (!vus.has(q.cle)) {
-        const aFres = s.some(x => x.cle === q.cle && x.premiere);
-        ok(!aFres || q.premiere, nom, "le mot", q.cle, "commence par", q.type);
-        vus.add(q.cle);
-      }
+    for (const i of items) {
+      const du = s.filter(q => q.cle === i.cle);
+      ok(du.length >= 1 && du.length <= M.PAR_MOT, nom, "questions de", i.cle, du.length);
+      ok(new Set(du.map(q => q.type)).size === du.length || i.x, nom, "deux fois la même sorte pour", i.cle, du.map(q => q.type).join(" "));
+      if (i.x) ok(du[0]?.type === "fres" && du.slice(1).every(q => q.type.startsWith("conj")), nom, "un verbe : le mot puis 2 conjugaisons", du.map(q => q.type).join(" "));
+      else ok(du[0]?.type === "fres", nom, "un mot commence par « du français »", i.cle, du[0]?.type);
     }
-    // Jamais le même mot deux fois de suite (dès qu'il y a 2 mots… sauf quand c'est impossible : on le compte).
+    if (items.length === 3) ok(s.length === 9, nom, "3 mots = 9 questions", s.length);
     if (items.length >= 3) {
       const suites = s.filter((q, i) => i && s[i - 1].cle === q.cle).length;
-      ok(suites <= 2, nom, "trop de questions du même mot à la suite", suites, s.map(q => q.cle.split("|").pop()).join(" "));
+      ok(suites <= 1, nom, "trop de questions du même mot à la suite", suites, s.map(q => q.cle.split("|").pop()).join(" "));
     }
-    // Avec un seul mot : pas deux fois la même sorte de question de suite (« écoute » puis « écoute »).
-    if (items.length === 1) {
-      const memes = s.filter((q, i) => i && s[i - 1].type === q.type).length;
-      ok(memes === 0, nom, "même sorte de question deux fois de suite", s.map(q => q.type).join(" "));
-    }
-    // Avec un verbe : au moins une question de conjugaison, au plus 4.
-    const conj = s.filter(q => q.type.startsWith("conj")).length;
-    if (items.some(i => i.x)) ok(conj >= 1 && conj <= 4, nom, "conjugaison", conj);
-    // Tout le monde a au moins une question.
-    for (const i of items) ok(s.some(q => q.cle === i.cle), nom, "mot sans question", i.cle);
   }
 }
 const trois = M.motsEnCours(ctx).filter(i => i.cle !== "buscar");
@@ -99,6 +86,16 @@ verifierSeance(ctx, trois, "pueblo + barrio + casarse");
 verifierSeance(ctxU1, trois, "pueblo + barrio + casarse, à U1-L3");
 verifierSeance(ctx, [M.resoudre(ctx, pueblo.id)], "el pueblo seul");
 verifierSeance(ctx, [M.resoudre(ctx, "casarse")], "casarse seul");
+ok(M.tirerSeance(ctx, [M.resoudre(ctx, pueblo.id)]).length === 3, "un mot seul = 3 questions");
+ok([1, 2, 3, 4, 5, 8].map(M.nbQuestions).join() === "3,6,9,10,10,10", "1 mot 3, 2 mots 6, 3 mots 9, 4 ou 5 mots 10");
+// La 3e question tourne d'un jour à l'autre : à l'oreille, ou une phrase à traduire.
+const troisiemes = new Set([0, 1, 2, 3].map(tour => M.tirerSeance(ctx, [M.resoudre(ctx, pueblo.id)], { tour }).find(q => !q.premiere && q.type !== "trou")?.type));
+ok(!pueblo.phrases.length || troisiemes.size >= 2, "la 3e question change d'un jour à l'autre", [...troisiemes]);
+// 4 mots : 10 questions ; les premiers (les moins travaillés) gardent leurs 3 questions.
+const quatre = [...trois, M.resoudre(ctx, trouver("la ciudad").id)];
+const s4 = M.tirerSeance(ctx, quatre, { tour: 0 });
+ok(s4.length === 10, "4 mots = 10 questions", s4.length);
+ok(s4.filter(q => q.cle === quatre[0].cle).length === 3, "le 1er mot garde ses 3 questions");
 
 // Un exemple, pour voir.
 const ex = M.tirerSeance(ctxU1, trois);
@@ -127,21 +124,57 @@ ok(M.reponsesDe("comer (= déjeuner)")[0] === "comer", "parenthèses", M.reponse
 const qCasarse = { type: "fres", cle: "casarse", es: M.reponsesDe("casarse"), nom: false };
 ok(M.corrigerMot(qCasarse, "casarse").ok && !M.corrigerMot(qCasarse, "casar").ok, "casarse");
 
-// 7. Chaque mot du Sheet peut faire une séance seul (10 questions, chacune avec sa réponse).
+// 7. Chaque mot du Sheet peut faire une séance seul (3 questions au plus, chacune avec sa réponse).
 let seuls = 0;
 for (const m of mots) {
   const it = M.resoudre(ctx, M.cleDe(ctx, m)) || M.resoudre(ctx, m.id);
   if (!it) { ok(false, "pas résolu", m.es); continue; }
   const s = M.tirerSeance(ctx, [it]);
-  ok(s.length === 10, m.es, "seul :", s.length);
-  ok(s.every(q => q.type === "tableau" || q.type === "sens" || q.es?.every(Boolean)), m.es, "réponse vide");
+  ok(s.length >= 1 && s.length <= 3, m.es, "seul :", s.length);
+  ok(s.every(q => q.es?.every(Boolean)), m.es, "réponse vide");
   seuls++;
 }
 console.log(`${seuls} mots peuvent faire une séance seuls.`);
 
 // 8. « Tu le sais ? » : le bilan par mot.
-const b = M.bilanParMot([{ q: { cle: "a" }, ok: true }, { q: { cle: "a" }, ok: false }, { q: { cle: "b" }, ok: true }]);
-ok(b.a === false && b.b === true, "bilan par mot");
+const b = M.bilanParMot([{ q: { cle: "a" }, ok: true }, { q: { cle: "a" }, ok: false }, { q: { cle: "b" }, ok: true }, { q: { cle: "c" }, ok: true, aide: true }]);
+ok(b.a === false && b.b === true && b.c === false, "bilan par mot (avec un indice, pas « tout juste »)");
+
+// 9. L'entrée toute seule et la sortie (étape 4, Q26-14 à Q26-17).
+const cuñado = trouver("el cuñado / la cuñada"), suegros = trouver("los suegros");
+const J = "2026-11-28", ctxJ = { ...ctx, jour: J };
+ok(!M.entrerSiBloque(ctxJ, cuñado, J), "pas de raison d'entrer au départ");
+V.noterMot(cuñado.id, 1, J); V.noterMot(cuñado.id, 1, J);
+ok(M.entrerSiBloque(ctxJ, cuñado, J) === "2", "2 « Non » de suite à la carte 1 : il entre");
+ok(M.motEnCours(ctx, cuñado), "el cuñado est en cours");
+ok(!Object.keys(V.fichesCartes()).some(k => k.startsWith(cuñado.id + "#")), "entrer ne prend pas les cartes 3 et 4 (Q26-14)");
+// Sortie par « Je le sais » : retenu le, compteur à 0 ; les 2 « Non » de suite ne le font plus revenir.
+V.compterNon(cuñado.id);
+M.sortirDesCours(ctxJ, M.cleDe(ctx, cuñado), J);
+ok(!M.motEnCours(ctx, cuñado), "sorti");
+ok(V.difficile(M.cleDe(ctx, cuñado)).retenu === J, "« Je le sais » note « retenu le »");
+ok((V.difficile(cuñado.id).non || 0) === 0, "le compteur repart de 0 à la sortie");
+ok(!M.entrerSiBloque(ctxJ, cuñado, J), "sorti : les 2 « Non » de suite ne le font pas revenir");
+V.compterNon(cuñado.id); V.compterNon(cuñado.id);
+ok(!M.entrerSiBloque(ctxJ, cuñado, J), "2 nouveaux « Non » : pas encore");
+V.compterNon(cuñado.id);
+ok(M.entrerSiBloque(ctxJ, cuñado, J) === "3", "3 nouveaux « Non » : il revient");
+// La croix : retiré, sans date.
+M.sortirDesCours(ctxJ, M.cleDe(ctx, suegros), null);
+V.mettreEnCours(M.cleDe(ctx, suegros), J); M.sortirDesCours(ctxJ, M.cleDe(ctx, suegros), null);
+ok(!V.difficile(M.cleDe(ctx, suegros)).retenu, "la croix ne note pas « retenu le »");
+// Le rattrapage : un mot déjà à 2 « Non » de suite (noté avant cette version) entre au lancement.
+const primos = trouver("los primos");
+V.noterMot(primos.id, 1, J); V.noterMot(primos.id, 1, J);
+M.rattraperEntrees(ctxJ, [primos]);
+ok(M.motEnCours(ctx, primos), "rattrapage : los primos entre");
+// Mon astuce : gardée, et dans la sauvegarde (avec la date de la dernière séance, Q26-22).
+V.garderAstuce(M.cleDe(ctx, primos), "  Primos : les cousins, comme « prime » de la famille.  ", J);
+ok(V.difficile(M.cleDe(ctx, primos)).astuce === "Primos : les cousins, comme « prime » de la famille.", "astuce gardée (sans espaces autour)");
+V.noterSerieVerbes({ [M.cleDe(ctx, primos)]: true }, J);
+const relue = V.lireSauvegarde(V.donneesSauvegarde(J)).etat;
+ok(relue.difficiles?.[M.cleDe(ctx, primos)]?.astuce, "l'astuce part dans la sauvegarde et revient");
+ok(relue.verbes.derniere?.[M.cleDe(ctx, primos)] === J, "la date de la dernière séance revient à la restauration (Q26-22)");
 
 console.log(erreurs ? `\n${erreurs} erreur(s) sur ${verifs} vérifications.` : `\nTout est bon (${verifs} vérifications).`);
 process.exit(erreurs ? 1 : 0);

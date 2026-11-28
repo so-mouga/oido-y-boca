@@ -6,7 +6,7 @@
 const CLE = "oyb.v2";
 export const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir une carte, selon sa boîte
 
-const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {}, erreurs: {} });
+const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {}, erreurs: {}, difficiles: {} });
 let etat = lire();
 
 function lire() {
@@ -226,6 +226,28 @@ export function garderJeux(jeux) {
   sauver();
 }
 
+// Les mots difficiles (étape 4 des décisions du 28 nov.) : { clé: { non, sorti, astuce, astuceLe, retenu } }.
+//   non : les « Non » en tout sur les cartes du mot (clé = l'id du mot), à 3 il entre dans « Mes mots en cours » ;
+//   sorti : le mot est sorti de la liste (retiré ou « Je le sais ») : seuls 3 nouveaux « Non » le font revenir ;
+//   astuce, astuceLe : mon astuce (« Écrire la mienne »), clé = la clé de la liste (l'infinitif d'un verbe, sinon l'id) ;
+//   retenu : la date de « Je le sais » (pour « retenu le », onglet « Astuces » à l'étape 6).
+const difficiles = () => etat.difficiles || (etat.difficiles = {});
+export const difficile = cle => difficiles()[cle] || {};
+function changerDifficile(cle, champs) {
+  etat.difficiles = { ...difficiles(), [cle]: { ...difficile(cle), ...champs } };
+  sauver();
+}
+export function compterNon(idMot) { changerDifficile(idMot, { non: (difficile(idMot).non || 0) + 1 }); }
+export function marquerEntre(idMot) { changerDifficile(idMot, { sorti: false }); }
+// La sortie (Q26-16, Q26-17) : le compteur repart de 0 ; « Je le sais » note la date (retenu), la croix non.
+export function marquerSorti(idMot, cle, retenu) {
+  changerDifficile(idMot, { non: 0, sorti: true });
+  if (retenu) changerDifficile(cle, { retenu });
+}
+export function garderAstuce(cle, texte, aujourdhui) {
+  changerDifficile(cle, { astuce: texte.trim(), astuceLe: aujourdhui });
+}
+
 // « Mes erreurs » (chantier 11) : pour chaque carte du carnet du prof, sa fiche { boite, vu, vue } (le calcul est dans carnet.js).
 // La clé vient de la bonne forme. Les fiches partent dans les deux sauvegardes.
 export const fichesErreurs = () => etat.erreurs || {};
@@ -271,7 +293,10 @@ export function lireSauvegarde(texte) {
     ...(objet(d.lectures) && { lectures: d.lectures }),
     ...(objet(d.jeux) && { jeux: d.jeux }),
     ...(objet(d.erreurs) && { erreurs: d.erreurs }),
-    ...(objet(d.verbes) && { verbes: { cours: objet(d.verbes.cours) ? d.verbes.cours : {}, justes: objet(d.verbes.justes) ? d.verbes.justes : {} } }) } };
+    ...(objet(d.difficiles) && { difficiles: d.difficiles }),
+    // « derniere » (la date de la dernière séance de chaque mot) était perdue à la restauration (Q26-22).
+    ...(objet(d.verbes) && { verbes: { cours: objet(d.verbes.cours) ? d.verbes.cours : {}, justes: objet(d.verbes.justes) ? d.verbes.justes : {},
+      ...(objet(d.verbes.derniere) && { derniere: d.verbes.derniere }) } }) } };
 }
 
 // Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).

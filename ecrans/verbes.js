@@ -5,15 +5,16 @@
 // Pas de chrono ni de record ici (ce sera la « Course de conjugaison » des jeux). Rien ne touche à la révision des mots.
 // Ici aussi : les boutons « Je l'apprends », « + » et « Je le sais » de la page Verbes et des fiches du Dico.
 
-import { esc, md, ICONES } from "../ui.js?v=81";
-import { corriger } from "../corriger.js?v=81";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=81";
-import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=81";
-import { mettreEnCours, retirerDesCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=81";
-import { motVu } from "../dico.js?v=81";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=81";
-import { vibrer, son } from "../retours.js?v=81";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=81";
+import { esc, md, ICONES } from "../ui.js?v=82";
+import { corriger } from "../corriger.js?v=82";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=82";
+import { verbesCours, mesVerbes, trouverVerbe, tirerSerie, libelle, sensDe, tempsVus, tempsVu } from "../verbes.js?v=82";
+import { sortirDesCours } from "../motsencours.js?v=82";
+import { mettreEnCours, verbeEnCours, verbesEnCours, seriesJustes, noterSerieVerbes, apprendreEnAvance, derniereSerie } from "../progression.js?v=82";
+import { motVu } from "../dico.js?v=82";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=82";
+import { vibrer, son } from "../retours.js?v=82";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=82";
 
 // Plus de limite au nombre de verbes en cours (Q10-16) : une série en prend VERBES_PAR_SERIE, d'abord ceux jamais
 // travaillés en série (souvent tout juste ajoutés), puis ceux travaillés il y a le plus longtemps. Chaque verbe revient ainsi
@@ -288,7 +289,7 @@ export function actionVerbes(ctx, e) {
     return true;
   }
   const retirer = e.target.closest("[data-v-retirer]");
-  if (retirer) { retirerDesCours(retirer.dataset.vRetirer); vibrer(); return true; }
+  if (retirer) { sortirDesCours(ctx, retirer.dataset.vRetirer, null); vibrer(); return true; } // étape 4 : retiré (sans date)
 
   const b = e.target.closest("[data-v]");
   if (!b || !s) return null;
@@ -328,7 +329,7 @@ export function actionVerbes(ctx, e) {
     case "sais": {
       // Sans redessiner (l'écran de fin ne doit pas relancer une série).
       const v = b.dataset.verbe;
-      retirerDesCours(v);
+      sortirDesCours(ctx, v, ctx.jour); // étape 4 : retenu aujourd'hui
       b.closest(".tu-le-sais").outerHTML = `<p class="tu-le-sais sorti" role="status"><b lang="es">${esc(v)}</b> sort de tes mots en cours. Bravo.</p>`;
       vibrer();
       return false;

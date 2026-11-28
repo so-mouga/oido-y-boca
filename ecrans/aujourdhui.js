@@ -2,18 +2,20 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=81";
-import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=81";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=81";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=81";
-import { EXERCICES } from "../exercices.js?v=81";
-import { controlePret, dernierResultat } from "./controle.js?v=81";
-import { motsDus, PAQUET } from "./pratique.js?v=81";
-import { BONUS } from "../bonus.js?v=81";
-import { motsPourLOral, copieFaite } from "./mesmots.js?v=81";
-import { estOrale } from "../position.js?v=81";
-import { soirRepaso } from "./soir.js?v=81";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=81";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=82";
+import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=82";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=82";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=82";
+import { EXERCICES } from "../exercices.js?v=82";
+import { controlePret, dernierResultat } from "./controle.js?v=82";
+import { motsDus, PAQUET } from "./pratique.js?v=82";
+import { BONUS } from "../bonus.js?v=82";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=82";
+import { estOrale } from "../position.js?v=82";
+import { soirRepaso } from "./soir.js?v=82";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=82";
+import { rattraperEntrees } from "../motsencours.js?v=82";
+import { motsAMoi } from "../dico.js?v=82";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -97,6 +99,8 @@ function rappelSauvegarde(jour) {
 
 export function ecranAujourdhui(ctx) {
   const { pos, soir, motsParLecon, jour, apercu } = ctx;
+  // Étape 4 (Q26-16) : un mot déjà à 2 « Non » de suite (ou 3 en tout) entre dans « Mes mots en cours », même noté avant cette version.
+  if (!apercu) rattraperEntrees(ctx, [...ctx.mots, ...motsAMoi()]);
   const c = cases(jour);
   const der = pos.derniere;
   const pro = pos.prochaine;

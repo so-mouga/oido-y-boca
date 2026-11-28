@@ -7,17 +7,22 @@
 //   - sinon l'id du mot dans le Sheet (« U1-L3|el pueblo ») ou de « Mes mots ».
 // Les séries justes (« Tu le sais ? ») et la date de la dernière séance gardent la même clé.
 //
-// La séance ne touche pas « Tes mots à revoir » (Q77).
+// Étape 4 des décisions du 28 nov. (Q26-14 à Q26-22) : un mot entre tout seul (2 « Non » de suite à la carte 1, ou 3 « Non »
+// en tout sur ses cartes) ; entrer ne change plus les cartes ; une séance = 3 questions par mot (10 au plus), sans « choisir
+// le sens » ni tableau à dire. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { corriger } from "./corriger.js?v=81";
-import { trouDe, phrasesDe, cleCarte } from "./cartes.js?v=81";
-import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=81";
-import { trouverVerbe, phrasesDe as phrasesDuVerbe, exempleDe, sensDe, tempsVus } from "./verbes.js?v=81";
-import { conjuguer, sixFormes } from "./controles.js?v=81";
-import { verbesEnCours, derniereSerie, mettreEnCours, prendreCarte, apprendreEnAvance } from "./progression.js?v=81";
+import { corriger } from "./corriger.js?v=82";
+import { trouDe, phrasesDe } from "./cartes.js?v=82";
+import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=82";
+import { trouverVerbe, phrasesDe as phrasesDuVerbe, sensDe, tempsVus } from "./verbes.js?v=82";
+import { conjuguer } from "./controles.js?v=82";
+import { verbesEnCours, derniereSerie, mettreEnCours, retirerDesCours, apprendreEnAvance, fichesCartes, difficile, marquerEntre, marquerSorti } from "./progression.js?v=82";
 
 export const MOTS_PAR_SEANCE = 5;
-export const QUESTIONS = 10;
+export const QUESTIONS = 10; // au plus
+export const PAR_MOT = 3;    // au plus, par mot (Q26-20)
+// Le nombre de questions d'une séance : 1 mot = 3, 2 = 6, 3 = 9, 4 ou 5 = 10.
+export const nbQuestions = nMots => Math.min(QUESTIONS, PAR_MOT * Math.min(nMots, MOTS_PAR_SEANCE));
 
 // ── La liste ──
 const sansParentheses = es => (es || "").replace(/\([^)]*\)/g, " ").replace(/\s+/g, " ").trim();
@@ -52,13 +57,39 @@ export function resoudre(ctx, cle) {
 export const motsEnCours = ctx => verbesEnCours().map(c => resoudre(ctx, c)).filter(Boolean);
 export const motEnCours = (ctx, m) => verbesEnCours().includes(cleDe(ctx, m));
 
-// Mettre un mot en cours (la fiche, la bulle, « Tu bloques ») : il entre dans la liste, ses phrases 3 et 4 entrent
-// dans « Tes mots à revoir » comme avec « + Apprendre » (Q77), et s'il n'est pas encore vu, sa carte 1 aussi (Q19-7).
+// Mettre un mot en cours (la fiche, la bulle, ou tout seul) : il entre dans la liste. Ses cartes ne changent pas (Q26-14) :
+// plus de phrases 3 et 4 prises en tête de la révision. Seul un mot pas encore vu fait entrer sa carte 1 (Q19-7).
 export function mettreMotEnCours(ctx, m, aujourdhui) {
   mettreEnCours(cleDe(ctx, m), aujourdhui);
-  if (m.moi) return;
-  phrasesDe(m).forEach((_, i) => prendreCarte(cleCarte(m.id, i + 3), aujourdhui));
-  if (!motVu(ctx, m)) apprendreEnAvance(m.id, aujourdhui);
+  marquerEntre(m.id);
+  if (!m.moi && !motVu(ctx, m)) apprendreEnAvance(m.id, aujourdhui);
+}
+
+// Entrer tout seul (Q26-16) : 3 « Non » en tout sur ses cartes, ou 2 « Non » de suite à la carte 1 (sauf pour un mot
+// sorti de la liste : lui ne revient que par 3 nouveaux « Non »). Renvoie "3", "2" ou null.
+export function raisonDEntrer(m, fiches) {
+  const d = difficile(m.id);
+  if ((d.non || 0) >= 3) return "3";
+  if (!d.sorti && (fiches[m.id]?.nons || 0) >= 2) return "2";
+  return null;
+}
+// Après une note : le mot entre s'il le faut. Renvoie la raison ("2" ou "3") s'il vient d'entrer, sinon null.
+export function entrerSiBloque(ctx, m, aujourdhui) {
+  if (!m || motEnCours(ctx, m)) return null;
+  const r = raisonDEntrer(m, fichesCartes());
+  if (r) mettreMotEnCours(ctx, m, aujourdhui);
+  return r;
+}
+// Au lancement (« Aujourd'hui ») : les mots déjà à 2 « Non » de suite avant cette version entrent aussi.
+export function rattraperEntrees(ctx, mots) {
+  const fiches = fichesCartes();
+  for (const m of mots) if ((fiches[m.id]?.nons || 0) >= 2 || (difficile(m.id).non || 0) >= 3) entrerSiBloque(ctx, m, ctx.jour);
+}
+// Sortir (Q26-17) : « Je le sais » (retenu = la date) ou la croix (retenu = null). Le compteur repart de 0.
+export function sortirDesCours(ctx, cle, retenu = null) {
+  const it = resoudre(ctx, cle);
+  retirerDesCours(cle);
+  marquerSorti(it?.m?.id || cle, cle, retenu);
 }
 
 // Les 5 mots d'une séance : jamais travaillés d'abord (souvent tout juste ajoutés), puis les plus anciens.
@@ -81,30 +112,33 @@ const aUnArticle = es => reponsesDe(es).some(r => ARTICLE.test(r));
 //   ecoute  : { type, cle, dire, es, nom }                          la voix dit « el pueblo », on l'écrit
 //   trou    : { type, cle, avant, apres, es: [réponse], aide }      l'exemple du Sheet, le mot caché
 //   phrase  : { type, cle, fr, es: [réponses], aide, n }            la phrase 3 ou 4 (n = 3, 4), à traduire
-//   sens    : { type, cle, es, choix: [4 sens], bon }               choisir le sens parmi 4 (1 par séance)
 // Questions de conjugaison (un verbe, Q19-5), mêmes formes que l'entraînement des verbes :
 //   conj-forme  : { type, cle, v, d, p, sens, es: [forme] }
 //   conj-phrase : { type, cle, v, d, p, avant, apres, es: [forme] }
-//   tableau     : { type, cle, v, d, sens, formes, exemple }        pas noté
 // Chaque question porte « premiere: true » si c'est celle par laquelle le mot doit commencer (le retrouver à froid).
 
 const melanger = (t, h) => { const r = [...t]; for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(h() * (i + 1)); [r[i], r[j]] = [r[j], r[i]]; } return r; };
 
-// Les questions possibles d'un mot, dans l'ordre où on les prend. Au-delà, on recommence (un seul mot = 10 questions sur lui).
-function questionsDuMot(item) {
+// Les 3 questions d'un mot (Q26-18, Q26-19), dans l'ordre :
+//   un mot : 1. du français (à froid) ; 2. la phrase à trou, sinon à l'oreille ; 3. à tour de rôle d'une séance à l'autre
+//            (tour) : à l'oreille ou une phrase 3 ou 4 à traduire ;
+//   un verbe : 1. du français ; 2 et 3. deux conjugaisons (une dans une phrase, une « trouve la forme »), sans tableau à dire.
+function questionsDuMot(ctx, item, h, tour) {
   const { m, cle } = item;
   const es = reponsesDe(item.es);
   const nom = aUnArticle(item.es);
   const dire = es[0];
   const ellipse = /…/.test(item.es);
   const fres = { type: "fres", cle, fr: sansParentheses(item.fr), es, dire, nom };
+  if (item.x) return [fres, ...conjugaison(ctx, item, h)].slice(0, PAR_MOT);
   const ecoute = ellipse ? null : { type: "ecoute", cle, dire, es, nom };
   const t = m && !m.moi ? trouDe(m) : null;
   const trou = t ? (() => { const [avant, apres] = t.phrase.split("___"); return { type: "trou", cle, avant, apres, es: [t.reponse], aide: sansParentheses(item.fr) }; })() : null;
   const ph = m && !m.moi ? phrasesDe(m).map((p, i) => ({ type: "phrase", cle, fr: p.fr, es: p.es, aide: p.aide || "", n: i + 3 })) : [];
-  const ordre = [fres, ph[0], ecoute, trou, ph[1], ...ph.slice(2)].filter(Boolean);
-  const encore = [fres, ecoute, trou, ...ph].filter(Boolean);
-  return { ordre, encore };
+  const deuxieme = trou || ecoute;
+  const autres = [deuxieme === trou ? ecoute : null, ...ph].filter(Boolean);
+  const troisieme = autres.length ? autres[tour % autres.length] : null;
+  return [fres, deuxieme, troisieme].filter(Boolean);
 }
 
 // 2 questions de conjugaison pour un verbe, aux temps vus (comme l'entraînement des verbes, chantier 16) :
@@ -128,67 +162,19 @@ function conjugaison(ctx, item, h) {
   return qs;
 }
 
-// Les 3 mauvais sens : d'abord les autres mots de la séance (pueblo / barrio : la confusion qu'on travaille),
-// puis des mots vus de la même sorte. Jamais deux fois le même sens.
-function questionSens(ctx, item, items, h) {
-  const bon = sansParentheses(item.fr);
-  const vus = new Set([normaliser(bon)]);
-  const choix = [bon];
-  const prendre = fr => { const f = sansParentheses(fr); const k = normaliser(f); if (!f || vus.has(k) || choix.length >= 4) return; vus.add(k); choix.push(f); };
-  for (const o of melanger(items.filter(o => o.cle !== item.cle), h)) prendre(o.fr);
-  const sorte = item.m ? sorteDe(item.m) : null;
-  const memeSorte = ctx.mots.filter(m => motVu(ctx, m) && m.id !== item.m?.id && (!sorte || sorteDe(m) === sorte));
-  for (const m of melanger(memeSorte, h)) prendre(m.fr);
-  if (choix.length < 4) for (const m of melanger(ctx.mots.filter(m => motVu(ctx, m)), h)) prendre(m.fr);
-  if (choix.length < 4) return null;
-  return { type: "sens", cle: item.cle, es: item.es, choix: melanger(choix, h), bon };
-}
-
-// Une séance : 10 questions sur ces mots (déjà choisis : 5 au plus). Avec un verbe : 9 notées + son tableau à dire.
-export function tirerSeance(ctx, items, { n = QUESTIONS, hasard = Math.random } = {}) {
+// Une séance sur ces mots (déjà choisis : 5 au plus, les plus anciens d'abord) : 3 questions par mot, 10 au plus.
+// Quand il y en a moins que 3 × le nombre de mots, les premiers mots (les moins travaillés) gardent leurs 3 questions.
+// tour : fait tourner la 3e question d'un jour à l'autre (par défaut, le numéro du jour).
+export function tirerSeance(ctx, items, { hasard = Math.random, tour = Math.floor(Date.now() / 86400000) } = {}) {
   const h = hasard;
   if (!items.length) return [];
-  const verbes = items.filter(i => i.x);
-  const avecTableau = verbes.length > 0;
-  const notees = avecTableau ? n - 1 : n;
-  // 1. La conjugaison : 2 questions par verbe, pour 2 verbes au plus.
-  const conj = melanger(verbes, h).slice(0, 2).flatMap(v => conjugaison(ctx, v, h)).slice(0, Math.max(0, notees - items.length - 1));
-  // 2. « Choisir le sens » : une fois, sur un mot qui n'est pas un verbe si possible.
-  let sens = null;
-  for (const it of [...melanger(items.filter(i => !i.x), h), ...melanger(items.filter(i => i.x), h)]) { if ((sens = questionSens(ctx, it, items, h))) break; }
-  // 3. Le reste : les mots à tour de rôle, chacun dans son ordre (le mot à froid d'abord).
-  const reste = notees - conj.length - (sens ? 1 : 0);
-  // Un verbe qui a déjà ses questions de conjugaison (et son tableau) ne prend qu'une question « mot » (le retrouver
-  // depuis le français), tant que les autres mots peuvent remplir : sinon il prendrait la moitié de la séance.
-  const aConj = new Set(conj.map(q => q.cle));
-  const files = melanger(items, h).map(it => ({ it, ...questionsDuMot(it), k: 0, max: aConj.has(it.cle) && items.length > 1 ? 1 : Infinity }));
-  const mot = [];
-  for (let tour = 0; mot.length < reste && tour < 100; tour++) {
-    const libres = files.filter(f => f.k < f.max);
-    for (const f of libres.length ? libres : files) {
-      if (mot.length >= reste) break;
-      const q = f.k < f.ordre.length ? f.ordre[f.k] : f.encore[(f.k - f.ordre.length) % f.encore.length];
-      if (!q) continue;
-      mot.push({ ...q, premiere: f.k === 0 });
-      f.k++;
-    }
+  const n = nbQuestions(items.length);
+  const listes = items.map(it => questionsDuMot(ctx, it, h, tour).map((q, k) => ({ ...q, premiere: k === 0 })));
+  const prises = [];
+  for (let k = 0; k < PAR_MOT && prises.length < n; k++) {
+    for (const l of listes) { if (prises.length >= n) break; if (l[k]) prises.push(l[k]); }
   }
-  const questions = ordonner([...mot, ...conj, ...(sens ? [sens] : [])], h);
-  // 4. Le tableau à dire, vers la fin (place 7 à 9), après la première question sur son verbe.
-  if (avecTableau) {
-    const it = verbes.find(v => v.x.irr) || verbes[0];
-    const x = it.x;
-    const tv = tempsVus(ctx), tt = tv[Math.floor(h() * tv.length)];
-    const t = { type: "tableau", temps: tt, cle: it.cle, v: x.v, d: x.d, sens: sensDe(x), formes: sixFormes(x.v, x.d, tt), exemple: exempleDe(ctx, x, tt) };
-    const premier = questions.findIndex(q => q.cle === it.cle);
-    const voulue = Math.max(premier + 1, Math.min(questions.length, 6 + Math.floor(h() * 3)));
-    // Une place où il n'est pas collé à une autre question du même verbe, si possible.
-    const libre = p => questions[p - 1]?.cle !== it.cle && questions[p]?.cle !== it.cle;
-    const places = Array.from({ length: questions.length + 1 }, (_, p) => p).filter(p => p > premier);
-    const place = places.filter(libre).sort((a, b) => Math.abs(a - voulue) - Math.abs(b - voulue))[0] ?? voulue;
-    questions.splice(place, 0, t);
-  }
-  return questions;
+  return ordonner(prises, h);
 }
 
 // L'ordre : mélangé, mais un mot commence toujours par sa « première » question (le retrouver à froid, sans l'avoir vu
@@ -273,9 +259,9 @@ export function corrigerMot(q, tape, items = []) {
 // Le choix de « choisir le sens ».
 export const sensJuste = (q, k) => q.choix[k] === q.bon;
 
-// Pour « Tu le sais ? » : chaque mot interrogé, tout juste ou non (le tableau à dire ne compte pas).
+// Pour « Tu le sais ? » : chaque mot interrogé, tout juste ou non. Une réponse trouvée avec un indice n'est pas « tout juste ».
 export function bilanParMot(resultats) {
   const par = {};
-  for (const { q, ok } of resultats) par[q.cle] = (par[q.cle] ?? true) && ok;
+  for (const { q, ok, aide } of resultats) par[q.cle] = (par[q.cle] ?? true) && ok && !aide;
   return par;
 }
