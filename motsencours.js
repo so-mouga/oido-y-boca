@@ -11,12 +11,12 @@
 // en tout sur ses cartes) ; entrer ne change plus les cartes ; une séance = 3 questions par mot (10 au plus), sans « choisir
 // le sens » ni tableau à dire. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { corriger } from "./corriger.js?v=87";
-import { trouDe, phrasesDe } from "./cartes.js?v=87";
-import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=87";
-import { trouverVerbe, phrasesDe as phrasesDuVerbe, sensDe, tempsVus } from "./verbes.js?v=87";
-import { conjuguer } from "./controles.js?v=87";
-import { verbesEnCours, derniereSerie, mettreEnCours, retirerDesCours, apprendreEnAvance, fichesCartes, difficile, marquerEntre, marquerSorti } from "./progression.js?v=87";
+import { corriger } from "./corriger.js?v=88";
+import { trouDe, phrasesDe } from "./cartes.js?v=88";
+import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=88";
+import { trouverVerbe, phrasesDe as phrasesDuVerbe, sensDe, tempsVus } from "./verbes.js?v=88";
+import { conjuguer } from "./controles.js?v=88";
+import { verbesEnCours, derniereSerie, mettreEnCours, retirerDesCours, apprendreEnAvance, fichesCartes, difficile, marquerEntre, marquerSorti } from "./progression.js?v=88";
 
 export const MOTS_PAR_SEANCE = 5;
 export const QUESTIONS = 10; // au plus

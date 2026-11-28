@@ -885,8 +885,6 @@ body:has(#app[data-ecran="jeux"]) { background: var(--sol); }
 
 /* la fin */
 .m-rates li s { display: block; font-size: 13px; color: #A99C80; }
-.m-nouveaux h2 { font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--sol-encre); margin-bottom: 8px; }
-.m-nouveaux .m-ecoute { background: var(--sun-deep); }
 @media (max-height: 680px) {
   .m-colis { min-height: 104px; padding: 14px 10px 18px; }
   .m-camion { height: 62px; }

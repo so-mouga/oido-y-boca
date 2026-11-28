@@ -1,27 +1,25 @@
 // Les missions du jour de la Feria (chantier 12, maquette .impeccable/mocks/missions/index.html).
 //   #/jeux/mision          l'accueil : la mission du jour, sa règle, quelques exemples
-//   #/jeux/mision/partie   la mission : El Repartidor (6 colis à trier, 3 étiquettes à écrire) ou La lista de Blanca (6 lignes)
-//   #/jeux/mision/fin      le score, l'ampoule, « À retenir », les mots nouveaux à garder
+//   #/jeux/mision/partie   la mission : El Repartidor (6 colis à trier, puis, après U4-L2, 3 étiquettes), La lista de Blanca
+//                          (6 lignes) ou Uno de dos (8 phrases)
+//   #/jeux/mision/fin      le score, l'ampoule, « À retenir »
 // Faire la mission ou La Charla allume l'ampoule du jour. Un seul essai compte par jour ; rejouée, elle ne change rien.
-// Pas de chrono, pas de points, pas de record. La voix dit chaque mot nouveau à son arrivée.
+// Pas de chrono, pas de points, pas de record. Seulement des mots déjà vus (chantier 28) : pas de « Je le garde ».
 // Le moteur (pluriel, genre, pièges, choix du jour, correction) est dans missions.js.
 
-import { esc, ICONES, barreOnglets } from "../ui.js?v=87";
-import { LECONS } from "../position.js?v=87";
-import { apprisEnAvance, apprendreEnAvance, etatJeux, garderJeux } from "../progression.js?v=87";
-import { dire, taire } from "../voix.js?v=87";
-import { chispa } from "../mascotte.js?v=87";
-import * as J from "../jeux.js?v=87";
-import { hasardDuJour } from "../charla.js?v=87";
-import * as M from "../missions.js?v=87";
-import { DUOS } from "../duos.js?v=87";
+import { esc, ICONES, barreOnglets } from "../ui.js?v=88";
+import { apprisEnAvance, etatJeux, garderJeux } from "../progression.js?v=88";
+import { dire, taire } from "../voix.js?v=88";
+import { chispa } from "../mascotte.js?v=88";
+import * as J from "../jeux.js?v=88";
+import { hasardDuJour } from "../charla.js?v=88";
+import * as M from "../missions.js?v=88";
+import { DUOS } from "../duos.js?v=88";
 
 const $ = (s, r = document) => r.querySelector(s);
 const calme = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const jeux = () => ({ ...J.JEUX_VIDE(), ...etatJeux() });
 const flamme = (humeur, taille) => chispa(humeur, taille, J.etape(J.attrapes(jeux())).i);
-const RANG = Object.fromEntries(LECONS.map((l, i) => [l.id, i]));
-const rang = id => RANG[id] ?? 1e6;
 // Les explications du moteur : du texte avec seulement <i>…</i> et <b>…</b>.
 const html = t => esc(t).replace(/&lt;(\/?)([ib])&gt;/g, "<$1$2>");
 const NOMS = { repartidor: "El Repartidor", lista: "La lista de Blanca", duos: "Uno de dos" };
@@ -63,10 +61,10 @@ const pas = () => note(220, 0, .22, .06);
 const vibrer = ms => { try { navigator.vibrate?.(ms); } catch { /* rien */ } };
 
 // ——— la mission du jour (la même toute la journée) ———
-// Un mot gardé aujourd'hui (« Je le garde ») reste « nouveau » jusqu'à demain : la mission ne change pas si on la rejoue.
+// Un mot appris en avance aujourd'hui (le Dico) ne compte que demain : la mission ne change pas dans la journée.
 export function missionDuJour(ctx) {
   const vu = m => ctx.pos.faites.has(m.lecon) || (apprisEnAvance(m.id) && apprisEnAvance(m.id) < ctx.jour);
-  return M.missionDuJour({ mots: ctx.mots, vu, rang, faites: ctx.pos.faites, etat: jeux().missions, jour: ctx.jour, hasard: hasardDuJour(ctx.jour, "mision"), duos: DUOS });
+  return M.missionDuJour({ mots: ctx.mots, vu, faites: ctx.pos.faites, etat: jeux().missions, jour: ctx.jour, hasard: hasardDuJour(ctx.jour, "mision"), duos: DUOS });
 }
 const ampouleAllumee = ctx => (jeux().jours || []).includes(ctx.jour);
 const nTaches = m => m.forme === "lista" ? m.lignes.length : m.forme === "duos" ? m.phrases.length : m.colis.length + m.etiquettes.length;
@@ -77,7 +75,7 @@ export function standMision(ctx) {
   if (!m) return `<div class="s-jour mision attend"><span class="m-pic">${I.camion}</span><div><small>Misión del día</small><b>El Repartidor</b><span>S'ouvre quand le livre a assez de noms</span></div></div>`;
   const faite = M.faiteAujourdhui(jeux(), ctx.jour), pic = m.forme === "lista" ? I.liste : m.forme === "duos" ? I.duo : I.camion;
   if (faite) return `<a class="s-jour mision faite" href="#/jeux/mision"><span class="m-pic">${pic}</span><div><small>Misión cumplida · ${faite.ok}/${faite.sur}</small><b>${NOMS[faite.forme] || NOMS[m.forme]}</b><span>Une autre mission demain</span></div><em>Revoir</em></a>`;
-  const quoi = m.forme === "lista" ? "6 lignes · un, una, dos, tres…" : m.forme === "duos" ? `${nTaches(m)} phrases · ${m.duos.map(id => DUO[id].court).slice(0, 2).join(", ")}…` : `${nTaches(m)} colis · el, la, los, las`;
+  const quoi = m.forme === "lista" ? "6 lignes · un, una, dos, tres…" : m.forme === "duos" ? `${nTaches(m)} phrases · ${m.duos.map(id => DUO[id].court).slice(0, 2).join(", ")}…` : `${nTaches(m)} colis · ${M.camionsDe(m).join(", ").toLowerCase()}`;
   const allumee = ampouleAllumee(ctx);
   return `<a class="s-jour mision${allumee ? " bonus" : ""}" href="#/jeux/mision"><span class="m-pic">${pic}</span><div><small>Misión del día</small><b>${NOMS[m.forme]}</b><span>${quoi} · ${allumee ? "pour le plaisir" : "allume l'ampoule"}</span></div><em>Empezar</em></a>`;
 }
@@ -87,13 +85,14 @@ function vuePret(ctx) {
   const m = missionDuJour(ctx);
   if (!m) return { onglet: null, html: `<div class="feria f-pret"><div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1>Misión del día</h1></div><div class="f-attente"><b>Pas encore de mission.</b> Il faut quelques noms de plus dans le livre.</div></div>`, apres: brancher };
   const faite = M.faiteAujourdhui(jeux(), ctx.jour);
-  const nouveaux = m.mots.filter(n => !n.vu).length;
   if (m.forme === "duos") return vuePretDuos(ctx, m, faite);
   const regle = m.forme === "lista"
     ? `Blanca t'a laissé un pense-bête. <b>Écris chaque ligne en espagnol</b> : le nombre en lettres, puis le mot, au pluriel s'il le faut.
        <span class="m-ex"><span>3 · reunión → tres reuniones</span><span>1 · hora → una hora</span></span>`
-    : `Tu es livreur à Huesca. <b>Trie les colis</b> dans le bon camion : <b>EL, LA, LOS, LAS</b>. Puis <b>écris les étiquettes au pluriel</b>.
-       <span class="m-ex"><span>pisos → LOS</span><span>ciudad → LA</span><span>barrio → barrios</span></span>`;
+    : m.pluriel ? `Tu es livreur à Huesca. <b>Trie les colis</b> dans le bon camion : <b>EL, LA, LOS, LAS</b>. Puis <b>écris les étiquettes au pluriel</b>.
+       <span class="m-ex"><span>pisos → LOS</span><span>ciudad → LA</span><span>barrio → barrios</span></span>`
+    : `Tu es livreur à Huesca. <b>Trie les colis</b> dans le bon camion : <b>EL</b> ou <b>LA</b>.
+       <span class="m-ex"><span>piso → EL</span><span>ciudad → LA</span></span>`;
   const bas = faite
     ? `<a class="f-btn gros" href="#/jeux/mision/partie">La rejouer</a><small>Déjà faite aujourd'hui (${faite.ok}/${faite.sur}) : rejouée, elle ne change rien. Une autre demain.</small>`
     : `<a class="f-btn gros" href="#/jeux/mision/partie">${m.forme === "lista" ? "¡A escribir!" : "¡A repartir!"}</a><small>${ampouleAllumee(ctx) ? "L'ampoule est déjà allumée : celle-ci, c'est pour le plaisir." : "Un seul essai : il allume l'ampoule du jour."}</small>`;
@@ -102,7 +101,7 @@ function vuePret(ctx) {
     html: `<div class="feria f-pret m-pret">
         <div class="f-tete"><a class="f-rond" href="#/jeux" aria-label="Retour à la Feria">${ICONES.retour}</a><h1><small>Misión del día</small>${NOMS[m.forme]}</h1></div>
         <p class="f-regle">${regle}</p>
-        <p class="f-regle"><b>${nTaches(m)} ${m.forme === "lista" ? "lignes" : "colis"}</b>, pas de chrono.${nouveaux ? ` <b>${nouveaux} mot${nouveaux > 1 ? "s" : ""} nouveau${nouveaux > 1 ? "x" : ""}</b>, marqué${nouveaux > 1 ? "s" : ""} <span class="m-nuevo">nuevo</span> : ${nouveaux > 1 ? "ils viennent" : "il vient"} de tes prochaines leçons, avec le sens écrit. Tu pourras ${nouveaux > 1 ? "les" : "le"} garder à la fin.` : ""}</p>
+        <p class="f-regle"><b>${nTaches(m)} ${m.forme === "lista" ? "lignes" : "colis"}</b>, pas de chrono. Que des mots déjà vus dans le livre.</p>
         <div class="c-bas m-bas">${bas}</div>
       </div>`,
     apres: brancher,
@@ -167,7 +166,6 @@ function ici() {
   document.querySelectorAll(".m-etapes i")[P.i]?.classList.add("ici");
   const c = $(".m-compte"); if (c) c.textContent = `${Math.min(P.i + 1, n())} / ${n()}`;
 }
-const nuevo = x => x.nouveau ? `<span class="m-nuevo">nuevo · ${esc(x.n.lecon)}</span>` : "";
 const ecoute = t => `<button class="m-ecoute" data-dire="${esc(t)}" aria-label="Écouter : ${esc(t)}" aria-pressed="false">${ICONES.play}</button>`;
 
 // El Repartidor : un colis arrive ; les 6 premiers vont dans un camion, les 3 derniers ont une étiquette à écrire.
@@ -179,17 +177,15 @@ function poser() {
   if (p.i < p.m.colis.length) {
     const c = p.m.colis[p.i];
     q.innerHTML = `<p class="m-consigne">Dans quel camion ?</p>
-      <div class="m-colis">${ecoute(c.texte)}<div class="m-etiq">${nuevo(c)}<b lang="es">${esc(c.texte)}</b>${c.nouveau ? `<small>${esc(J.court(c.n.fr))}${c.nombre === "p" && !c.n.plurielSeul ? " (au pluriel)" : ""}</small>` : ""}</div></div>`;
-    bas.innerHTML = `<div class="m-camions">${["EL", "LA", "LOS", "LAS"].map(a => `<button class="m-camion ${a.toLowerCase()}" data-m="camion" data-a="${a}">${a}</button>`).join("")}</div>`;
-    if (c.nouveau) plusTard(() => parler(c.texte), 350);
+      <div class="m-colis">${ecoute(c.texte)}<div class="m-etiq"><b lang="es">${esc(c.texte)}</b></div></div>`;
+    bas.innerHTML = `<div class="m-camions">${M.camionsDe(p.m).map(a => `<button class="m-camion ${a.toLowerCase()}" data-m="camion" data-a="${a}">${a}</button>`).join("")}</div>`;
     return;
   }
   const e = p.m.etiquettes[p.i - p.m.colis.length];
   q.innerHTML = `<p class="m-consigne">Écris l'étiquette au pluriel</p>
-    <div class="m-colis">${ecoute(e.de)}<div class="m-etiq">${nuevo(e)}<b lang="es">${esc(e.de)}</b>${e.nouveau ? `<small>${esc(J.court(e.n.fr))}</small>` : ""}</div></div>
+    <div class="m-colis">${ecoute(e.de)}<div class="m-etiq"><b lang="es">${esc(e.de)}</b></div></div>
     <form class="m-ecrire" data-m="form"><label for="m-pl" lang="es">${e.art}</label><input id="m-pl" lang="es" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="…"></form>`;
   bas.innerHTML = `<div class="m-valider"><button class="f-btn gros" data-m="ecrire">Coller l'étiquette</button></div>`;
-  if (e.nouveau) plusTard(() => parler(e.de), 350);
   $("#m-pl")?.focus();
 }
 function verdict(ok, texte, ecouter) {
@@ -297,7 +293,7 @@ function ligne() {
   ici();
   p.attend = false;
   box.innerHTML = p.m.lignes.map((l, k) => {
-    const mot = `${esc(l.n.mot)}${l.nouveau ? ` <span class="m-nuevo">nuevo</span><small class="m-sens">${esc(J.court(l.n.fr))}</small>` : ""}`;
+    const mot = esc(l.n.mot);
     if (k < p.i) {
       const r = p.lignesFaites[k];
       return `<div class="m-ligne ${r.juste ? "m-fait" : "m-rate"}"><span class="m-q">${r.juste ? "✓" : "✗"}</span><span class="m-n">${r.juste ? "" : `<s>${esc(r.tape)}</s><span class="m-fleche">→</span>`}<span lang="es">${esc(l.rep)}</span></span></div>`;
@@ -306,8 +302,6 @@ function ligne() {
       <form data-m="form"><input id="m-li" lang="es" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done" placeholder="${l.q === 1 ? "un… / una…" : "en lettres…"}"></form></span></div>`;
     return `<div class="m-ligne"><span class="m-q">${l.q}</span><span class="m-n" lang="es">${mot}</span></div>`;
   }).join("");
-  const l = p.m.lignes[p.i];
-  if (l?.nouveau) plusTard(() => parler(`${l.n.art} ${l.n.mot}`), 350);
   const b = $('[data-m="noter"]'); if (b) b.textContent = "C'est noté";
   const champ = $("#m-li");
   champ?.focus({ preventScroll: true });
@@ -349,32 +343,9 @@ function finir() {
     garderJeux(r.jeux);
     ampoule = r.ampoule;
   } else if (p.m.duos) garderJeux(M.apresMission(jeux(), { forme: p.m.forme, ok, sur, regles: p.m.duos }, p.ctx.jour).jeux);
-  derniere = { forme: p.m.forme, ok, sur, rates: p.rates, rejoue: p.rejoue, ampoule, jour: p.ctx.jour,
-    nouveaux: p.m.mots.filter(x => !x.vu && !apprisEnAvance(x.id)), gardes: new Set() };
+  derniere = { forme: p.m.forme, ok, sur, rates: p.rates, rejoue: p.rejoue, ampoule, jour: p.ctx.jour };
   arreter();
   location.replace("#/jeux/mision/fin");
-}
-function nouveauxFin(g) {
-  if (!g.nouveaux.length) return "";
-  const reste = J.gardesRestants(jeux(), g.jour);
-  const ligne = (x, k) => {
-    const action = g.gardes.has(k) ? `<span class="d-vu ok">Gardé ✓</span>`
-      : apprisEnAvance(x.id) ? `<span class="d-vu ok">Déjà gardé</span>`
-      : reste > 0 ? `<button class="d-garder" data-m="garder" data-v="${k}">Je le garde</button>` : `<span class="d-vu">demain</span>`;
-    return `<li>${ecoute(`${x.art} ${x.mot}`)}<div><b lang="es">${esc(`${x.art} ${x.mot}`)}</b><span>${esc(J.court(x.fr))} · arrive en ${esc(x.lecon)}</span></div>${action}</li>`;
-  };
-  return `<div class="m-nouveaux"><h2>Les mots nouveaux de la mission</h2><ul class="d-liste">${g.nouveaux.map(ligne).join("")}</ul>
-    <p class="f-note">${reste > 0 ? `Tu peux encore garder ${reste} mot${reste > 1 ? "s" : ""} aujourd'hui (${J.GARDES_PAR_JOUR} par jour, tous jeux confondus). Un mot gardé revient dès demain dans « Tes cartes à revoir ».` : `Tu as gardé ${J.GARDES_PAR_JOUR} mots aujourd'hui : les autres attendront demain.`}</p></div>`;
-}
-function garderMot(k) {
-  const g = derniere, x = g?.nouveaux[k];
-  if (!x || g.gardes.has(k) || J.gardesRestants(jeux(), g.jour) <= 0) return;
-  apprendreEnAvance(x.id, g.jour);
-  garderJeux(J.garderSurprise(jeux(), g.jour));
-  g.gardes.add(k);
-  vibrer(12);
-  const bloc = $(".m-nouveaux");
-  if (bloc) bloc.outerHTML = nouveauxFin(g);
 }
 function vueFin() {
   const g = derniere, tout = g.ok === g.sur;
@@ -389,7 +360,6 @@ function vueFin() {
         <div class="c-total"><b>${g.ok}/${g.sur}</b><span>${g.forme === "lista" ? `ligne${g.ok > 1 ? "s" : ""} juste${g.ok > 1 ? "s" : ""}` : g.forme === "duos" ? `phrase${g.ok > 1 ? "s" : ""} juste${g.ok > 1 ? "s" : ""}` : `${unite} bien livré${g.ok > 1 ? "s" : ""}`} du premier coup.<br>Pas de points ici : juste ${g.forme === "duos" ? "les réflexes" : "les mots"}.</span></div>
         ${g.rejoue ? "" : `<div class="c-ampoule"><i></i><div><b>${g.ampoule ? "L'ampoule d'aujourd'hui s'allume." : "L'ampoule d'aujourd'hui était déjà allumée."}</b><br>Une autre mission demain.</div></div>`}
         ${rates}
-        ${nouveauxFin(g)}
       </div><div class="f-bas"><a class="f-btn gros" href="#/jeux" data-remplace>Retour à la Feria</a><a class="f-retour" href="#/jeux/mision/partie" data-remplace>La rejouer</a></div></div>`,
     apres: () => { brancher(); if (!calme() && !g.rejoue) [0, 4, 7].forEach((k, i) => note(523.25 * Math.pow(2, k / 12), i * .12, .45, .07)); },
   };
@@ -409,7 +379,6 @@ function brancher() {
     if (quoi === "ecrire") return ecrire();
     if (quoi === "suite") return suite();
     if (quoi === "noter") return noter();
-    if (quoi === "garder") return garderMot(Number(b.dataset.v));
     if (quoi === "muet") {
       garderJeux({ ...jeux(), muet: !jeux().muet });
       if (jeux().muet) taire();

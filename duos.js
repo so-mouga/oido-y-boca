@@ -2,40 +2,46 @@
 // Une phrase à trou, deux camions : on touche le bon mot. Chaque duo a sa petite carte « La règle » (la première fois),
 // et ses phrases écrites à la main.
 //
-// Le format d'une phrase : [espagnol avec {a|b}, la bonne (0 = a, 1 = b), le français, le mot nouveau (facultatif)].
+// Le format d'une phrase : [espagnol avec {a|b}, la bonne (0 = a, 1 = b), le français, le mot nouveau (facultatif),
+// la leçon de la phrase (facultatif : elle attend cette leçon, même quand son duo est ouvert)].
 // Règles d'écriture (décidées avec Kevin, Q12-9 à Q12-14) :
 // - UNE SEULE bonne réponse possible : jamais « la paella {es|está} rica » (les deux sont justes).
 // - Le français dit ce qui manque (demain ou le matin, ce lundi ou tous les lundis).
-// - Les mots de Kevin (le Sheet) ; au plus un mot nouveau par phrase, avec son sens (« regalo = cadeau »).
-// - Seulement sa vraie vie et sa vraie famille (Blanca, Léo, Dorian ; le mariage le samedi 19 juin 2027 ; le prof du lundi au vendredi).
+// - Les deux mots du duo sont de vraies formes justes, jamais une faute (Q111).
+// - Seulement des mots déjà vus à la leçon du duo (le Sheet, Q112) ; au plus un mot nouveau par phrase, avec son sens
+//   (« hijo = fils »). outils/test-missions.mjs le vérifie phrase par phrase.
+// - Seulement sa vraie vie (Q28-8) : Huesca depuis 5 ans, Blanca espagnole, Léo (4 ans) son fils, Dorian (7 ans) le fils de
+//   Blanca, le travail de chez lui en français et en anglais, sa petite sœur à Paris, le mariage en juin. Pas de chef, pas d'argent.
 // - por / para : seulement les cas nets (para + qui reçoit, para + un but, por + moment de la journée, gracias por, por favor).
-// lecon : la leçon qui ouvre le duo (null = ouvert tout de suite, décidé avec Kevin : la Feria sert aussi à découvrir).
+// lecon : la leçon qui ouvre le duo, quand le livre a vu les deux formes (Q110) ; null = fermé (por / para).
+// frequent : une erreur fréquente du carnet du prof : chaque Uno de dos en a au moins un, et un duo fréquent jamais joué
+// passe avant un duo ordinaire (Q111, Q28-5).
 // À faire relire par Blanca.
 
 export const DUOS = [
   {
-    id: "ser", court: "ser o estar", nom: "être : ser ou estar", lecon: null,
+    id: "ser", court: "ser o estar", nom: "être : ser ou estar", lecon: "U1-L4", frequent: true,
     carte: ["<i>ser</i> : ce qu'on <b>est</b> : la nationalité, qui on est, ce qu'est une chose.", "<i>estar</i> : <b>où</b> on est, <b>comment</b> on va."],
     ex: ["Soy francés.", "Estoy en casa."],
     regle: ["<i>ser</i> : ce qu'on est (la nationalité, qui on est, ce qu'est une chose).", "<i>estar</i> : où on est, comment on va."],
     phrases: [
       ["Yo {soy|estoy} francés.", 0, "Je suis français."],
-      ["Blanca {es|está} española.", 0, "Blanca est espagnole.", "española = espagnole"],
+      ["Blanca {es|está} española.", 0, "Blanca est espagnole."],
       ["Mi despacho {es|está} en casa.", 1, "Mon bureau est à la maison."],
-      ["Hoy {soy|estoy} en el pueblo.", 1, "Aujourd'hui, je suis au village."],
+      ["{Soy|Estoy} en Huesca.", 1, "Je suis à Huesca."],
       ["Huesca {es|está} una ciudad.", 0, "Huesca est une ville."],
-      ["Mi jefe {es|está} en Francia.", 1, "Mon chef est en France."],
+      ["Mi hermana {es|está} en París.", 1, "Ma sœur est à Paris.", "hermana = sœur"],
       ["¿Dónde {es|está} tu piso?", 1, "Où est ton appartement ?", "dónde = où"],
       ["Mi piso {es|está} en Huesca.", 1, "Mon appartement est à Huesca."],
-      ["Hoy {soy|estoy} cansado.", 1, "Aujourd'hui, je suis fatigué.", "cansado = fatigué"],
+      ["{Soy|Estoy} cansado.", 1, "Je suis fatigué.", "cansado = fatigué"],
       ["Dorian {es|está} el hijo de Blanca.", 0, "Dorian est le fils de Blanca.", "hijo = fils"],
-      ["Léo {es|está} en casa con Blanca.", 1, "Léo est à la maison avec Blanca."],
+      ["Léo {es|está} en casa.", 1, "Léo est à la maison."],
       ["El ordenador {es|está} en el despacho.", 1, "L'ordinateur est dans le bureau."],
       ["{Soy|Estoy} el novio de Blanca.", 0, "Je suis le fiancé de Blanca.", "novio = fiancé"],
     ],
   },
   {
-    id: "quecual", court: "qué o cuál", nom: "quel : qué ou cuál", lecon: null,
+    id: "quecual", court: "qué o cuál", nom: "quel : qué ou cuál", lecon: "U5-L4",
     carte: ["<i>qué</i> devant un <b>nom</b> ou un <b>verbe</b> : <i>¿qué hora?</i>, <i>¿qué significa?</i>", "<i>cuál</i> devant <i>es / son</i>, pour demander <b>lequel</b> : ton nom, ton numéro…"],
     ex: ["¿Qué hora es?", "¿Cuál es tu apellido?"],
     regle: ["<i>qué</i> devant un nom ou un verbe.", "<i>cuál</i> devant <i>es</i>, pour demander lequel (ton nom, ton numéro…)."],
@@ -54,7 +60,7 @@ export const DUOS = [
     ],
   },
   {
-    id: "muy", court: "muy o mucho", nom: "très, beaucoup : muy ou mucho", lecon: null,
+    id: "muy", court: "muy o mucho", nom: "très, beaucoup : muy ou mucho", lecon: "U5-L2",
     carte: ["<i>muy</i> devant un <b>adjectif</b> ou un adverbe : <i>muy bonito</i>, <i>muy rápido</i>.", "<i>mucho</i> devant un <b>nom</b>, ou après un <b>verbe</b> : <i>mucho trabajo</i>, <i>trabajo mucho</i>."],
     ex: ["Hablas muy rápido.", "Tengo mucho trabajo."],
     regle: ["<i>muy</i> devant un adjectif ou un adverbe.", "<i>mucho</i> devant un nom, ou après un verbe (il s'accorde : <i>muchas reuniones</i>)."],
@@ -64,13 +70,11 @@ export const DUOS = [
       ["Hablas {muy|mucho} rápido.", 0, "Tu parles très vite.", "rápido = vite"],
       ["Tengo {muy|mucho} trabajo.", 1, "J'ai beaucoup de travail."],
       ["Blanca habla {muy|mucho} con su hermana.", 1, "Blanca parle beaucoup avec sa sœur."],
-      ["El piso es {muy|mucho} pequeño.", 0, "L'appartement est très petit.", "pequeño = petit"],
       ["Hoy tengo {muy|muchas} reuniones.", 1, "Aujourd'hui, j'ai beaucoup de réunions."],
       ["Como {muy|mucho}.", 1, "Je mange beaucoup."],
-      ["Mi barrio es {muy|mucho} tranquilo.", 0, "Mon quartier est très calme.", "tranquilo = calme"],
-      ["No tengo {muy|mucho} dinero.", 1, "Je n'ai pas beaucoup d'argent."],
+      ["Hablo {muy|mucho} con Blanca.", 1, "Je parle beaucoup avec Blanca."],
       ["Hablo español {muy|mucho} despacio.", 0, "Je parle espagnol très lentement."],
-      ["Léo es {muy|mucho} pequeño.", 0, "Léo est très petit.", "pequeño = petit"],
+      ["Léo es {muy|mucho} pequeño.", 0, "Léo est très petit."],
     ],
   },
   {
@@ -84,25 +88,25 @@ export const DUOS = [
       ["Hablo español {por|para} hablar con la gente.", 1, "Je parle espagnol pour parler avec les gens."],
       ["{Por|Para} la noche hablo español con Blanca.", 0, "Le soir, je parle espagnol avec Blanca."],
       ["Gracias {por|para} todo.", 0, "Merci pour tout.", "todo = tout"],
-      ["Javier trabaja {por|para} una empresa de Huesca.", 1, "Javier travaille pour une entreprise de Huesca."],
+      ["Hablo inglés {por|para} trabajar.", 1, "Je parle anglais pour travailler."],
       ["{Por|Para} la tarde trabajo en casa.", 0, "L'après-midi, je travaille à la maison."],
       ["Una caña, {por|para} favor.", 0, "Une petite bière, s'il vous plaît.", "caña = petite bière"],
-      ["Tengo dinero {por|para} pagar.", 1, "J'ai de l'argent pour payer."],
+      ["Hablo español {por|para} hablar con Dorian.", 1, "Je parle espagnol pour parler avec Dorian."],
       ["Gracias {por|para} el regalo.", 0, "Merci pour le cadeau.", "regalo = cadeau"],
       ["El regalo es {por|para} Léo.", 1, "Le cadeau est pour Léo.", "regalo = cadeau"],
       ["Gracias {por|para} la cena.", 0, "Merci pour le dîner.", "cena = dîner"],
     ],
   },
   {
-    id: "manana", court: "mañana o la mañana", nom: "demain ou le matin", lecon: null,
+    id: "manana", court: "mañana o la mañana", nom: "demain ou le matin", lecon: "U2-L4",
     carte: ["Sans article, <i>mañana</i> = <b>demain</b>.", "<i>la mañana</i> = <b>le matin</b> : <i>por la mañana</i>, <i>las diez de la mañana</i>."],
     ex: ["Mañana tengo una reunión.", "Trabajo por la mañana."],
     regle: ["Sans article, <i>mañana</i> = demain.", "<i>la mañana</i> = le matin (<i>por la mañana</i>)."],
     phrases: [
       ["{Mañana|La mañana} tengo una reunión.", 0, "Demain, j'ai une réunion."],
       ["Trabajo por {mañana|la mañana}.", 1, "Je travaille le matin."],
-      ["{Mañana|La mañana} es sábado.", 0, "Demain, c'est samedi.", "sábado = samedi"],
-      ["Por {mañana|la mañana} hablo con mi jefe.", 1, "Le matin, je parle avec mon chef."],
+      ["{Mañana|La mañana} es sábado.", 0, "Demain, c'est samedi."],
+      ["Por {mañana|la mañana} trabajo en casa.", 1, "Le matin, je travaille à la maison."],
       ["¿Trabajas {mañana|la mañana}?", 0, "Tu travailles demain ?"],
       ["{Mañana|La mañana} como con Blanca.", 0, "Demain, je mange avec Blanca."],
       ["Son las diez de {mañana|la mañana}.", 1, "Il est dix heures du matin."],
@@ -111,25 +115,25 @@ export const DUOS = [
     ],
   },
   {
-    id: "lunes", court: "el lunes o los lunes", nom: "ce lundi ou tous les lundis", lecon: null,
+    id: "lunes", court: "el lunes o los lunes", nom: "ce lundi ou tous les lundis", lecon: "U2-L4",
     carte: ["<i>el lunes</i> = <b>ce lundi-ci</b>, le prochain.", "<i>los lunes</i> = <b>tous les lundis</b>. Pareil pour tous les jours : <i>el sábado</i>, <i>los sábados</i>."],
     ex: ["El lunes tengo una reunión.", "Los jueves hablo con mi profesor."],
     regle: ["<i>el</i> + le jour = ce jour-là, le prochain.", "<i>los</i> + le jour = tous les … (chaque semaine)."],
     phrases: [
-      ["{El lunes|Los lunes} trabajo desde casa.", 1, "Le lundi (tous les lundis), je travaille à la maison.", "lunes = lundi"],
-      ["{El lunes|Los lunes} tengo una reunión con mi jefe.", 0, "Lundi (ce lundi-ci), j'ai une réunion avec mon chef.", "lunes = lundi"],
-      ["{El sábado|Los sábados} como con amigos.", 1, "Le samedi (tous les samedis), je mange avec des amis.", "sábado = samedi"],
-      ["{El viernes|Los viernes} no trabajo.", 0, "Vendredi (ce vendredi-ci), je ne travaille pas.", "viernes = vendredi"],
-      ["¿Trabajas {el sábado|los sábados}?", 0, "Tu travailles samedi (ce samedi-ci) ?", "sábado = samedi"],
-      ["{El sábado|Los sábados} no hablo con mi profesor.", 1, "Le samedi (tous les samedis), je ne parle pas avec mon prof.", "sábado = samedi"],
+      ["{El lunes|Los lunes} trabajo desde casa.", 1, "Le lundi (tous les lundis), je travaille à la maison."],
+      ["{El lunes|Los lunes} tengo una reunión.", 0, "Lundi (ce lundi-ci), j'ai une réunion."],
+      ["{El sábado|Los sábados} como con amigos.", 1, "Le samedi (tous les samedis), je mange avec des amis."],
+      ["{El viernes|Los viernes} no trabajo.", 0, "Vendredi (ce vendredi-ci), je ne travaille pas."],
+      ["¿Trabajas {el sábado|los sábados}?", 0, "Tu travailles samedi (ce samedi-ci) ?"],
+      ["{El sábado|Los sábados} no tengo reuniones.", 1, "Le samedi (tous les samedis), je n'ai pas de réunions."],
       ["{El lunes|Los lunes} es fiesta.", 0, "Lundi (ce lundi-ci), c'est férié.", "fiesta = jour férié"],
-      ["{El domingo|Los domingos} no trabajo.", 1, "Le dimanche (tous les dimanches), je ne travaille pas.", "domingo = dimanche"],
-      ["{El miércoles|Los miércoles} tengo una reunión a las diez.", 0, "Mercredi (ce mercredi-ci), j'ai une réunion à dix heures.", "miércoles = mercredi"],
-      ["La boda es {el sábado|los sábados}.", 0, "Le mariage est un samedi.", "sábado = samedi"],
+      ["{El domingo|Los domingos} no trabajo.", 1, "Le dimanche (tous les dimanches), je ne travaille pas."],
+      ["{El miércoles|Los miércoles} tengo una reunión a las diez.", 0, "Mercredi (ce mercredi-ci), j'ai une réunion à dix heures."],
+      ["La boda es {el sábado|los sábados}.", 0, "Le mariage est un samedi."],
     ],
   },
   {
-    id: "tarde", court: "tarde o la tarde", nom: "tard ou l'après-midi", lecon: null,
+    id: "tarde", court: "tarde o la tarde", nom: "tard ou l'après-midi", lecon: "U3-L3",
     carte: ["Sans article, <i>tarde</i> = <b>tard</b>.", "<i>la tarde</i> = <b>l'après-midi</b> (jusqu'au soir) : <i>por la tarde</i>."],
     ex: ["La gente come tarde.", "Por la tarde trabajo."],
     regle: ["Sans article, <i>tarde</i> = tard.", "<i>la tarde</i> = l'après-midi (<i>por la tarde</i>)."],
@@ -139,9 +143,101 @@ export const DUOS = [
       ["La gente come {tarde|la tarde} en España.", 0, "Les gens mangent tard en Espagne."],
       ["Son las cinco de {tarde|la tarde}.", 1, "Il est cinq heures de l'après-midi."],
       ["Es muy {tarde|la tarde}.", 0, "Il est très tard."],
-      ["Ceno {tarde|la tarde}.", 0, "Je dîne tard.", "cenar = dîner"],
+      ["Ceno {tarde|la tarde}.", 0, "Je dîne tard."],
       ["Por {tarde|la tarde} tengo una reunión.", 1, "L'après-midi, j'ai une réunion."],
-      ["Hoy llego {tarde|la tarde}.", 0, "Aujourd'hui, j'arrive tard.", "llegar = arriver"],
+      ["Hoy llego {tarde|la tarde}.", 0, "Aujourd'hui, j'arrive tard.", "llego = j'arrive"],
+    ],
+  },  // ——— Les erreurs fréquentes du carnet du prof (Q111) : passent avant les autres (frequent: true). ———
+  {
+    id: "eseres", court: "es o eres", nom: "il est, tu es : es ou eres", lecon: "U1-L5", frequent: true,
+    carte: ["<i>es</i> : <b>il</b> ou <b>elle</b> est (Blanca, Léo, Huesca…).", "<i>eres</i> : <b>tu</b> es (avec <i>tú</i>)."],
+    ex: ["Blanca es española.", "Tú eres francés."],
+    regle: ["<i>es</i> : il, elle est.", "<i>eres</i> : tu es (avec <i>tú</i>)."],
+    phrases: [
+      ["Blanca {es|eres} española.", 0, "Blanca est espagnole."],
+      ["Tú {es|eres} francés, ¿no?", 1, "Tu es français, non ?"],
+      ["Mi hermana {es|eres} francesa.", 0, "Ma sœur est française."],
+      ["Blanca, tú {es|eres} española y yo soy francés.", 1, "Blanca, tu es espagnole et moi je suis français."],
+      ["¿Tú {es|eres} el amigo de Blanca?", 1, "Tu es l'ami de Blanca ?"],
+      ["Mi cuñada {es|eres} española.", 0, "Ma belle-sœur est espagnole."],
+      ["¿Tú {es|eres} de Huesca?", 1, "Tu es de Huesca ?"],
+      ["Huesca {es|eres} una ciudad.", 0, "Huesca est une ville."],
+      ["Dorian, tú {es|eres} el hijo de Blanca.", 1, "Dorian, tu es le fils de Blanca.", "hijo = fils"],
+      ["Léo {es|eres} mi hijo.", 0, "Léo est mon fils.", "hijo = fils"],
+    ],
+  },
+  {
+    id: "genre", court: "francés o francesa", nom: "masculin ou féminin", lecon: "U1-L5", frequent: true,
+    carte: ["<b>Masculin</b> : <i>francés, español</i>. La langue aussi : <i>hablo francés</i>.", "<b>Féminin</b> : on ajoute <b>-a</b>, et l'accent tombe : <i>francesa, española</i>."],
+    ex: ["Soy francés.", "Blanca es española."],
+    regle: ["masculin (et la langue) : <i>francés, español</i>.", "féminin : <i>francesa, española</i> (+a, l'accent tombe)."],
+    phrases: [
+      ["Blanca es {español|española}.", 1, "Blanca est espagnole."],
+      ["Yo soy {francés|francesa}.", 0, "Je suis français."],
+      ["Mi hermana es {francés|francesa}.", 1, "Ma sœur est française."],
+      ["Mi cuñada es {español|española}.", 1, "Ma belle-sœur est espagnole."],
+      ["Huesca es una ciudad {español|española}.", 1, "Huesca est une ville espagnole."],
+      ["París es una ciudad {francés|francesa}.", 1, "Paris est une ville française."],
+      ["Blanca, ¿tu hermana es {español|española}?", 1, "Blanca, ta sœur est espagnole ?"],
+      ["Hablo {francés|francesa} con mi hermana.", 0, "Je parle français avec ma sœur."],
+      ["Trabajo en {francés|francesa} y en inglés.", 0, "Je travaille en français et en anglais."],
+      ["Blanca habla {español|española}.", 0, "Blanca parle espagnol."],
+      ["Soy {francés|francesa} y vivo en Huesca.", 0, "Je suis français et je vis à Huesca."],
+    ],
+  },
+  {
+    id: "ena", court: "en o a", nom: "à : en ou a", lecon: "U2-L3", frequent: true,
+    carte: ["<i>en</i> : le <b>lieu où l'on est</b> : <i>en casa, en Huesca</i>.", "<i>a</i> : l'<b>heure</b> (<i>a las diez</i>), et le lieu où l'on <b>va</b> (<i>voy a casa</i>)."],
+    ex: ["Trabajo en casa.", "La reunión es a las diez."],
+    regle: ["<i>en</i> : le lieu où l'on est (<i>en casa</i>).", "<i>a</i> : l'heure (<i>a las diez</i>), le lieu où l'on va (<i>voy a casa</i>)."],
+    // Une phrase peut avoir sa propre leçon (5e case) : « voy a » attend que le livre ait vu ir (U3-L6).
+    phrases: [
+      ["Trabajo {en|a} casa.", 0, "Je travaille à la maison."],
+      ["La reunión es {en|a} las diez.", 1, "La réunion est à dix heures."],
+      ["Vivo {en|a} Huesca desde hace cinco años.", 0, "J'habite à Huesca depuis cinq ans."],
+      ["Como {en|a} las dos.", 1, "Je mange à deux heures."],
+      ["Mi despacho está {en|a} casa.", 0, "Mon bureau est à la maison."],
+      ["Tengo una reunión {en|a} la una.", 1, "J'ai une réunion à une heure."],
+      ["Mi hermana vive {en|a} París.", 0, "Ma sœur vit à Paris."],
+      ["Tengo una reunión {en|a} las nueve y media.", 1, "J'ai une réunion à neuf heures et demie."],
+      ["Como {en|a} casa con Blanca.", 0, "Je mange à la maison avec Blanca."],
+      ["Trabajo {en|a} las nueve.", 1, "Je travaille à neuf heures."],
+      ["Blanca está {en|a} casa con Dorian.", 0, "Blanca est à la maison avec Dorian."],
+      ["Voy {en|a} casa.", 1, "Je vais à la maison.", "", "U3-L6"],
+      ["Voy {en|a} buscar a Dorian.", 1, "Je vais chercher Dorian.", "", "U3-L6"],
+      ["Léo va {en|a} casa de Blanca.", 1, "Léo va chez Blanca.", "", "U3-L6"],
+    ],
+  },
+  {
+    id: "desdehace", court: "desde hace o durante", nom: "depuis ou pendant : desde hace ou durante", lecon: "U11-L6", frequent: true,
+    carte: ["<i>desde hace</i> = <b>depuis</b> : ça dure encore aujourd'hui.", "<i>durante</i> = <b>pendant</b> : un temps qui a un début et une fin."],
+    ex: ["Vivo en Huesca desde hace cinco años.", "Tiene que tomar el antibiótico durante cinco días."],
+    regle: ["<i>desde hace</i> : depuis, ça dure encore.", "<i>durante</i> : pendant, un temps qui finit."],
+    phrases: [
+      ["Vivo en Huesca {desde hace|durante} cinco años.", 0, "J'habite à Huesca depuis cinq ans."],
+      ["Dorian tiene que tomar el antibiótico {desde hace|durante} cinco días.", 1, "Dorian doit prendre l'antibiotique pendant cinq jours.", "tomar = prendre"],
+      ["Trabajo desde casa {desde hace|durante} años.", 0, "Je travaille de chez moi depuis des années."],
+      ["Mañana tengo reuniones {desde hace|durante} todo el día.", 1, "Demain, j'ai des réunions pendant toute la journée."],
+      ["Hoy trabajo en casa {desde hace|durante} todo el día.", 1, "Aujourd'hui, je travaille à la maison pendant toute la journée."],
+      ["Conozco a Blanca {desde hace|durante} años.", 0, "Je connais Blanca depuis des années."],
+      ["Léo tiene que tomar el jarabe {desde hace|durante} tres días.", 1, "Léo doit prendre le sirop pendant trois jours.", "tomar = prendre"],
+      ["Blanca y yo vivimos en Huesca {desde hace|durante} años.", 0, "Blanca et moi, nous vivons à Huesca depuis des années."],
+    ],
+  },
+  {
+    id: "pero", court: "pero o perro", nom: "mais ou chien : pero ou perro", lecon: "U14-L4", frequent: true,
+    carte: ["<i>pero</i> (un seul r) = <b>mais</b>.", "<i>perro</i> (deux r, roulés) = <b>chien</b>."],
+    ex: ["Soy francés, pero vivo en Huesca.", "Blanca, ¿el vecino tiene perro?"],
+    regle: ["<i>pero</i> (un r) : mais.", "<i>perro</i> (deux r) : chien."],
+    phrases: [
+      ["Soy francés, {pero|perro} vivo en Huesca.", 0, "Je suis français, mais je vis à Huesca."],
+      ["Entiendo un poco, {pero|perro} no hablo mucho.", 0, "Je comprends un peu, mais je ne parle pas beaucoup."],
+      ["Blanca, ¿el vecino tiene {pero|perro}?", 1, "Blanca, le voisin a un chien ?"],
+      ["Trabajo en casa, {pero|perro} no estoy solo.", 0, "Je travaille à la maison, mais je ne suis pas seul."],
+      ["Dorian quiere un {pero|perro}.", 1, "Dorian veut un chien."],
+      ["Léo tiene cuatro años, {pero|perro} habla mucho.", 0, "Léo a quatre ans, mais il parle beaucoup."],
+      ["El {pero|perro} del vecino es muy grande.", 1, "Le chien du voisin est très grand."],
+      ["Hablo español, {pero|perro} despacio.", 0, "Je parle espagnol, mais lentement."],
     ],
   },
 ];

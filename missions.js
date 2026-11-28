@@ -1,20 +1,19 @@
 // Les missions du jour de la Feria (chantier 12, maquette .impeccable/mocks/missions/index.html).
 // Une mission par jour, sous La Charla : la faire (ou faire la Charla) allume l'ampoule du jour.
+// La Misión suit le livre (chantier 28, Q110 à Q115) : seulement des mots déjà vus (leçon faite, ou appris en avance, Q28-7),
+// ceux qu'il a le moins vus d'abord. Plus de mots nouveaux ni de « Je le garde » (Q114, remplace Q12-8).
 // On travaille les noms : el / la / los / las, le pluriel, un / una avec les nombres.
-//   El Repartidor : 6 colis à trier dans les camions EL, LA, LOS, LAS, puis 3 étiquettes à écrire au pluriel.
-//   La lista de Blanca : 6 lignes d'un pense-bête (« 3 · reunión » → tres reuniones), dès que les nombres sont vus (U2-L1).
-// Les mots (décidé avec Kevin, Q12-8) : surtout des mots nouveaux, les prochains noms du livre (les 30 suivants),
-// ceux qu'il a le moins vus d'abord, avec leur sens écrit et la voix ; et 2 mots déjà connus. Un mot nouveau revient
-// deux fois dans le Repartidor (un colis, puis son étiquette). « Je le garde » les fait entrer dans la révision.
-//   Uno de dos : 8 phrases à trou, deux camions (ser / estar, qué / cuál…) ; les phrases sont dans duos.js.
+//   El Repartidor (Q115) : avant U4-L2, 6 colis au singulier dans les camions EL et LA, sans étiquettes ;
+//     à partir de U4-L2 (le pluriel), les camions EL, LA, LOS, LAS, puis 3 étiquettes à écrire au pluriel.
+//   La lista de Blanca : 6 lignes d'un pense-bête (« 3 · reunión » → tres reuniones), à partir de U4-L2 (Q28-6).
+//   Uno de dos : 8 phrases à trou, deux camions (ser / estar, es / eres…) ; les phrases et leurs leçons sont dans duos.js.
+// Quand la forme du jour n'a pas assez de mots, on essaie les autres ; sinon, pas de mission ce jour-là.
 // Ce fichier n'a ni écran ni import : il se teste avec node (outils/test-missions.mjs).
 
-export const NOUVEAUX = 4;      // mots nouveaux par mission
-export const CONNUS = 2;        // mots déjà vus par mission
 export const COLIS = 6, ETIQUETTES = 3, LIGNES = 6;
-export const FENETRE = 30;      // les mots nouveaux viennent des 30 prochains noms du livre
-export const SEUIL = 4;         // il faut au moins 4 noms (connus + à venir) pour une mission
-export const LECON_NOMBRES = "U2-L1";
+export const SEUIL = 4;         // il faut au moins 4 noms déjà vus pour une mission (atteint en U1-L3)
+export const LECON_PLURIEL = "U4-L2";   // le pluriel : camions LOS / LAS, étiquettes, et la liste de Blanca
+export const LECON_NOMBRES = LECON_PLURIEL;
 
 const ACCENT = { á: "a", é: "e", í: "i", ó: "o", ú: "u" };
 const AJOUT = { a: "á", e: "é", i: "í", o: "ó", u: "ú" };
@@ -180,26 +179,23 @@ export const enLettres = n => n < 30 ? UNITES[n] : DIZAINES[n] || `${DIZAINES[n 
 const vusAvant = (etat, cle, jour) => { const v = etat?.vus?.[cle]; return v ? v.n - (v.le === jour ? 1 : 0) : 0; };
 const melanger = (t, h) => { const a = [...t]; for (let k = a.length - 1; k > 0; k--) { const j = Math.floor(h() * (k + 1)); [a[k], a[j]] = [a[j], a[k]]; } return a; };
 
-// Les noms à jouer : connus (leçon faite ou appris en avance) et les 30 prochains du livre, dans l'ordre du livre.
-// mots : le vocabulaire du Sheet ; vu : m => bool ; rang : idLecon => rang dans le livre.
-export function nomsMission(mots, vu, rang) {
-  const tous = [], deja = new Set();
-  mots.forEach((m, k) => nomsDe(m).forEach(n => { if (!deja.has(n.mot)) { deja.add(n.mot); tous.push({ ...n, k, vu: vu(m) }); } }));
-  const connus = tous.filter(n => n.vu);
-  const aVenir = tous.filter(n => !n.vu).sort((a, b) => rang(a.lecon) - rang(b.lecon) || a.k - b.k).slice(0, FENETRE);
-  return { connus, aVenir };
+// Les noms à jouer : seulement ceux déjà vus (leçon faite ou appris en avance), dans l'ordre du Sheet.
+// mots : le vocabulaire du Sheet ; vu : m => bool.
+export function nomsMission(mots, vu) {
+  const res = [], deja = new Set();
+  mots.forEach((m, k) => { if (vu(m)) nomsDe(m).forEach(n => { if (!deja.has(n.mot)) { deja.add(n.mot); res.push({ ...n, k }); } }); });
+  return res;
 }
-// Les nouveaux du jour : les moins vus dans les missions d'avant, puis les plus proches dans le livre (un piège passe
-// devant les 5 mots suivants). Jamais deux mots de la même carte (el jefe / la jefa) le même jour.
-export const AVANCE_PIEGE = 5;
-function choisirNouveaux(aVenir, etat, jour, n, filtre = () => true) {
-  const ordre = aVenir.filter(filtre).map((x, k) => ({ x, v: vusAvant(etat, x.cle, jour), r: k - (piege(x) ? AVANCE_PIEGE : 0) }))
-    .sort((a, b) => a.v - b.v || a.r - b.r).map(o => o.x);
+// Les mots du jour : les moins vus dans les missions d'avant (au hasard entre égaux), un piège passe devant à égalité.
+// Jamais deux mots de la même carte (el jefe / la jefa) le même jour.
+function choisir(noms, etat, jour, hasard, n) {
+  const ordre = melanger(noms, hasard).map(x => ({ x, v: vusAvant(etat, x.cle, jour) - (piege(x) ? .5 : 0) }))
+    .sort((a, b) => a.v - b.v).map(o => o.x);
   return unParCarte(ordre).slice(0, n);
 }
 const unParCarte = t => { const ids = new Set(); return t.filter(x => !ids.has(x.id) && ids.add(x.id)); };
 
-// La forme du jour : le Repartidor, la liste de Blanca (une fois les nombres vus), ou Uno de dos (dès que 2 duos sont
+// La forme du jour : le Repartidor, la liste de Blanca (une fois le pluriel vu), ou Uno de dos (dès que 2 duos sont
 // ouverts). Jamais deux jours de suite la même.
 export function formeDuJour({ faites, etat, jour, hasard, duos = [] }) {
   const dispo = ["repartidor"];
@@ -220,20 +216,26 @@ export function decouper(es) {
   return m ? { avant: m[1], a: m[2], b: m[3], apres: m[4] } : null;
 }
 export const phraseComplete = (p, k = p.juste) => `${p.avant}${k === 0 ? p.a : p.b}${p.apres}`;
-export const duosOuverts = (duos, faites) => duos.filter(d => !d.lecon || faites.has(d.lecon));
-// Un duo jamais joué arrive avec sa carte « La règle » : au plus un nouveau par mission, avec 4 phrases.
-// Les autres : ceux qu'on a le moins vus. Dans chaque duo, les phrases les moins vues d'abord.
+// Un duo s'ouvre avec sa leçon (lecon: null = fermé) ; une phrase avec sa propre leçon (5e case) attend celle-ci.
+export const duosOuverts = (duos, faites) => duos.filter(d => d.lecon && faites.has(d.lecon));
+const phrasesOuvertes = (d, faites) => d.phrases.map((ph, k) => ({ ph, k })).filter(({ ph }) => !ph[4] || faites.has(ph[4]));
+// Un duo jamais joué arrive avec sa carte « La règle » : au plus un nouveau par mission, avec 4 phrases ; un duo
+// d'erreur fréquente passe avant un duo ordinaire. Les autres : ceux qu'on a le moins vus. Au moins un duo fréquent
+// par mission quand il y en a d'ouverts (Q28-5). Dans chaque duo, les phrases les moins vues d'abord.
 export function unoDeDos(duos, faites, etat, jour, hasard) {
   const ouverts = duosOuverts(duos, faites);
   if (ouverts.length < 2) return null;
   const cle = (d, k) => `duo:${d.id}:${k}`;
   const vusDuo = d => d.phrases.reduce((t, _, k) => t + vusAvant(etat, cle(d, k), jour), 0);
   const regles = etat?.regles || {};
-  const nouveau = ouverts.find(d => !regles[d.id] || regles[d.id] === jour) || null;
+  const jamais = d => !regles[d.id] || regles[d.id] === jour;
+  const nouveau = ouverts.find(d => d.frequent && jamais(d)) || ouverts.find(jamais) || null;
   const autres = melanger(ouverts.filter(d => d !== nouveau), hasard).sort((a, b) => vusDuo(a) - vusDuo(b));
   const choisis = (nouveau ? [nouveau, ...autres.slice(0, 2)] : autres.slice(0, 3));
+  const frequent = autres.find(d => d.frequent);
+  if (frequent && !choisis.some(d => d.frequent)) choisis[choisis.length - 1] = frequent;
   const parts = choisis.length === 2 ? [4, 4] : nouveau ? [4, 2, 2] : [3, 3, 2];
-  const phrases = choisis.flatMap((d, i) => melanger(d.phrases.map((ph, k) => ({ ph, k })), hasard)
+  const phrases = choisis.flatMap((d, i) => melanger(phrasesOuvertes(d, faites), hasard)
     .sort((x, y) => vusAvant(etat, cle(d, x.k), jour) - vusAvant(etat, cle(d, y.k), jour))
     .slice(0, parts[i])
     .map(({ ph, k }) => ({ duo: d.id, nomDuo: d.nom, court: d.court, cle: cle(d, k), ...decouper(ph[0]), juste: ph[1], fr: ph[2], nv: ph[3] || "",
@@ -241,34 +243,30 @@ export function unoDeDos(duos, faites, etat, jour, hasard) {
   return { forme: "duos", phrases: melanger(phrases, hasard), nouveau: nouveau?.id || null, duos: choisis.map(d => d.id), mots: [], cles: phrases.map(p => p.cle) };
 }
 
-// El Repartidor : 6 colis (4 nouveaux + 2 connus, au singulier ou au pluriel), puis 3 étiquettes au pluriel (les nouveaux d'abord).
-export function repartidor({ connus, aVenir }, etat, jour, hasard) {
-  // Peu de mots connus (au tout début) : plus de nouveaux, pour avoir quand même 6 colis.
-  const nouveaux = choisirNouveaux(aVenir, etat, jour, COLIS - Math.min(CONNUS, connus.length));
-  const ids = new Set(nouveaux.map(n => n.id));
-  const deja = unParCarte(melanger(connus.filter(n => !ids.has(n.id)), hasard).sort((a, b) => (piege(b) ? 1 : 0) - (piege(a) ? 1 : 0))).slice(0, COLIS - nouveaux.length);
-  const mots = [...nouveaux, ...deja];
+// El Repartidor : 6 colis déjà vus. Avant le pluriel (U4-L2) : au singulier, camions EL et LA, sans étiquettes, et sans
+// les noms qui n'existent qu'au pluriel (los suegros). Ensuite : au singulier ou au pluriel, camions EL, LA, LOS, LAS,
+// puis 3 étiquettes au pluriel.
+export const camionsDe = m => m.pluriel === false ? ["EL", "LA"] : ["EL", "LA", "LOS", "LAS"];
+export function repartidor(noms, etat, jour, hasard, avecPl = true) {
+  const mots = choisir(avecPl ? noms : noms.filter(n => !n.plurielSeul), etat, jour, hasard, COLIS);
   if (mots.length < SEUIL) return null;
-  const colis = melanger(mots, hasard).map(n => {
-    const nombre = n.plurielSeul ? "p" : n.pluriel && n.pluriel.forme !== n.mot && hasard() < .5 ? "p" : "s";
+  const colis = mots.map(n => {
+    const nombre = !avecPl ? "s" : n.plurielSeul ? "p" : n.pluriel && n.pluriel.forme !== n.mot && hasard() < .5 ? "p" : "s";
     const camion = (nombre === "p" ? articlePluriel(n) : n.art).toUpperCase();
-    return { n, nombre, texte: nombre === "p" && !n.plurielSeul ? n.pluriel.forme : n.mot, camion, nouveau: !n.vu, expl: explGenre(n, nombre) };
+    return { n, nombre, texte: nombre === "p" && !n.plurielSeul ? n.pluriel.forme : n.mot, camion, expl: explGenre(n, nombre) };
   });
   const avecPluriel = n => n.pluriel && !n.plurielSeul && n.pluriel.regle !== "invariable";
-  const etiquettes = [...nouveaux.filter(avecPluriel), ...deja.filter(avecPluriel)].slice(0, ETIQUETTES)
-    .map(n => ({ n, de: `${n.art} ${n.mot}`, art: articlePluriel(n), rep: n.pluriel.forme, nouveau: !n.vu, expl: explPluriel(n) }));
-  return { forme: "repartidor", colis, etiquettes, mots };
+  const etiquettes = !avecPl ? [] : mots.filter(avecPluriel).slice(0, ETIQUETTES)
+    .map(n => ({ n, de: `${n.art} ${n.mot}`, art: articlePluriel(n), rep: n.pluriel.forme, expl: explPluriel(n) }));
+  return { forme: "repartidor", colis, etiquettes, mots, pluriel: avecPl };
 }
 
-// La lista de Blanca : 6 lignes (3 nouveaux + 3 connus). 2 lignes « 1 » (un / una : le genre), 4 avec un nombre (le pluriel).
+// La lista de Blanca : 6 lignes déjà vues. 2 lignes « 1 » (un / una : le genre), 4 avec un nombre (le pluriel).
 // Les nombres : de 2 à 20 (au-delà, la liste devient absurde : « ochenta y tres hijos »).
 export const TITRES = ["Kevin, esta semana:", "No te olvides:", "Para el fin de semana:", "Kevin, para mañana:"];
-export function lista({ connus, aVenir }, etat, jour, hasard) {
+export function lista(noms, etat, jour, hasard) {
   const ok = n => !!(n.pluriel && !n.plurielSeul && n.pluriel.regle !== "invariable");
-  const nouveaux = choisirNouveaux(aVenir, etat, jour, LIGNES - Math.min(3, connus.filter(ok).length), ok);
-  const ids = new Set(nouveaux.map(n => n.id));
-  const deja = unParCarte(melanger(connus.filter(n => ok(n) && !ids.has(n.id)), hasard)).slice(0, LIGNES - nouveaux.length);
-  const mots = melanger([...nouveaux, ...deja], hasard);
+  const mots = choisir(noms.filter(ok), etat, jour, hasard, LIGNES);
   if (mots.length < SEUIL) return null;
   const max = 20, nombres = [];
   while (nombres.length < mots.length - 2) {
@@ -283,17 +281,23 @@ export function lista({ connus, aVenir }, etat, jour, hasard) {
     const expl = q === 1
       ? `${it(`${n.art} ${n.mot}`)} : ${n.genre === "f" ? "féminin, donc <i>una</i>" : "masculin, donc <i>un</i>"}.${piege(n) === "francais" ? ` (En français : « ${esc(n.fr)} ».)` : ""}`
       : `${it(enLettres(q))}, puis le pluriel. ${explPluriel(n)}`;
-    return { n, q, rep, nouveau: !n.vu, expl };
+    return { n, q, rep, expl };
   });
   return { forme: "lista", titre: TITRES[Math.floor(hasard() * TITRES.length)], lignes: melanger(lignes, hasard), mots };
 }
 
 // La mission du jour, toute prête (la même toute la journée : hasard = hasardDuJour(jour, "mision")).
-export function missionDuJour({ mots, vu, rang, faites, etat, jour, hasard, duos = [] }) {
-  const noms = nomsMission(mots, vu, rang);
+// Si la forme tirée n'a pas assez de mots (le tout début du livre), on essaie les autres ; null : pas de mission.
+export function missionDuJour({ mots, vu, faites, etat, jour, hasard, duos = [] }) {
+  const noms = nomsMission(mots, vu);
   const forme = formeDuJour({ faites, etat, jour, hasard, duos });
-  const m = forme === "lista" ? lista(noms, etat, jour, hasard) : forme === "duos" ? unoDeDos(duos, faites, etat, jour, hasard) : null;
-  return m || repartidor(noms, etat, jour, hasard);
+  const faire = {
+    repartidor: () => repartidor(noms, etat, jour, hasard, faites.has(LECON_PLURIEL)),
+    lista: () => faites.has(LECON_NOMBRES) ? lista(noms, etat, jour, hasard) : null,
+    duos: () => unoDeDos(duos, faites, etat, jour, hasard),
+  };
+  for (const f of [forme, "repartidor", "duos", "lista"]) { const m = faire[f](); if (m) return m; }
+  return null;
 }
 
 // ——— corriger ce que Kevin écrit ———
