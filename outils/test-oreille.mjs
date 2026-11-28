@@ -2,14 +2,15 @@
 //   - la carte 1 qu'on écrit (jugerMot) : juste, accents, article oublié, mauvais article, « / », parenthèses, « … », indice ;
 //   - la carte 5 « à l'oreille » (jugerOreille) : accents et ñ ne comptent pas, 1 petit mot ou 1 erreur = Avec peine,
 //     2 erreurs ou le mot de la carte = Non, indice ;
-//   - le rythme : la carte 2 réussie au rendez-vous des 7 jours laisse sa place à la 5, 14 jours plus tard ; la 5 réussie
-//     revient à 7, 14, 30, 60 jours ; ratée, elle reste une dictée ; les anciennes sauvegardes ; la sauvegarde ;
+//   - le rythme (étape 3, 28 nov.) : la carte 5 naît en boîte 0 quand la carte 1 passe en boîte 3, arrive le lendemain,
+//     puis 1, 3, 7, 14… ; ratée, elle reste une dictée ; la migration des fiches « #2 » ; la sauvegarde ;
 //   - la file de « Ta journée » (valeurAvant).
 // Lancer depuis appli/ : node outils/test-oreille.mjs [chemin/vers/vocabulaire.csv]
 // Avec un CSV (l'onglet Vocabulaire), il vérifie aussi que chaque mot accepte sa propre forme écrite, et liste les mots à « / ».
 import fs from "fs";
 import os from "os";
 import path from "path";
+import { pathToFileURL } from "url";
 
 const ici = path.dirname(new URL(import.meta.url).pathname);
 const racine = path.join(ici, "..");
@@ -82,59 +83,61 @@ const [reunion, frio] = versMots(lireCsv(csv));
 const jour = n => new Date(Date.UTC(2026, 10, 25 + n)).toISOString().slice(0, 10);
 const depart = () => jour(0);
 const dueN = n => C.cartesARevoir([reunion], P.fichesCartes(), jour(n), depart).find(c => c.mot.id === reunion.id)?.n ?? null;
-const k2 = C.cleCarte(reunion.id, 2), k5 = C.cleCarte(reunion.id, C.ORE);
+const k5 = C.cleCarte(reunion.id, C.ORE);
 // Quand vient la carte 5, d'après sa propre fiche (la carte 1 du mot peut tomber le même jour et passer devant).
 const quand5 = n => C.etatCarte(C.cartesDuMot(reunion, P.fichesCartes()).find(c => c.n === C.ORE), reunion, jour(n), depart, P.fichesCartes()).texte.replace(/^revient /, "");
 egal(k5, `${reunion.id}#o`, "la carte 5 a sa propre clé");
-egal(C.nbCartes(reunion), 2, "la carte 5 ne s'ajoute pas au compte (elle remplace la 2)");
-// Carte 1 : jours 1 et 4 Oui → boîte 2 ; jour 7 Oui → boîte 3 → la carte 2 naît.
-P.noterMot(reunion.id, 3, jour(1)); P.noterMot(reunion.id, 3, jour(4)); P.noterMot(reunion.id, 3, jour(7));
-egal(dueN(8), 2, "la carte 2 arrive");
-// Carte 2 : jours 8 (→1), 9 (→2), 12 (→3), 19 (→4 : réussie au rendez-vous des 7 jours).
-for (const j of [8, 9, 12]) P.noterMot(k2, 3, jour(j));
-egal(C.cartesDuMot(reunion, P.fichesCartes()).find(c => c.n === C.ORE).la, false, "pas de carte 5 avant le rendez-vous des 7 jours");
-egal(C.etatCarte(C.cartesDuMot(reunion, P.fichesCartes()).find(c => c.n === 2), reunion, jour(19), depart, P.fichesCartes()).texte, "revient aujourd'hui", "jour 19 : la carte 2 au rendez-vous des 7 jours");
-P.noterMot(k2, 3, jour(19));
-const apres = C.cartesDuMot(reunion, P.fichesCartes());
-ok(apres.find(c => c.n === 2).remplacee && !apres.find(c => c.n === 2).la, "la carte 2 réussie à 7 jours est remplacée");
-ok(apres.find(c => c.n === C.ORE).la, "la carte 5 est là");
-egal(quand5(32), "demain", "jour 32 : la carte 5 attend ses 14 jours");
-egal(quand5(33), "aujourd'hui", "jour 33 (19 + 14) : la carte 5");
-// Le jour 33, la carte 1 n'est pas due (boîte 3, vue le jour 7, revient le 14, puis on la met loin) : c'est bien la 5 qui sort.
-for (let k = 0; k < 3; k++) P.noterMot(reunion.id, 3, jour(14));
-egal(dueN(33), C.ORE, "jour 33 : la carte 5 sort, pas la 2");
-egal(C.etatCarte(apres.find(c => c.n === 2), reunion, jour(20), depart, P.fichesCartes()).texte, "remplacée par la 5", "le Livre dit « remplacée par la 5 »");
-egal(C.etatCarte(apres.find(c => c.n === C.ORE), reunion, jour(20), depart, P.fichesCartes()).texte, "dans 13 j", "le Livre dit quand vient la 5");
-// La carte 5 réussie la première fois : 7 jours, puis 14, 30, 60.
-P.noterMot(k5, 3, jour(33));
-egal(P.fichesCartes()[k5].boite, 3, "1re réussite de la carte 5 : boîte 3");
-egal(quand5(39), "demain", "pas avant 7 jours");
-egal(quand5(40), "aujourd'hui", "la carte 5 revient à 7 jours");
-P.noterMot(k5, 3, jour(40)); egal(quand5(53), "demain", "puis 14 jours"); egal(quand5(54), "aujourd'hui", "à 14 jours");
-P.noterMot(k5, 3, jour(54)); egal(quand5(84), "aujourd'hui", "puis à 30 jours");
-P.noterMot(k5, 3, jour(84)); egal(quand5(144), "aujourd'hui", "puis à 60 jours");
-// Ratée, elle reste une dictée : demain, et la carte 2 ne revient pas.
-P.noterMot(k5, 1, jour(144));
-egal(quand5(145), "aujourd'hui", "la carte 5 ratée revient demain, toujours à l'oreille");
-ok(!C.cartesDuMot(reunion, P.fichesCartes()).find(c => c.n === 2).la, "la carte 2 ne revient pas");
-// Avec peine la première fois : même rendez-vous (boîte 2, 3 jours).
+egal(C.nbCartes(reunion), 2, "la reunión : la carte 1 et la carte 5");
+ok(!C.cartesDuMot(reunion, {}).some(c => c.n === 2), "plus de carte 2 (étape 3)");
+egal(C.etatCarte(C.cartesDuMot(reunion, {}).find(c => c.n === C.ORE), reunion, jour(0), depart, {}).texte, "après la 1", "le Livre : la 5 « après la 1 »");
+// Carte 1 : jours 1 et 4 Oui → boîte 2 ; jour 7 Oui → boîte 3 → la carte 5 naît, en boîte 0, et arrive le lendemain.
+P.noterMot(reunion.id, 3, jour(1)); P.noterMot(reunion.id, 3, jour(4));
+ok(!P.fichesCartes()[k5], "pas de carte 5 avant le rendez-vous des 3 jours");
+P.noterMot(reunion.id, 3, jour(7));
+egal(P.fichesCartes()[k5], { boite: 0, vu: null, dep: jour(7) }, "carte 1 en boîte 3 : la carte 5 naît en boîte 0");
+ok(!P.fichesCartes()[`${reunion.id}#2`], "et pas de carte 2");
+egal(dueN(7), null, "pas le jour même (une carte par mot et par jour)");
+egal(dueN(8), C.ORE, "la carte 5 arrive le lendemain");
+// Elle suit les rendez-vous 0, 1, 3, 7, 14, 30, 60.
+P.noterMot(k5, 3, jour(8));
+egal(P.fichesCartes()[k5].boite, 1, "1re réussite de la carte 5 : boîte 1");
+egal(quand5(9), "aujourd'hui", "puis à 1 jour");
+P.noterMot(k5, 3, jour(9)); egal(quand5(11), "demain", "pas avant 3 jours"); egal(quand5(12), "aujourd'hui", "à 3 jours");
+P.noterMot(k5, 3, jour(12)); egal(quand5(19), "aujourd'hui", "puis à 7 jours");
+P.noterMot(k5, 3, jour(19)); egal(quand5(33), "aujourd'hui", "puis à 14 jours");
+// Ratée, elle reste une dictée et revient demain.
+P.noterMot(k5, 1, jour(33));
+egal(P.fichesCartes()[k5].boite, 0, "carte 5 ratée : boîte 0");
+egal(quand5(34), "aujourd'hui", "la carte 5 ratée revient demain, toujours à l'oreille");
+// Avec peine la première fois : boîte 0, le délai repart du jour même.
 P.noterMot(`${frio.id}#o`, 2, jour(0));
-egal(P.fichesCartes()[`${frio.id}#o`].boite, 2, "carte 5 « Avec peine » la 1re fois : boîte 2");
+egal(P.fichesCartes()[`${frio.id}#o`].boite, 0, "carte 5 « Avec peine » la 1re fois : boîte 0");
 // Un mot sans phrase à trou n'a pas de carte 5 (Q24-20) ; « Mes mots » non plus.
 ok(!C.cartesDuMot(frio, {}).some(c => c.n === C.ORE), "pas de carte 5 sans phrase à trou");
 ok(!C.cartesDuMot({ id: "moi|x", moi: true, es: "x", ex: "x" }, {}).some(c => c.n === C.ORE), "pas de carte 5 pour Mes mots");
 
-// ——— les anciennes sauvegardes (Q24-19) ———
-const ancienne = (boite2, vu2) => P.lireSauvegarde(JSON.stringify({ appli: "oido-y-boca", le: jour(0), jours: {}, ecoute: 0,
-  mots: { [reunion.id]: { boite: 6, vu: jour(0) }, [k2]: { boite: boite2, vu: vu2 } } }));
-P.restaurer(ancienne(3, jour(0)));
-egal(dueN(7), 2, "ancienne sauvegarde, carte 2 en boîte 3 : elle reste une carte 2");
-P.restaurer(ancienne(4, jour(0)));
-egal(dueN(13), null, "ancienne sauvegarde, carte 2 en boîte 4 : rien avant sa date");
-egal(dueN(14), C.ORE, "ancienne sauvegarde, carte 2 en boîte 4 : la carte 5 à sa date (14 jours)");
-P.restaurer(ancienne(5, jour(0)));
-egal(dueN(29), null, "ancienne sauvegarde, carte 2 en boîte 5 : pas avant 30 jours");
-egal(dueN(30), C.ORE, "ancienne sauvegarde, carte 2 en boîte 5 : la carte 5 à 30 jours");
+// ——— la migration des cartes 2 (étape 3, Q26-9, Q26-10) ———
+const k2 = `${reunion.id}#2`;
+const ancienne = mots => P.lireSauvegarde(JSON.stringify({ appli: "oido-y-boca", le: jour(0), jours: {}, ecoute: 0, mots }));
+egal(P.migrerCartes2({ [reunion.id]: { boite: 3, vu: jour(0) }, [k2]: { boite: 2, vu: jour(0), dep: jour(0) } }, jour(5)),
+  { [reunion.id]: { boite: 3, vu: jour(0) }, [k5]: { boite: 0, vu: null, dep: jour(5) } }, "une fiche #2 devient une carte 5 en boîte 0, partie le jour de la migration");
+egal(P.migrerCartes2({ [k2]: { boite: 4, vu: jour(0) }, [k5]: { boite: 3, vu: jour(1) } }, jour(5)),
+  { [k5]: { boite: 3, vu: jour(1) } }, "une carte 5 qui existe déjà est gardée telle quelle (Q26-10)");
+const sansDeux = { [reunion.id]: { boite: 1, vu: jour(0) } };
+ok(P.migrerCartes2(sansDeux, jour(5)) === sansDeux, "rien à migrer : rien ne change");
+P.restaurer(ancienne({ [reunion.id]: { boite: 6, vu: jour(0) }, [k2]: { boite: 3, vu: jour(0) } }));
+ok(!P.fichesCartes()[k2] && P.fichesCartes()[k5]?.boite === 0, "restaurer une ancienne sauvegarde : la carte 2 devient une carte 5");
+egal(P.fichesCartes()[k5].dep, new Date().toLocaleDateString("sv-SE"), "elle part du jour de la restauration");
+// Au lancement : un téléphone qui a encore des fiches #2 les convertit une seule fois.
+memoire["oyb.v2"] = JSON.stringify({ mots: { [k2]: { boite: 1, vu: jour(0) } }, jours: {}, ecoute: 0 });
+const P2 = await import(`${pathToFileURL(path.join(tmp, "progression.js")).href}?relance`);
+ok(P2.fichesCartes()[k5] && !P2.fichesCartes()[k2], "au lancement, la fiche #2 devient une carte 5");
+ok(!JSON.parse(memoire["oyb.v2"]).mots[k2], "et le téléphone garde la version convertie");
+// Garde-fou : une progression sans carte 2 se relit à l'identique au lancement (rien n'est perdu).
+memoire["oyb.v2"] = JSON.stringify({ mots: { [reunion.id]: { boite: 2, vu: jour(0) } }, jours: { [jour(0)]: { revision: 3 } }, ecoute: 2 });
+const P3 = await import(`${pathToFileURL(path.join(tmp, "progression.js")).href}?relance2`);
+egal(P3.fichesCartes(), { [reunion.id]: { boite: 2, vu: jour(0) } }, "au lancement sans carte 2 : les fiches sont gardées");
+egal(P3.niveauEcoute(), 2, "au lancement : le reste de la progression aussi");
 // La sauvegarde garde la carte 5.
 P.noterMot(k5, 3, jour(30));
 const d = JSON.parse(P.donneesSauvegarde(jour(30)));

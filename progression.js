@@ -5,14 +5,40 @@
 
 const CLE = "oyb.v2";
 export const INTERVALLES = [0, 1, 3, 7, 14, 30, 60]; // jours avant de revoir une carte, selon sa boîte
-export const PLAFOND = 40; // cartes de « Tes mots à revoir » par jour, au plus (Q63) : le reste attend demain
 
 const VIDE = () => ({ mots: {}, jours: {}, ecoute: 0, controles: {}, presentations: {}, mesMots: [], avance: {}, verbes: { cours: {}, justes: {} }, lectures: {}, jeux: {}, erreurs: {} });
 let etat = lire();
 
 function lire() {
-  try { return { ...VIDE(), ...JSON.parse(localStorage.getItem(CLE) || "{}") }; }
+  try { return migrer({ ...VIDE(), ...JSON.parse(localStorage.getItem(CLE) || "{}") }); }
   catch { return VIDE(); }
+}
+
+// Décisions du 28 nov. (étape 3) : la carte 2 (la phrase à trou) sort des cartes. Une seule fois, à la lecture
+// (au lancement, ou en restaurant une ancienne sauvegarde) : chaque fiche « id#2 » devient une carte 5 « id#o »
+// en boîte 0, qui part du jour de la migration ; la fiche « #2 » est retirée. Une carte 5 qui existe déjà est gardée telle quelle (Q26-10).
+// (Des fonctions déclarées, pas des « const » : lire() les appelle au chargement du module, avant ces lignes.)
+function isoDuJour(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+export function migrerCartes2(mots, aujourdhui) {
+  const cles = Object.keys(mots || {}).filter(k => k.endsWith("#2"));
+  if (!cles.length) return mots;
+  aujourdhui ||= isoDuJour();
+  const neuf = { ...mots };
+  for (const k of cles) {
+    const o = `${k.slice(0, -2)}#o`;
+    if (!neuf[o]) neuf[o] = { boite: 0, vu: null, dep: aujourdhui };
+    delete neuf[k];
+  }
+  return neuf;
+}
+function migrer(e) {
+  const mots = migrerCartes2(e.mots);
+  if (mots === e.mots) return e;
+  const neuf = { ...e, mots };
+  try { localStorage.setItem(CLE, JSON.stringify(neuf)); } catch { /* stockage indisponible */ }
+  return neuf;
 }
 function ecrire() {
   try { localStorage.setItem(CLE, JSON.stringify(etat)); } catch { /* stockage indisponible : l'appli marche quand même */ }
@@ -29,17 +55,17 @@ const sauver = () => { if (!apercu) ecrire(); };
 const jours = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
 
 // note : 1 = Non, 2 = Avec peine, 3 = Oui. idMot est la clé de la carte : l'id du mot pour la carte 1, « id#n » pour les autres (cartes.js).
-// Chantier 15 : la carte 1 réussie au rendez-vous des 3 jours (boîte 2 → 3) débloque la carte 2, qui arrive le lendemain ;
+// Étape 3 (décisions du 28 nov.) : la carte 1 réussie au rendez-vous des 3 jours (boîte 2 → 3) débloque la carte 5 « à l'oreille »
+// (« id#o »), qui arrive le lendemain (une seule carte par mot et par jour) ; toutes les cartes partent de la boîte 0.
 // « nons » compte les « Non » de suite à la carte 1 (à 2, la fin du paquet propose les phrases du mot).
-// Chantier 24 : la carte 5 « à l'oreille » (« id#o ») part de la boîte 2 : réussie la première fois, elle revient à 7 jours, puis 14, 30, 60.
 export function noterMot(idMot, note, aujourdhui) {
-  const f = etat.mots[idMot] || { boite: idMot.endsWith("#o") ? 2 : 0, vu: null };
+  const f = etat.mots[idMot] || { boite: 0, vu: null };
   const avant = f.boite;
   f.boite = note === 3 ? Math.min(f.boite + 1, INTERVALLES.length - 1) : note === 1 ? 0 : f.boite;
   f.vu = aujourdhui;
   if (!idMot.includes("#")) {
     f.nons = note === 1 ? (f.nons || 0) + 1 : note === 3 ? 0 : f.nons || 0;
-    if (avant === 2 && f.boite === 3 && !etat.mots[`${idMot}#2`]) etat.mots[`${idMot}#2`] = { boite: 0, vu: null, dep: aujourdhui };
+    if (avant === 2 && f.boite === 3 && !etat.mots[`${idMot}#o`]) etat.mots[`${idMot}#o`] = { boite: 0, vu: null, dep: aujourdhui };
   }
   etat.mots[idMot] = f;
   sauver();
@@ -250,6 +276,6 @@ export function lireSauvegarde(texte) {
 
 // Remplace toute la progression par celle d'une sauvegarde (en aperçu : seulement à l'écran).
 export function restaurer(sauvegarde) {
-  etat = { ...sauvegarde.etat };
+  etat = { ...sauvegarde.etat, mots: migrerCartes2(sauvegarde.etat.mots) };
   sauver();
 }

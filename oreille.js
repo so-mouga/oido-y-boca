@@ -4,7 +4,7 @@
 // Rien ici ne touche l'écran ni la mémoire : ecrans/pratique.js note, outils/test-oreille.mjs vérifie.
 // note : 3 = Oui, 2 = Avec peine, 1 = Non (comme les autres cartes). Avec un indice, Avec peine au mieux.
 
-import { corriger, mots } from "./corriger.js?v=80";
+import { corriger, mots } from "./corriger.js?v=81";
 
 // Les petits mots qu'on n'entend presque pas (« Petit mot oublié : a »).
 export const PETITS = new Set(("a al de del en el la lo los las le les un una unos unas y e o u me te se nos os mi tu su mis tus sus "
@@ -37,7 +37,7 @@ export function jugerMot(tape, es, { indice = false } = {}) {
   return { ...r, niveau: "faux", note: 1, reponses };
 }
 
-// Carte 5. phrase : l'exemple du mot ; motCarte : la réponse de la carte 2 (le mot tel qu'il est dans la phrase, « reunión »).
+// Carte 5. phrase : l'exemple du mot ; motCarte : le mot caché de la phrase à trou (le mot tel qu'il est dans la phrase, « reunión »).
 // Accents et ñ ne comptent pas (réglage du prof). Notation (Kevin, 27 nov.) : juste = Oui ; 1 petit mot raté ou une seule
 // autre erreur = Avec peine ; 2 erreurs ou plus, ou le mot de la carte raté = Non.
 // Renvoie { niveau, note, attendu, tape, reponse, petits (les petits mots oubliés), accents (les mots écrits sans leur accent),

@@ -9,7 +9,7 @@
 // La clé vient de la bonne forme (ou de la phrase) : si le prof change la règle ou le nombre de fois, la carte garde ses progrès ;
 // s'il change la bonne forme, c'est une autre carte, qui repart de zéro.
 
-import { corriger } from "./corriger.js?v=80";
+import { corriger } from "./corriger.js?v=81";
 
 const CLE_COPIE = "oyb.carnet";
 export const MAX_PAR_JOUR = 5; // dont 1 phrase à dire au plus

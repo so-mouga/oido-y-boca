@@ -1,18 +1,17 @@
-// Les 4 cartes d'un mot (chantier 15, 25 nov.) :
-//   1. le mot (la carte d'avant, du français à l'espagnol, à dire) — automatique ;
-//   2. la phrase à trou : l'exemple du Sheet, le mot caché, à écrire — automatique, une fois la carte 1 réussie
-//      au rendez-vous des 3 jours (sa boîte passe de 2 à 3) ;
-//   3, 4… : les phrases à écrire en entier, du français vers l'espagnol (colonnes « phrase 1 (fr) », « phrase 1 (es) »,
-//      « phrase 1 (aide) », « phrase 2 … » du Sheet) — seulement si je touche leur « + » (2 au plus : le numéro 5 est pris) ;
-//   5. « à l'oreille » (chantier 24) : la voix dit l'exemple de la carte 2, je l'écris en entier. Elle remplace la carte 2
-//      quand celle-ci est réussie au rendez-vous des 7 jours (boîte 3 → 4) : 14 jours plus tard, c'est la 5 qui vient.
-//      Après sa première réussite elle revient à 7 jours, puis 14, 30, 60 (sa fiche part de la boîte 2, progression.js).
-// La mémoire de chaque carte est dans progression.js (etat.mots), sous la clé du mot pour la carte 1 (les anciennes sauvegardes
-// restent bonnes), « id#n » pour les cartes 2, 3, 4 et « id#o » pour la carte 5. Chaque carte a son propre rythme ; une seule carte par mot et par jour.
+// Les cartes d'un mot (chantier 15, 25 nov. ; revues le 28 nov., étape 3 des décisions) :
+//   1. le mot (du français à l'espagnol, à dire puis à écrire) — automatique ;
+//   3, 4 : les phrases à écrire en entier, du français vers l'espagnol (colonnes « phrase 1 (fr) », « phrase 1 (es) »,
+//      « phrase 1 (aide) », « phrase 2 … » du Sheet) — seulement si je touche leur « + » (2 au plus) ;
+//   5. « à l'oreille » (chantier 24) : la voix dit l'exemple du Sheet, je l'écris en entier — automatique, le lendemain du jour
+//      où la carte 1 est réussie au rendez-vous des 3 jours (sa boîte passe de 2 à 3). Elle part de la boîte 0 (0, 1, 3, 7…).
+// La carte 2 (la phrase à trou) n'est plus une carte : elle reste dans « Mes mots en cours » (trouDe). Les numéros ne changent pas
+// (Q26-11) : les anciennes fiches « #2 » deviennent des cartes 5 au lancement (progression.js, migrerCartes2).
+// La mémoire de chaque carte est dans progression.js (etat.mots), sous la clé du mot pour la carte 1, « id#3 », « id#4 »
+// pour les phrases et « id#o » pour la carte 5. Chaque carte a son propre rythme ; une seule carte par mot et par jour.
 
-import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=80";
-import { verbeDe } from "./dico.js?v=80";
-import { INTERVALLES, apprisEnAvance } from "./progression.js?v=80";
+import { conjuguer, ORDRE_TEMPS } from "./controles.js?v=81";
+import { verbeDe } from "./dico.js?v=81";
+import { INTERVALLES, apprisEnAvance } from "./progression.js?v=81";
 
 // Le jour d'où compte la carte 1 d'un mot jamais revu : le jour de sa leçon, de son apprentissage en avance, ou de son ajout (mes mots).
 export const departDe = ctx => m => m.moi ? m.le : apprisEnAvance(m.id) || ctx.pos.dateFaite[m.lecon];
@@ -20,8 +19,6 @@ export const departDe = ctx => m => m.moi ? m.le : apprisEnAvance(m.id) || ctx.p
 export { INTERVALLES };
 export const ORE = 5; // le numéro de la carte « à l'oreille »
 export const cleCarte = (idMot, n) => n === 1 ? idMot : n === ORE ? `${idMot}#o` : `${idMot}#${n}`;
-// La carte 2 laisse sa place à la 5 quand elle est réussie au rendez-vous des 7 jours (sa boîte passe à 4 : rendez-vous à 14 jours).
-export const BOITE_ORE = 4;
 
 const jours = (a, b) => Math.round((new Date(b + "T12:00:00") - new Date(a + "T12:00:00")) / 86400000);
 const echapper = t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -59,8 +56,9 @@ function formesDe(m) {
   return [...formes].sort((a, b) => b.length - a.length);
 }
 
-// La carte 2 : l'exemple du Sheet avec le mot remplacé par « ___ ». Renvoie { phrase, reponse } ou null
-// quand l'appli ne retrouve pas le mot dans l'exemple (alors le mot n'a pas de carte 2).
+// La phrase à trou : l'exemple du Sheet avec le mot remplacé par « ___ ». Renvoie { phrase, reponse } ou null
+// quand l'appli ne retrouve pas le mot dans l'exemple (alors le mot n'a pas de carte 5). Sert à la carte 5 (le mot de la carte)
+// et à « Mes mots en cours ».
 // La réponse garde la casse de l'exemple (« Vivo » en début de phrase).
 const LETTRE = "\\p{L}";
 export function trouDe(m) {
@@ -77,16 +75,14 @@ export function trouDe(m) {
 // Les phrases à écrire du mot (cartes 3, 4…) : [{ fr, es: [réponses acceptées], aide }]. « | » sépare plusieurs bonnes réponses.
 export const phrasesDe = m => (m.phrases || []).filter(p => p.fr && p.es?.length).slice(0, 2);
 
-// Le nombre de cartes du mot : 1, 2 s'il a un trou, puis une par phrase à écrire. La carte 5 ne compte pas : elle prend la place de la 2.
-// (Les numéros restent fixes : sans trou, les phrases gardent les numéros 3 et 4.)
-export const nbCartes = m => m.moi ? 1 : phrasesDe(m).length ? 2 + phrasesDe(m).length : trouDe(m) ? 2 : 1;
+// Le nombre de cartes du mot : la 1, la 5 s'il a un trou, puis une par phrase à écrire. (Les numéros restent fixes : 1, 3, 4, 5.)
+export const nbCartes = m => m.moi ? 1 : 1 + (trouDe(m) ? 1 : 0) + phrasesDe(m).length;
 
 // Toutes les cartes qui existent pour ce mot, avec leur fiche ({ boite, vu, dep }) ou null si pas encore là.
 //   n = 1 : toujours (pas de fiche = jamais revue) ;
-//   n = 2 : s'il a un trou ; là si sa fiche existe, ou si la carte 1 est déjà en boîte 3 (sauvegarde d'avant le chantier) ;
 //   n = 3, 4 : si la phrase existe ; là seulement si je l'ai prise (sa fiche existe) ;
-//   n = 5 (oreille) : s'il a un trou ; là si sa fiche existe ou si la carte 2 a atteint la boîte 4 (alors la 2 est « remplacee », plus là).
-// La carte 5 est à la fin de la liste (les écrans la rangent après la 2).
+//   n = 5 (oreille) : s'il a un trou ; là si sa fiche existe, ou si la carte 1 est déjà en boîte 3 (sauvegarde d'avant le chantier 15).
+// La carte 5 est à la fin de la liste (les écrans la rangent après la 1).
 // Mes mots n'ont que la carte 1.
 export function cartesDuMot(m, fiches) {
   const f1 = fiches[m.id] || null;
@@ -94,15 +90,12 @@ export function cartesDuMot(m, fiches) {
   if (m.moi) return cartes;
   const trou = trouDe(m);
   if (trou) {
-    const f2 = fiches[cleCarte(m.id, 2)] || null;
     const f5 = fiches[cleCarte(m.id, ORE)] || null;
-    const remplacee = !!f5 || (f2?.boite ?? 0) >= BOITE_ORE;
-    cartes.push({ n: 2, fiche: f2, trou, la: !remplacee && (!!f2 || (f1?.boite ?? 0) >= 3), remplacee });
     phrasesDe(m).forEach((p, i) => {
       const f = fiches[cleCarte(m.id, i + 3)] || null;
       cartes.push({ n: i + 3, fiche: f, phrase: p, la: !!f });
     });
-    cartes.push({ n: ORE, fiche: f5, trou, oreille: true, la: remplacee, f2 });
+    cartes.push({ n: ORE, fiche: f5, trou, oreille: true, la: !!f5 || (f1?.boite ?? 0) >= 3 });
     return cartes;
   }
   phrasesDe(m).forEach((p, i) => {
@@ -113,12 +106,11 @@ export function cartesDuMot(m, fiches) {
 }
 
 // Quand une carte revient : son retard en jours (≥ 0 : due aujourd'hui). La carte 1 jamais revue compte depuis depart(m) ;
-// la carte 2 débloquée sans fiche, depuis le dernier passage de la carte 1 ; la carte 5 pas encore vue, au rendez-vous
-// qu'aurait eu la carte 2 (14 jours après sa réussite à 7 jours, ou plus loin pour une ancienne sauvegarde).
+// une carte avec une fiche pas encore vue, depuis sa date de départ ; la carte 5 débloquée sans fiche (vieille sauvegarde),
+// depuis le dernier passage de la carte 1.
 function retardDe(c, m, aujourdhui, depart, f1) {
   const f = c.fiche;
-  if (c.oreille && !f?.vu) return jours(c.f2?.vu || f?.dep || aujourdhui, aujourdhui) - INTERVALLES[Math.max(c.f2?.boite ?? BOITE_ORE, BOITE_ORE)];
-  const debut = f?.vu || f?.dep || (c.n === 1 ? depart(m) : c.n === 2 ? f1?.vu : null) || aujourdhui;
+  const debut = f?.vu || f?.dep || (c.n === 1 ? depart(m) : c.oreille ? f1?.vu : null) || aujourdhui;
   return jours(debut, aujourdhui) - INTERVALLES[f?.boite ?? 0];
 }
 
@@ -143,17 +135,16 @@ export function cartesARevoir(mots, fiches, aujourdhui, depart) {
     const choisie = candidates.sort((a, b) => b.retard - a.retard || a.n - b.n)[0];
     dues.push({ mot: m, ...choisie, neuve: false });
   }
-  // Les cartes que je viens de prendre avec « + » passent en tête : sinon, avec du retard et le plafond de 40,
-  // elles attendraient des jours derrière les cartes en retard.
+  // Les cartes que je viens de prendre avec « + » passent en tête : sinon, avec du retard,
+  // elles attendraient derrière les cartes en retard.
   return dues.sort((a, b) => b.neuve - a.neuve || b.retard - a.retard);
 }
 
 // Pour le Livre et le Dico : où en est une carte. { etat: "absente" | "attend" | "revision" | "sue", texte }.
-//   absente : carte 3/4 pas prise (le « + ») ; attend : carte 2 pas encore débloquée ;
+//   absente : carte 3/4 pas prise (le « + ») ; attend : carte 5 pas encore débloquée (« après la 1 ») ;
 //   revision : dans « Tes mots à revoir » ; sue : réussie au rendez-vous des 3 jours (boîte ≥ 3).
 export function etatCarte(c, m, aujourdhui, depart, fiches) {
-  if (c.remplacee) return { etat: "sue", texte: "remplacée par la 5" };
-  if (!c.la) return c.n === 2 ? { etat: "attend", texte: "après la 1" } : c.oreille ? { etat: "attend", texte: "après la 2" } : { etat: "absente", texte: "" };
+  if (!c.la) return c.oreille ? { etat: "attend", texte: "après la 1" } : { etat: "absente", texte: "" };
   const f = c.fiche;
   if (!f?.vu && c.n >= 3 && !c.oreille) return { etat: "revision", texte: "aujourd'hui" }; // prise avec « + » : tout de suite
   if (!f?.vu && c.n === 1 && !depart(m)) return { etat: "revision", texte: "pas encore revue" };

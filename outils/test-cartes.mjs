@@ -46,9 +46,9 @@ egal(C.trouDe(llamarse), { phrase: "Me ___ Kevin y mi pareja se llama Blanca.", 
 egal(C.trouDe(ciudad)?.reponse, "ciudad", "trou d'un nom sans article");
 egal(C.trouDe({ es: "el hermano / la hermana", ex: "¿Tienes hermanos?", categorie: "nom" })?.reponse, "hermanos", "trou au pluriel");
 egal(C.trouDe({ es: "al lado de", ex: "El baño está al lado del dormitorio.", categorie: "mot-outil" })?.reponse, "al lado del", "de → del");
-egal(C.trouDe({ es: "hace frío", ex: "Hoy hace mucho frío.", categorie: "expression" }), null, "mot introuvable : pas de carte 2");
-egal(C.nbCartes(desde), 4, "desde hace : 4 cartes");
-egal(C.nbCartes(llamarse), 2, "llamarse : 2 cartes");
+egal(C.trouDe({ es: "hace frío", ex: "Hoy hace mucho frío.", categorie: "expression" }), null, "mot introuvable : pas de phrase à trou (ni carte 5)");
+egal(C.nbCartes(desde), 4, "desde hace : 4 cartes (1, 3, 4 et 5)");
+egal(C.nbCartes(llamarse), 2, "llamarse : 2 cartes (1 et 5)");
 egal(C.nbCartes({ moi: true, es: "x" }), 1, "mes mots : 1 carte");
 
 // ——— le déroulé, jour après jour ———
@@ -57,7 +57,7 @@ const depart = () => jour(0); // leçon faite au jour 0
 const dues = (mots, n) => C.cartesARevoir(mots, P.fichesCartes(), jour(n), depart);
 const nDe = (mots, n, m) => dues(mots, n).find(c => c.mot.id === m.id)?.n ?? null;
 
-// Jour 0, la leçon : la carte 1 de chaque mot (notée dans la leçon). Jours 1 et 4 : Oui → boîte 3 → la carte 2 se débloque.
+// Jour 0, la leçon : la carte 1 de chaque mot (notée dans la leçon). Jours 1 et 4 : Oui → boîte 3 → la carte 5 se débloque (étape 3).
 for (const m of [desde, ciudad]) P.noterMot(m.id, 3, jour(0));
 egal(nDe([ciudad], 0, ciudad), null, "vu aujourd'hui : rien de plus aujourd'hui");
 egal(nDe([ciudad], 1, ciudad), 1, "jour 1 : carte 1");
@@ -65,13 +65,13 @@ P.noterMot(ciudad.id, 3, jour(1));
 egal(nDe([ciudad], 2, ciudad), null, "jour 2 : rien (rendez-vous des 3 jours)");
 egal(nDe([ciudad], 4, ciudad), 1, "jour 4 : carte 1");
 P.noterMot(ciudad.id, 3, jour(4));
-ok(P.fichesCartes()[`${ciudad.id}#2`], "carte 1 réussie au rendez-vous des 3 jours : la carte 2 existe");
-egal(nDe([ciudad], 4, ciudad), null, "la carte 2 n'arrive pas le jour même");
-egal(nDe([ciudad], 5, ciudad), 2, "jour 5 : la carte 2");
-P.noterMot(`${ciudad.id}#2`, 1, jour(5));
-egal(nDe([ciudad], 6, ciudad), 2, "carte 2 ratée : demain");
-P.noterMot(ciudad.id, 1, jour(11)); // la carte 1 ratée plus tard : la carte 2 reste
-ok(C.cartesDuMot(ciudad, P.fichesCartes()).find(c => c.n === 2).la, "la carte 2 reste débloquée");
+ok(P.fichesCartes()[`${ciudad.id}#o`] && !P.fichesCartes()[`${ciudad.id}#2`], "carte 1 réussie au rendez-vous des 3 jours : la carte 5 existe (plus de carte 2)");
+egal(nDe([ciudad], 4, ciudad), null, "la carte 5 n'arrive pas le jour même");
+egal(nDe([ciudad], 5, ciudad), C.ORE, "jour 5 : la carte 5");
+P.noterMot(`${ciudad.id}#o`, 1, jour(5));
+egal(nDe([ciudad], 6, ciudad), C.ORE, "carte 5 ratée : demain");
+P.noterMot(ciudad.id, 1, jour(11)); // la carte 1 ratée plus tard : la carte 5 reste
+ok(C.cartesDuMot(ciudad, P.fichesCartes()).find(c => c.n === C.ORE).la, "la carte 5 reste débloquée");
 
 // Les « + » : les cartes 3 et 4 de desde hace, prises le jour 1 (le mot pas encore vu ce jour-là).
 egal(C.cartesDuMot(desde, P.fichesCartes()).filter(c => c.la).map(c => c.n), [1], "desde hace : seulement la carte 1 au départ");
@@ -97,7 +97,7 @@ P.noterMot(autre.id, 3, jour(5));
 egal(nDe([autre], 5, autre), null, "carte 1 vue aujourd'hui : rien de plus");
 P.prendreCarte(C.cleCarte(autre.id, 3), jour(5));
 egal(nDe([autre], 5, autre), 3, "« + » sur un mot déjà vu aujourd'hui : la carte arrive tout de suite");
-egal(C.etatCarte(C.cartesDuMot(autre, P.fichesCartes())[2], autre, jour(5), depart, P.fichesCartes()).texte, "aujourd'hui", "le Livre dit « aujourd'hui »");
+egal(C.etatCarte(C.cartesDuMot(autre, P.fichesCartes()).find(c => c.n === 3), autre, jour(5), depart, P.fichesCartes()).texte, "aujourd'hui", "le Livre dit « aujourd'hui »");
 egal(P.fichesCartes()[C.cleCarte(desde.id, 4)].boite, 0, "« Avec peine » garde la boîte de la carte 4");
 egal(P.fichesCartes()[C.cleCarte(desde.id, 3)].boite, 1, "chaque carte a sa boîte : la 3 en boîte 1");
 
@@ -111,31 +111,35 @@ ok(P.fichesCartes()[llamarse.id].refus && P.fichesCartes()[llamarse.id].boite ==
 
 // L'état affiché dans le Livre et le Dico.
 const etats = C.cartesDuMot(desde, P.fichesCartes()).map(c => C.etatCarte(c, desde, jour(3), depart, P.fichesCartes()).etat);
-// Chantier 24 : la carte 5 « à l'oreille » est en fin de liste, et attend que la carte 2 soit réussie à 7 jours.
-egal(etats, ["revision", "attend", "revision", "revision", "attend"], "états de desde hace au jour 3");
+// Étape 3 : plus de carte 2 ; la carte 5 « à l'oreille » est en fin de liste et attend la carte 1 (boîte 3).
+egal(C.cartesDuMot(desde, P.fichesCartes()).map(c => c.n), [1, 3, 4, 5], "cartes de desde hace : 1, 3, 4, 5");
+egal(etats, ["revision", "revision", "revision", "attend"], "états de desde hace au jour 3");
 
 // ——— les sauvegardes ———
 const d = JSON.parse(P.donneesSauvegarde(jour(3)));
 ok(d.mots[`${desde.id}#3`], "les cartes 3 et 4 partent dans la sauvegarde");
 const relue = P.lireSauvegarde(JSON.stringify(d));
 egal(relue.etat.mots[`${desde.id}#4`], d.mots[`${desde.id}#4`], "et reviennent à la restauration");
-// Une sauvegarde d'avant le chantier : la carte 1 en boîte 3 a déjà sa carte 2.
+// Une sauvegarde d'avant le chantier 15 : la carte 1 en boîte 3, sans autre fiche, a sa carte 5.
 const vieille = P.lireSauvegarde(JSON.stringify({ appli: "oido-y-boca", le: jour(0), mots: { [ciudad.id]: { boite: 3, vu: jour(0) } }, jours: {}, ecoute: 0 }));
 P.restaurer(vieille);
-ok(C.cartesDuMot(ciudad, P.fichesCartes()).find(c => c.n === 2).la, "ancienne sauvegarde : carte 2 débloquée");
-egal(nDe([ciudad], 1, ciudad), 2, "ancienne sauvegarde : la carte 2 arrive");
+ok(C.cartesDuMot(ciudad, P.fichesCartes()).find(c => c.n === C.ORE).la, "ancienne sauvegarde : carte 5 débloquée");
+egal(nDe([ciudad], 1, ciudad), C.ORE, "ancienne sauvegarde : la carte 5 arrive");
 egal(nDe([desde], 1, desde), 1, "ancienne sauvegarde : un mot jamais revu a sa carte 1");
 
-// ——— le plafond ———
-egal(P.PLAFOND, 40, "40 cartes par jour");
+// ——— plus de plafond (étape 3) : toutes les cartes dues sortent, jamais une carte en avance ———
+egal(P.PLAFOND, undefined, "plus de plafond de 40");
+const beaucoup = Array.from({ length: 60 }, (_, i) => ({ id: `U1-L1|m${i}`, es: `m${i}`, fr: "x", lecon: "U1-L1", phrases: [] }));
+egal(C.cartesARevoir(beaucoup, {}, jour(1), depart).length, 60, "60 mots dus : 60 cartes, pas 40");
+egal(C.cartesARevoir(beaucoup, Object.fromEntries(beaucoup.map(m => [m.id, { boite: 3, vu: jour(1) }])), jour(2), depart).length, 0, "aucune carte avant son rendez-vous");
 
 // ——— tout le Sheet ———
 if (process.argv[2]) {
   const mots = versMots(lireCsv(fs.readFileSync(process.argv[2], "utf8")));
   const sans = mots.filter(m => !C.trouDe(m));
   const taux = 1 - sans.length / mots.length;
-  console.log(`Carte 2 : le mot retrouvé dans ${mots.length - sans.length} exemples sur ${mots.length} (${Math.round(taux * 100)} %).`);
-  ok(taux >= 0.9, "au moins 90 % des mots ont une carte 2");
+  console.log(`Phrase à trou (carte 5, Mes mots en cours) : le mot retrouvé dans ${mots.length - sans.length} exemples sur ${mots.length} (${Math.round(taux * 100)} %).`);
+  ok(taux >= 0.9, "au moins 90 % des mots ont une phrase à trou");
   for (const m of mots) {
     const t = C.trouDe(m);
     if (t) ok(t.phrase.split("___").length === 2 && t.reponse.trim(), `trou bien formé : ${m.id}`);
