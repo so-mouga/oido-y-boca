@@ -3,16 +3,16 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets, dateCourte } from "../ui.js?v=86";
-import { lecon as trouver } from "../position.js?v=86";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=86";
-import { etatRevision, apprisEnAvance, difficile } from "../progression.js?v=86";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=86";
-import { mesVerbes, suggestions } from "../verbes.js?v=86";
-import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE, nbQuestions, PAR_MOT } from "../motsencours.js?v=86";
-import { htmlCartes } from "./cartesmot.js?v=86";
-import { ligneDe, nouvellesDuProf, blocages } from "../astuces.js?v=86";
-import { phraseTouchable } from "../toucher.js?v=86";
+import { esc, md, id, titre, ICONES, barreOnglets, dateCourte } from "../ui.js?v=87";
+import { lecon as trouver } from "../position.js?v=87";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=87";
+import { etatRevision, apprisEnAvance, difficile } from "../progression.js?v=87";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=87";
+import { mesVerbes, suggestions } from "../verbes.js?v=87";
+import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE, nbQuestions, PAR_MOT } from "../motsencours.js?v=87";
+import { htmlCartes } from "./cartesmot.js?v=87";
+import { ligneDe, nouvellesDuProf, blocages } from "../astuces.js?v=87";
+import { phraseTouchable } from "../toucher.js?v=87";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";

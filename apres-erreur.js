@@ -6,7 +6,7 @@
 //   le compte : on lit, puis « Suivant » comme avant. Avec le mouvement réduit, un texte « Suite dans 8 s » à la place de la barre.
 // Les écrans (pratique, Mes mots en cours, verbes) donnent le texte à dire, la zone du compte et l'action « Suivant ».
 
-import { dire } from "./voix.js?v=86";
+import { dire } from "./voix.js?v=87";
 
 export const SAIS_PAS_APRES = 5000;
 export const PAR_MOT = 500;

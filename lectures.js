@@ -37,10 +37,10 @@ export const FEUILLETON = { titre: "Calle del Sol, 5", resume: "Giulia, une Ital
 
 // Les voix du mode Écouter (Q25-9) : deux au plus, jamais trafiquées. La voix d'Espagne du téléphone (un homme)
 // pour les hommes et le narrateur, la voix latino (une femme) pour les femmes.
-export const FEMMES = new Set(["Blanca", "Giulia", "Una amiga", "Su madre"]);
+export const FEMMES = new Set(["Blanca", "Giulia", "Una amiga", "Su madre", "Pilar"]);
 
 // Les prénoms et les villes : pas de traduction.
-export const NOMS = new Set(["kevin", "blanca", "léo", "dorian", "huesca", "parís", "galicia", "giulia", "roma", "tomás", "rufo"]);
+export const NOMS = new Set(["kevin", "blanca", "léo", "dorian", "huesca", "parís", "galicia", "giulia", "roma", "tomás", "rufo", "marco", "pilar"]);
 
 // Les petits mots qu'on retrouve partout. Un texte peut toujours donner une traduction plus juste dans « mots ».
 export const GLOSE = {
@@ -186,6 +186,56 @@ export const NIVEAUX = [
           { es: "Por la tarde, Giulia está…", fr: "L'après-midi, Giulia est…", choix: ["en clase.", "en casa.", "en Roma."], bonne: 1, ph: 5 },
           { es: "Tomás es…", fr: "Tomás est…", choix: ["un vecino.", "un amigo de Roma.", "el hermano de Giulia."], bonne: 0, ph: 10 },
           { es: "Mañana es el cumpleaños de…", fr: "Demain, c'est l'anniversaire de…", choix: ["Giulia.", "Tomás.", "Rufo."], bonne: 1, ph: 19 },
+        ],
+      },
+      {
+        id: "n1-para-marco", titre: "Para Marco", sorte: "vocal", unite: 2, de: "Giulia",
+        texte: [
+          "Hola, Marco. Soy yo, Giulia. Son las nueve de la noche y estoy en casa. Hoy tengo clase de español. Somos doce: once son de Francia y una es italiana, ¡yo! Hablamos solo español. No entiendo mucho, pero ya hablo un poco. ¿Hablamos por teléfono el sábado por la mañana? ¡Adiós!",
+        ],
+        nouveaux: { clase: ["clase"], italiano: ["italiana"] },
+        mots: {
+          "soy yo": "c'est moi", "son las nueve de la noche": "il est neuf heures du soir", "en casa": "à la maison",
+          hoy: "aujourd'hui", tengo: "j'ai (tener)", "clase de español": "cours d'espagnol (la clase)",
+          somos: "nous sommes (ser)", doce: "douze", once: "onze", son: "sont (ser)", "de francia": "de France",
+          "una es italiana": "une est italienne (italiano)", hablamos: "on parle (hablar)",
+          "español": "espagnol", "no entiendo": "je ne comprends pas", hablo: "je parle (hablar)",
+          "por teléfono": "au téléphone", "el sábado por la mañana": "samedi matin", "adiós": "au revoir",
+        },
+        questions: [
+          { es: "Giulia está…", fr: "Giulia est…", choix: ["en clase.", "en casa.", "en el trabajo."], bonne: 1, ph: 2 },
+          { es: "En la clase de Giulia, ¿cuántos son de Francia?", fr: "Dans le cours de Giulia, combien viennent de France ?", choix: ["Doce.", "Once.", "Dos."], bonne: 1, ph: 4 },
+          { es: "Giulia y Marco hablan por teléfono…", fr: "Giulia et Marco se parlent au téléphone…", choix: ["el sábado por la mañana.", "el domingo por la tarde.", "hoy por la noche."], bonne: 0, ph: 7 },
+        ],
+      },
+      {
+        id: "n1-pilar-del-pueblo", titre: "Pilar, del pueblo", sorte: "interview", unite: 2,
+        texte: [
+          "— Hola, Pilar. ¿Cuántos años tienes?",
+          "— Tengo setenta y dos años.",
+          "— ¿Vives en Huesca?",
+          "— No, vivo en un pueblo, a diez minutos de Huesca.",
+          "— ¿Y trabajas todavía?",
+          "— Sí, los sábados y los domingos, en el bar del pueblo. Es el bar de mi hermano.",
+          "— ¿Qué día es tu cumpleaños?",
+          "— El quince de agosto, en las fiestas de San Lorenzo.",
+          "— ¡Muchas gracias, Pilar!",
+        ],
+        parle: ["El periodista", "Pilar", "El periodista", "Pilar", "El periodista", "Pilar", "El periodista", "Pilar", "El periodista"],
+        nouveaux: { bar: ["bar"], fiesta: ["fiestas"] },
+        mots: {
+          "cuántos años tienes": "quel âge as-tu ? (tener … años)", "tengo setenta y dos años": "j'ai soixante-douze ans (tener)",
+          vives: "tu habites (vivir)", vivo: "j'habite (vivir)", "en huesca": "à Huesca", "un pueblo": "un village (el pueblo)",
+          "a diez minutos de": "à dix minutes de (el minuto)", trabajas: "tu travailles (trabajar)",
+          "los sábados y los domingos": "le samedi et le dimanche (chaque semaine)", "el bar": "le bar, le café",
+          "del pueblo": "du village", "mi hermano": "mon frère (el hermano)", "qué día": "quel jour",
+          "tu cumpleaños": "ton anniversaire (el cumpleaños)", "el quince de agosto": "le 15 août",
+          "las fiestas de san lorenzo": "les fêtes de la Saint-Laurent (la fiesta)", "muchas gracias": "merci beaucoup",
+        },
+        questions: [
+          { es: "Pilar tiene…", fr: "Pilar a…", choix: ["veintidós años.", "setenta años.", "setenta y dos años."], bonne: 2, ph: 2 },
+          { es: "Pilar trabaja…", fr: "Pilar travaille…", choix: ["de lunes a viernes.", "los sábados y los domingos.", "por la noche."], bonne: 1, ph: 6 },
+          { es: "El cumpleaños de Pilar es…", fr: "L'anniversaire de Pilar, c'est…", choix: ["el diez de agosto.", "el quince de agosto.", "el quince de diciembre."], bonne: 1, ph: 9 },
         ],
       },
     ],

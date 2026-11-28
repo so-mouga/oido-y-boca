@@ -3,16 +3,16 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=86";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=86";
-import { tempsVu } from "../verbes.js?v=86";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=86";
-import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce, cocher } from "../progression.js?v=86";
-import { motsAMoi } from "../dico.js?v=86";
-import { ligneDe } from "../astuces.js?v=86";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=86";
-import { vibrer, son } from "../retours.js?v=86";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=86";
+import { esc, md, ICONES } from "../ui.js?v=87";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=87";
+import { tempsVu } from "../verbes.js?v=87";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=87";
+import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce, cocher } from "../progression.js?v=87";
+import { motsAMoi } from "../dico.js?v=87";
+import { ligneDe } from "../astuces.js?v=87";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=87";
+import { vibrer, son } from "../retours.js?v=87";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=87";
 
 let s = null; // la séance en cours
 

@@ -4,7 +4,7 @@
 // Rien ici ne touche l'écran ni la mémoire : ecrans/pratique.js note, outils/test-oreille.mjs vérifie.
 // note : 3 = Oui, 2 = Avec peine, 1 = Non (comme les autres cartes). Avec un indice, Avec peine au mieux.
 
-import { corriger, mots } from "./corriger.js?v=86";
+import { corriger, mots } from "./corriger.js?v=87";
 
 // Les petits mots qu'on n'entend presque pas (« Petit mot oublié : a »).
 export const PETITS = new Set(("a al de del en el la lo los las le les un una unos unas y e o u me te se nos os mi tu su mis tus sus "

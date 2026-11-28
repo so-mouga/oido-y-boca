@@ -6,9 +6,9 @@
 // La clé d'une ligne = l'id du mot (« U1-L5|el cuñado / la cuñada », « moi-… ») ; un verbe hors Vocabulaire : son infinitif.
 // Dans la liste « Mes mots en cours », un verbe a pour clé son infinitif : cleOnglet fait le lien.
 
-import { lireDate } from "./donnees.js?v=86";
-import { resoudre, cleDe, mettreMotEnCours, sortirDesCours } from "./motsencours.js?v=86";
-import { difficile, noterDifficile, tousDifficiles, verbesEnCours, mettreEnCours, marquerEntre, dateEnCours, fichesCartes } from "./progression.js?v=86";
+import { lireDate } from "./donnees.js?v=87";
+import { resoudre, cleDe, mettreMotEnCours, sortirDesCours } from "./motsencours.js?v=87";
+import { difficile, noterDifficile, tousDifficiles, verbesEnCours, mettreEnCours, marquerEntre, dateEnCours, fichesCartes } from "./progression.js?v=87";
 
 // La clé de la ligne d'un mot de la liste (clé de la liste → id du mot).
 export const cleOnglet = (ctx, cle) => resoudre(ctx, cle)?.m?.id || cle;
