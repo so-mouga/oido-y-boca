@@ -49,7 +49,7 @@ export const EXERCICES = {
       { consigne: T, fr: "J'habite à Huesca depuis cinq ans.", es: ["Vivo en Huesca desde hace cinco años."] },
       { consigne: C, fr: "Nosotros ___ en un piso. (vivir)", es: ["vivimos"], v: "vivir", p: 3, trad: "Nous habitons dans un appartement." },
       { consigne: T, fr: "Tu habites dans un appartement ou dans une maison ?", es: ["¿Vives en un piso o en una casa?"] },
-      { consigne: T, fr: "Huesca est une petite ville.", es: ["Huesca es una ciudad pequeña."] },
+      { consigne: T, fr: "Huesca est une petite ville.", es: ["Huesca es una ciudad pequeña.", "Huesca es una pequeña ciudad."] },
     ],
     dire: [
       { fr: "Nous habitons dans un appartement, en ville.", es: "Vivimos en un piso, en la ciudad." },
@@ -143,7 +143,7 @@ export const EXERCICES = {
       { consigne: T, fr: "Demain, c'est mardi.", es: ["Mañana es martes."] },
     ],
     dire: [
-      { fr: "Aujourd'hui, c'est lundi ; hier, c'était dimanche.", es: "Hoy es lunes, ayer fue domingo." },
+      { fr: "Hier, dimanche ; aujourd'hui, lundi ; demain, mardi.", es: "Ayer, domingo; hoy, lunes; mañana, martes." },
       { fr: "Je vais à la salle de sport quatre jours par semaine.", es: "Voy al gimnasio cuatro días a la semana." },
       { fr: "Demain matin, je travaille à la maison.", es: "Mañana por la mañana trabajo desde casa." },
     ],
@@ -484,7 +484,7 @@ export const EXERCICES = {
   },
   "U7-L1": {
     ecrire: [
-      { consigne: T, fr: "Dans le salon, il y a une grande table.", es: ["En el salón hay una mesa grande."] },
+      { consigne: T, fr: "Dans le salon, il y a une grande table.", es: ["En el salón hay una mesa grande.", "En el salón hay una gran mesa."] },
       { consigne: C, fr: "¿Dónde ___ el baño? (hay ou estar)", es: ["está"], expl: "Une chose connue (*el baño*) : où elle se trouve, **está**." },
       { consigne: C, fr: "En mi despacho ___ una silla. (hay ou estar)", es: ["hay"], expl: "Une chose nouvelle (*una silla*) : **hay**, il y a." },
       { consigne: T, fr: "Notre cuisine est très jolie.", es: ["Nuestra cocina es muy bonita."] },

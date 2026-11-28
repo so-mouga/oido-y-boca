@@ -116,7 +116,7 @@ export const BONUS = {
       { fr: "¿Tú ___ el español?", v: "comprender", p: 1, sens: "comprendre", trad: "Tu comprends l'espagnol ?" },
       { fr: "Mi jefe ___ el piso.", v: "vender", p: 2, sens: "vendre", trad: "Mon chef vend l'appartement." },
       { fr: "Nosotros ___ en el barrio.", v: "correr", p: 3, sens: "courir", trad: "Nous courons dans le quartier." },
-      { fr: "Vosotros ___ con los amigos.", v: "beber", p: 4, sens: "boire", trad: "Vous buvez avec les amis." },
+      { fr: "Vosotros ___ con amigos.", v: "beber", p: 4, sens: "boire", trad: "Vous buvez avec des amis." },
       { fr: "Mis hermanas ___ en francés.", v: "responder", p: 5, sens: "répondre", trad: "Mes sœurs répondent en français." },
       { fr: "Mi hermana ___ en casa.", v: "leer", p: 2, sens: "lire", trad: "Ma sœur lit à la maison." },
       { fr: "¿Vosotros ___ a Blanca?", v: "comprender", p: 4, sens: "comprendre", trad: "Vous comprenez Blanca ?" },

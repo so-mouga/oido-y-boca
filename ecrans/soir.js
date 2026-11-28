@@ -3,10 +3,10 @@
 // Les soirs sans nouvelle fiche (celle de la dernière leçon déjà faite un soir d'avant), c'est un soir de révision :
 // 4 questions de 4 anciennes leçons et un autre défi, fixes pour la journée. « /fiche » remet la fiche normale.
 
-import { esc, id, ICONES, barreOnglets } from "../ui.js?v=78";
-import { cases, cocher, dernierJourCoche } from "../progression.js?v=78";
-import { GUIDE_HTML } from "../guide.js?v=78";
-import { lireReto, tirerPregunta, tirerRepaso } from "../donnees.js?v=78";
+import { esc, id, ICONES, barreOnglets } from "../ui.js?v=79";
+import { cases, cocher, dernierJourCoche } from "../progression.js?v=79";
+import { GUIDE_HTML } from "../guide.js?v=79";
+import { lireReto, tirerPregunta, tirerRepaso } from "../donnees.js?v=79";
 
 function fiche(ctx) {
   const l = ctx.pos.derniere;
@@ -100,11 +100,21 @@ const HASARD = '<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M
 
 // Chantier 20 : les relances, toujours les mêmes, sous chaque question (un rappel, pas des boutons).
 export const RELANCES = ["¿Por qué?", "¿Y antes?", "¿Cuál prefieres?", "Cuéntame más"];
-const relances = titre => `<div class="relances"><span class="sous">${titre}</span><ul class="puces">${RELANCES.map(r => `<li>${esc(r)}</li>`).join("")}</ul></div>`;
+// Décisions du 28 nov. (7 bis.2) : pas de passé avant que le livre l'enseigne (U9-L1, le pretérito perfecto).
+// Jusque-là, « ¿Y antes? » laisse sa place à « ¿Y tu familia? ».
+export const LECON_PASSE = "U9-L1";
+export const relancesPour = faites => faites.has(LECON_PASSE) ? RELANCES : RELANCES.map(r => r === "¿Y antes?" ? "¿Y tu familia?" : r);
+const relances = (titre, liste) => `<div class="relances"><span class="sous">${titre}</span><ul class="puces">${liste.map(r => `<li>${esc(r)}</li>`).join("")}</ul></div>`;
 
 // « Tu clase de hoy » (Q20-8) : le premier écran des soirs de fiche (pas des soirs de révision). Toujours la même question,
 // pour que je raconte ma leçon du matin ; les mots de la leçon en aide. Des mots transparents (clase, frase) : une formule apprise à force.
+// Décisions du 28 nov. (7 bis.5) : « de hoy » seulement s'il y a une ligne du jour dans « Suivi » ; sinon « tu última clase »
+// (toujours vrai, même si la leçon date d'avant-hier).
 export const CLASE = "Cuéntame tu clase de hoy: ¿qué palabras nuevas tienes? ¿Qué frase sabes decir?";
+export const CLASE_DERNIERE = "Cuéntame tu última clase: ¿qué palabras nuevas tienes? ¿Qué frase sabes decir?";
+// Le bloc « Si se bloquea » (7 bis.5 : sur toutes les questions). Rien s'il n'y a pas de mots.
+const aide = (titre, liste) => liste.length ? `<details class="ayuda"><summary>Si se bloquea: ${titre}</summary>
+          <span class="sous">Puedes soplarle:</span><ul class="puces">${liste.map(w => `<li>${esc(w)}</li>`).join("")}</ul></details>` : "";
 
 // La nota de Blanca, dans les cases du jour : { lecon, notas: [{ t: "bien" | "err", txt, ou }], bien, error, mejora, comida, guardada }.
 export const notaDuJour = jour => cases(jour).nota || null;
@@ -168,12 +178,14 @@ export function ecranBlanca(ctx, a, b) {
   const k = s.etapes.indexOf(etape);
   const nbQ = s.questions.length + (s.abierta ? 1 : 0);
   const page = html => ({ onglet: null, nuit: true, html: `<main class="colonne blanca" lang="es">${html}</main>` });
+  const rel = relancesPour(ctx.pos.faites);
+  const motsEs = mots => mots.map(m => m.es);
 
   if (etape === "inicio") {
     return page(`${enTete(s, `Para Blanca${s.repaso ? " · repaso" : ""} · 10-15 minutos`)}
         <p class="mision">${esc(s.mision)}</p>
         <p class="sous parar">Podéis parar cuando queráis.</p>
-        ${relances("Una pregunta por pantalla. Si contesta corto, sigue con:")}
+        ${relances("Una pregunta por pantalla. Si contesta corto, sigue con:", rel)}
         <p class="sous">Si dice una frase bien o se equivoca, apúntalo. Al final, le das tu nota. Nada es obligatorio.</p>
         ${s.mots.length ? `<section aria-labelledby="t-pal"><h2 id="t-pal">Las palabras que tiene que usar</h2>${puces(s.mots)}</section>` : ""}
         <a class="primaire soleil empezar" href="${s.href(s.etapes[1])}">Empezar</a>
@@ -181,15 +193,15 @@ export function ecranBlanca(ctx, a, b) {
   }
 
   if (etape === "clase") {
-    return page(`${enTete(s, "Tu clase de hoy")}
+    const hoy = ctx.pos.seanceDuJour;
+    return page(`${enTete(s, hoy ? "Tu clase de hoy" : "Tu última clase")}
         ${avance(s, etape)}
         <div class="une-question">
-          <span class="etiq-abierta">Para empezar · su clase de esta mañana</span>
-          <p class="grande">${esc(CLASE)}</p>
+          <span class="etiq-abierta">Para empezar · ${hoy ? "su clase de esta mañana" : "su última clase"}</span>
+          <p class="grande">${esc(hoy ? CLASE : CLASE_DERNIERE)}</p>
         </div>
-        ${relances("Si contesta corto:")}
-        ${s.mots.length ? `<details class="ayuda"><summary>Si se bloquea: las palabras de la lección</summary>
-          <span class="sous">Puedes soplarle:</span>${puces(s.mots)}</details>` : ""}
+        ${relances("Si contesta corto:", rel)}
+        ${aide("las palabras de la lección", motsEs(s.mots))}
         ${listeNotas(notasDe(ctx, etape))}
         ${boutonsApuntar(etape)}
         ${pas(s, etape)}`);
@@ -205,9 +217,9 @@ export function ecranBlanca(ctx, a, b) {
           ${q.de ? `<span class="de">lección ${id(q.de)}</span>` : ""}
           <p class="grande">${question(q.texte)}</p>
         </div>
-        ${relances("Si contesta corto:")}
-        ${ouverte && q.ayuda.length ? `<details class="ayuda"><summary>Si se bloquea: palabras para ayudarle</summary>
-          <span class="sous">Puedes soplarle:</span><ul class="puces">${q.ayuda.map(w => `<li>${esc(w)}</li>`).join("")}</ul></details>` : ""}
+        ${relances("Si contesta corto:", rel)}
+        ${ouverte && q.ayuda?.length ? aide("palabras para ayudarle", q.ayuda)
+          : aide("las palabras de la lección", motsEs(q.de ? ctx.motsParLecon[q.de] || [] : s.mots))}
         <p class="ytu"><b>¿Y tú?</b><span>Después, Kevin te hace la pregunta a ti.</span></p>
         ${listeNotas(notasDe(ctx, etape))}
         ${boutonsApuntar(etape)}

@@ -113,6 +113,16 @@ egal(rejouer(deuxFois).slice(9).map(r => r.ensuite),
   ["consolidation 1 de U2-L2", "consolidation 2 de U2-L2 (une 3e si tu la choisis)", "SÉANCE ORALE", "SÉANCE ORALE", "leçon U2-L3"],
   "2 consolidations au plus, l'appli suit une 3e écrite par le prof");
 
+// 2c bis. Décisions du 28 nov. : seul le début de la remarque compte. Un résumé qui reparle de « grammaire non validée » ne lance pas de consolidation.
+const resume = [...vrai,
+  L("2026-11-30", "U1-L6", "leçon", "Grammaire validée : 85 %. Écoute : 14/18. Oral : 6/8. Rappel : la grammaire non validée de U1-L5 est revue.")];
+montrer("Cas 2 ter : « grammaire non validée » plus loin dans le résumé", resume);
+egal(rejouer(resume).at(-1).ensuite, rejouer([...vrai, L("2026-11-30", "U1-L6", "leçon", V)]).at(-1).ensuite,
+  "seul le début de la remarque compte : pas de consolidation");
+const vieuxFormat = [...vrai, L("2026-11-30", "U1-L6", "leçon", "1re séance. Grammaire non validée : 70 %.")];
+egal(rejouer(vieuxFormat).at(-1).ensuite.startsWith("consolidation"), false,
+  "une remarque qui ne commence pas par « Grammaire » ne compte pas (le prof commence toujours par elle)");
+
 // 2d. Un contrôle raté : consolidation, puis le contrôle à refaire.
 const rate = [...vrai,
   L("2026-11-30", "U1-L6", "leçon"), L("2026-12-01", "U1-contrôle", "contrôle", "Écoute : 11/18.", 72),

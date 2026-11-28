@@ -2,7 +2,7 @@
 // Fait = une ligne de type « leçon » pour cette leçon. L'appli n'ouvre que ce qui est fait.
 // Chantier 22 : la prochaine séance avec le prof (leçon, contrôle, consolidation ou oral), dans l'ordre du prof (prochaineSeance).
 
-import { PARTIES } from "./livre.js?v=78";
+import { PARTIES } from "./livre.js?v=79";
 
 export const UNITES = PARTIES.flatMap(p => p.unites.map(u => ({ ...u, partie: p.n })));
 export const LECONS = UNITES.flatMap(u => u.lecons.map(l => ({ ...l, unite: u, partie: u.partie })));
@@ -64,8 +64,10 @@ export const DEBUT_ORAL = "2026-11-30";
 export const SEANCES_AVANT_ORAL = 4;
 const TRAVAIL = new Set(["leçon", "consolidation", "contrôle", "reprise"]);
 export const estOrale = s => s.type === "orale" || s.type === "oral";
-const NON_VALIDEE = /grammaire\s+non\s+valid[ée]e/i;
-const VALIDEE = /grammaire\s+valid[ée]e/i;
+// La remarque commence toujours par « Grammaire validée : 85 %. » ou « Grammaire non validée : 70 %. » (règle du prof, 28 nov.) :
+// on ne regarde que le début, pour qu'un résumé qui en reparle (« la grammaire non validée hier… ») ne compte pas.
+const NON_VALIDEE = /^\s*grammaire\s+non\s+valid[ée]e/i;
+const VALIDEE = /^\s*grammaire\s+valid[ée]e/i;
 
 // Les lignes dans l'ordre des séances : par date, puis par ordre dans l'onglet.
 const ordreSuivi = (a, b) => (a.date || "").localeCompare(b.date || "") || a.rang - b.rang;
