@@ -237,7 +237,7 @@ export const CHARLAS = [
       { lui: "¿Y bailasteis?",
         ok: "Sí, bailamos un poco después de cenar.",
         pieges: [
-          ["Sí, bailasteis un poco después de cenar.", "¿Yo? ¡Yo no estaba! 😂", "<i>bailasteis</i> = vous avez dansé. Pour vous, avec toi : <i>bailamos</i>.", "personne"],
+          ["Sí, bailasteis un poco después de cenar.", "¿Yo? ¡Yo no salí con vosotros! 😂", "<i>bailasteis</i> = vous avez dansé. Pour vous, avec toi : <i>bailamos</i>.", "personne"],
           ["Sí, bailamos un poco después de cena.", "¿Después de cena? 😅 Después de cenar.", "Après <i>de</i>, le verbe à l'infinitif : <i>después de cenar</i>."],
         ],
         rires: [
@@ -358,7 +358,7 @@ export const CHARLAS = [
         ok: "Sí, Léo durmió todo el viaje.",
         pieges: [
           ["Sí, Léo duerme todo el viaje.", "¿Siempre? 😄", "C'est fini : le passé simple, <i>durmió</i>.", "temps"],
-          ["Sí, Léo dormí todo el viaje.", "¿Tú dormiste? ¿Y quién conducía? 😱", "<i>dormí</i> = j'ai dormi. Pour Léo : <i>durmió</i>.", "personne"],
+          ["Sí, Léo dormí todo el viaje.", "¿Tú dormiste? ¿Y quién condujo? 😱", "<i>dormí</i> = j'ai dormi. Pour Léo : <i>durmió</i>.", "personne"],
         ],
         rires: [
           ["Tengo cita con el médico.", "¿Estás malo? 😅", "Il demande si les enfants ont été sages."],
@@ -399,8 +399,8 @@ export const CHARLAS = [
           ["Estuve en casa. Tuve trabajar hasta tarde.", "¿Tuve trabajar? 😅 Tuve QUE trabajar.", "Devoir : <i>tener que</i> → <i>tuve que trabajar</i>."],
         ],
         rires: [
-          ["Le di un libro a Dorian.", "¡Qué bien! 😄 Pero ¿dónde estabas?", "Elle demande où tu étais hier après-midi."],
-          ["Me gusta la verdura.", "¡Qué sano! 😄 Pero ¿dónde estabas?", "Elle demande où tu étais hier après-midi."],
+          ["Le di un libro a Dorian.", "¡Qué bien! 😄 Pero ¿dónde estuviste?", "Elle demande où tu étais hier après-midi."],
+          ["Me gusta la verdura.", "¡Qué sano! 😄 Pero ¿dónde estuviste?", "Elle demande où tu étais hier après-midi."],
         ],
         suite: "¡Claro, por eso no oíste nada!" },
       { lui: "¡Y el técnico tardó una hora más! Pero Luis salió bien, tranquilo.",

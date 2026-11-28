@@ -92,7 +92,7 @@ export const CHARLAS = [
         ],
         rires: [
           ["El pan es barato.", "Sí… ¿y el vino? 😄", "Il dit qu'il n'aime pas le vin : <i>a mí tampoco</i>."],
-          ["Estoy lleno.", "¿Ya? ¡Si todavía no hemos quedado! 😂", "Il dit qu'il n'aime pas le vin : <i>a mí tampoco</i>."],
+          ["Estoy lleno.", "¿Ya? ¡Si todavía no estamos en la terraza! 😂", "Il dit qu'il n'aime pas le vin : <i>a mí tampoco</i>."],
         ],
         suite: "¡Bien! Somos dos." },
       { lui: "Entonces, el sábado a las siete, ¿vale?",
@@ -209,7 +209,7 @@ export const CHARLAS = [
   {
     id: "u07-marta-llaves", lecon: "U7-L5", perso: "marta", lieu: "ta voisine, dans l'entrée de l'immeuble",
     echanges: [
-      { lui: "¡Kevin! ¡Ay! ¿Has visto mis llaves? No las encuentro.",
+      { lui: "¡Kevin! ¡Ay! No encuentro mis llaves. ¿Las ves por aquí?",
         ok: "No. ¿Están en tu coche?",
         pieges: [
           ["No. ¿Están en mi coche?", "¿En TU coche? ¿Por qué? 😂", "<i>mi coche</i> = ma voiture. La sienne : <i>tu coche</i>.", "personne"],

@@ -3,15 +3,15 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=83";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=83";
-import { tempsVu } from "../verbes.js?v=83";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=83";
-import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce } from "../progression.js?v=83";
-import { motsAMoi } from "../dico.js?v=83";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=83";
-import { vibrer, son } from "../retours.js?v=83";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=83";
+import { esc, md, ICONES } from "../ui.js?v=84";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=84";
+import { tempsVu } from "../verbes.js?v=84";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=84";
+import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce, cocher } from "../progression.js?v=84";
+import { motsAMoi } from "../dico.js?v=84";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=84";
+import { vibrer, son } from "../retours.js?v=84";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=84";
 
 let s = null; // la séance en cours
 
@@ -224,16 +224,17 @@ function vueFin() {
     </div>
     <div class="espace"></div>
     <button class="secondaire" data-mc="encore">Encore une séance</button>
-    <a class="primaire" href="${s.retour}" data-remplace>${s.mode === "un" ? "Retour à la fiche" : "Retour au Dico"}</a>`;
+    <a class="primaire" href="${s.retour}" data-remplace>${s.mode === "un" ? "Retour à la fiche" : s.retour === "#/" ? "Revenir à aujourd'hui" : "Retour au Dico"}</a>`;
 }
 
-// #/mots/cours, #/mots/un/CLE/ID/DEPUIS
+// #/mots/cours, #/mots/cours/jour (depuis « Aujourd'hui », étape 5 : on y revient), #/mots/un/CLE/ID/DEPUIS
 export function ecranMots(ctx, mode, a, b, c) {
   const un = mode === "un" ? decodeURIComponent(a || "") : null;
-  const retour = mode === "un" && b ? `#/dico/mot/${b}/${c || "dico"}` : "#/dico";
+  const retour = mode === "un" && b ? `#/dico/mot/${b}/${c || "dico"}` : mode === "cours" && a === "jour" ? "#/" : "#/dico";
   const cle = `${mode}:${un || ""}`;
   // Une séance quittée en cours reprend à la même question ; une séance finie recommence.
   if (!s || s.cle !== cle || s.fini) nouvelleSeance(ctx, cle, mode, un, retour);
+  else s.retour = retour; // reprise depuis un autre endroit (le Dico ou Aujourd'hui) : on revient là d'où on vient
   if (!s.questions.length) {
     s = null;
     return { onglet: null, html: `<main class="colonne vide"><h1>Rien à travailler</h1><p class="sous">Pas encore de mot en cours : ajoute-en un depuis sa fiche du Dico, ou en le touchant dans une phrase.</p><a class="lien" href="${retour}">Revenir</a></main>` };
@@ -243,6 +244,8 @@ export function ecranMots(ctx, mode, a, b, c) {
       s.fini = true;
       son("fin");
       noterSerieVerbes(bilanParMot(s.resultats), ctx.jour);
+      // Étape 5 (Q26-23) : la ligne « Mes mots en cours » de « Ta journée » est faite (« séance faite · 9 sur 10 »).
+      cocher(ctx.jour, "motscours", { ok: s.resultats.filter(r => r.ok).length, sur: s.resultats.length });
     }
     return { onglet: null, html: `<main class="colonne exo">${vueFin()}</main>` };
   }

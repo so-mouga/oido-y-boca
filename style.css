@@ -1079,3 +1079,12 @@ mark .tx-mot.touche { box-shadow: none; }
 .astuce-zone { width: 100%; font: inherit; font-size: 16px; color: var(--marine); background: #fff; border: 2px solid var(--hair); border-radius: 14px; padding: 10px 12px; resize: vertical; }
 .astuce-zone:focus { outline: none; border-color: var(--marine-soft); }
 .entre-cours { background: var(--card); border: 1px solid var(--hair); border-radius: 14px; padding: 10px 12px; font-size: 14px; line-height: 1.4; }
+
+/* Aujourd'hui, étape 5 (maquette aujourdhui-v2) : « En plus, si tu veux », sous « Ta journée », plus discret, sans rond à cocher */
+.en-plus h2 { font-size: 13px; font-weight: 500; color: var(--muted); }
+.en-plus ul { list-style: none; padding: 2px 14px; margin: 8px 0 0; border: 1.5px dashed var(--hair); border-radius: 16px; }
+.en-plus li + li { border-top: 1px solid var(--hair); }
+.en-plus .aller { padding: 10px 0; }
+.en-plus .aller b { font-size: 14px; color: var(--marine-soft); }
+.en-plus li.faite .aller b { color: var(--muted); }
+.en-plus .ok-plus { color: var(--sage-ink); font-weight: 600; }

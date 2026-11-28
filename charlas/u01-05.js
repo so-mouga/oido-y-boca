@@ -51,7 +51,7 @@ export const CHARLAS = [
         ],
         rires: [
           ["El ordenador no funciona.", "¡Ay! Yo no sé de ordenadores. 😄", "Il a parlé trop vite : demande-lui de répéter, <i>¿puedes repetir?</i>"],
-          ["Estoy muy contento en Huesca.", "¡Me alegro! 😄 Pero… ¿me has entendido?", "Il a parlé trop vite : demande-lui de répéter."],
+          ["Estoy muy contento en Huesca.", "¡Me alegro! 😄 Pero… ¿me entiendes?", "Il a parlé trop vite : demande-lui de répéter."],
         ],
         suite: "Perdona, perdona. Quinto B. ¡Aquí estoy para lo que necesites!" },
     ],
@@ -134,7 +134,7 @@ export const CHARLAS = [
       { lui: "¿Y de qué año? ¿El año que viene?",
         ok: "Sí, en dos mil veintisiete.",
         pieges: [
-          ["Sí, en dos mil diecisiete.", "¿Diecisiete? ¡Eso ya pasó! 😂", "<i>veintisiete</i> = 27 ; <i>diecisiete</i> = 17.", "nombre"],
+          ["Sí, en dos mil diecisiete.", "¿Diecisiete? ¡Kevin, estamos en dos mil veintiséis! 😂", "<i>veintisiete</i> = 27 ; <i>diecisiete</i> = 17.", "nombre"],
           ["Sí, en dos mil veintiséis.", "¿Este año? ¡Pero si ya es noviembre! 😅", "2026, c'est <i>veintiséis</i>. Le mariage, c'est en 2027 : <i>veintisiete</i>.", "nombre"],
         ],
         rires: [
@@ -410,7 +410,7 @@ export const CHARLAS = [
           ["Está bien, gracias. ¿Y usted?", "¿Quién está bien? 😅", "<i>está</i>, c'est « il est ». Pour toi : <i>estoy bien</i>, ou juste <i>bien</i>.", "personne"],
         ],
         rires: [
-          ["Son las ocho y cuarto.", "¡Gracias! Pero te preguntaba qué tal. 😄", "Il demande comment tu vas."],
+          ["Son las ocho y cuarto.", "¡Gracias! Pero te pregunto qué tal. 😄", "Il demande comment tu vas."],
           ["Mi coche es pequeño.", "¡Como este ascensor! 😂", "Il demande comment tu vas."],
         ],
         suite: "Bien, bien, gracias." },
@@ -489,7 +489,7 @@ export const CHARLAS = [
         ok: "El diecinueve de junio. ¡Estoy muy nervioso!",
         pieges: [
           ["El diecinueve de junio. ¡Soy muy nervioso!", "¿Siempre? ¡Pues no lo pareces! 😅", "Nerveux en ce moment : <i>estoy nervioso</i>. <i>Soy nervioso</i>, c'est ton caractère.", "ser-estar"],
-          ["El nueve de junio. ¡Estoy muy nervioso!", "¿El nueve? Blanca me dijo el diecinueve… 😅", "<i>diecinueve</i> = 19 ; <i>nueve</i> = 9.", "nombre"],
+          ["El nueve de junio. ¡Estoy muy nervioso!", "¿El nueve? Blanca dice que es el diecinueve… 😅", "<i>diecinueve</i> = 19 ; <i>nueve</i> = 9.", "nombre"],
         ],
         rires: [
           ["Mañana llueve.", "Vale… ¿y la boda? 😄", "Il demande quand vous vous mariez."],
@@ -516,7 +516,7 @@ export const CHARLAS = [
         ok: "Están comiendo en la cocina.",
         pieges: [
           ["Están comiendo a la cocina.", "¿A la cocina? 😅", "On est <i>en</i> un lieu : <i>en la cocina</i>.", "preposition"],
-          ["Estamos comiendo en la cocina.", "¿Tú también? ¿No estabas trabajando? 😂", "<i>estamos</i>, c'est « nous sommes ». Pour les enfants : <i>están</i>.", "personne"],
+          ["Estamos comiendo en la cocina.", "¿Tú también? ¿No estás trabajando? 😂", "<i>estamos</i>, c'est « nous sommes ». Pour les enfants : <i>están</i>.", "personne"],
         ],
         rires: [
           ["La cocina es grande.", "Ya lo sé, cariño. 😄 Vivo ahí.", "Elle demande ce que font les enfants."],

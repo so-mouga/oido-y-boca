@@ -2,20 +2,23 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=83";
-import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs } from "../progression.js?v=83";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=83";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=83";
-import { EXERCICES } from "../exercices.js?v=83";
-import { controlePret, dernierResultat } from "./controle.js?v=83";
-import { motsDus, PAQUET } from "./pratique.js?v=83";
-import { BONUS } from "../bonus.js?v=83";
-import { motsPourLOral, copieFaite } from "./mesmots.js?v=83";
-import { estOrale } from "../position.js?v=83";
-import { soirRepaso } from "./soir.js?v=83";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=83";
-import { rattraperEntrees } from "../motsencours.js?v=83";
-import { motsAMoi } from "../dico.js?v=83";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=84";
+import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs, etatJeux } from "../progression.js?v=84";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=84";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=84";
+import { EXERCICES } from "../exercices.js?v=84";
+import { controlePret, dernierResultat } from "./controle.js?v=84";
+import { motsDus, PAQUET } from "./pratique.js?v=84";
+import { BONUS } from "../bonus.js?v=84";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=84";
+import { estOrale } from "../position.js?v=84";
+import { soirRepaso } from "./soir.js?v=84";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=84";
+import { rattraperEntrees, motsEnCours, nbQuestions } from "../motsencours.js?v=84";
+import { missionDuJour } from "./missions.js?v=84";
+import { faiteAujourdhui } from "../missions.js?v=84";
+import { JEUX_VIDE } from "../jeux.js?v=84";
+import { motsAMoi } from "../dico.js?v=84";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -32,6 +35,11 @@ function ligne(t, ici) {
     : `<span class="aller">${corps}</span>`;
   const bouton = t.bouton ?? (t.cle && !t.fait ? `<button class="mini" data-cocher="${t.cle}">C'est fait</button>` : "");
   return `<li class="tache${t.fait ? " faite" : ""}${ici ? " ici" : ""}">${point}${lien}${bouton}</li>`;
+}
+
+// Une ligne de « En plus, si tu veux » : plus discrète, sans rond à cocher ; ✓ quand c'est fait. Le titre est déjà du HTML (id()).
+function lignePlus(t) {
+  return `<li class="plus${t.fait ? " faite" : ""}"><a class="aller" href="${t.href}"><span class="txt"><b>${t.titre}</b><span>${t.detail}</span></span>${t.fait ? `<span class="ok-plus" aria-label="fait">✓</span>` : ICONES.chevron}</a></li>`;
 }
 
 // La carte du haut. a : la chose à faire maintenant ({ carte: { titre, texte, bouton, href | cle, extra } }),
@@ -163,7 +171,12 @@ export function ecranAujourdhui(ctx) {
     });
   }
 
-  // 2. La leçon du jour : les exercices de la leçon du matin. Cochée toute seule à la fin de la série.
+  // Étape 5 des décisions du 28 nov. (Q26-23 à Q26-26, maquette aujourdhui-v2) : « Ta journée » ne garde que l'obligatoire
+  // (le prof, les cartes, Mes erreurs, Mes mots en cours s'il y en a, l'écoute, le soir, puis le contrôle blanc) ;
+  // la leçon de l'appli, la mission du jour et les jeux passent dessous, « En plus, si tu veux » : jamais dans « À faire maintenant ».
+  const enPlus = [];
+
+  // La leçon du jour (facultative) : les exercices de la leçon du matin. Faite toute seule à la fin de la série.
   if (leconDuJour) {
     const r = c[`exos:${der.id}`];
     const ex = EXERCICES[der.id];
@@ -172,12 +185,10 @@ export function ecranAujourdhui(ctx) {
     const contenu = ex
       ? `${ex.ecrire.length} phrases à écrire, ${ex.dire.length} à dire, ${n} cartes`
       : `les ${n} cartes de la leçon`;
-    journee.push({
+    enPlus.push({
       // Faite : la ligne ouvre la page de la leçon (la refaire, ou « S'entraîner » si elle a un bonus).
-      titre: "La leçon du jour", fait: !!r, href: r ? `#/lecon/${der.id}` : `#/pratique/${der.id}/jour`,
-      detail: r ? `${r.sur ? `${r.ok} sur ${r.sur}` : "faite"}${BONUS[der.id] ? " · encore 6 si tu veux" : ""}` : id(der.id),
-      carte: { titre: `La leçon du jour · ${id(der.id)}`, texte: `${contenu} · environ ${minutes} min.`,
-        bouton: "Commencer", href: `#/pratique/${der.id}/jour` },
+      titre: `La leçon du jour · ${id(der.id)}`, fait: !!r, href: r ? `#/lecon/${der.id}` : `#/pratique/${der.id}/jour`,
+      detail: r ? `faite${r.sur ? ` · ${r.ok} sur ${r.sur}` : ""}${BONUS[der.id] ? " · encore 6 si tu veux" : ""}` : `${contenu} · ${minutes} min`,
     });
   }
 
@@ -221,6 +232,20 @@ export function ecranAujourdhui(ctx) {
     });
   }
 
+  // 3 ter. Mes mots en cours (étape 5, Q26-23) : seulement s'il y a au moins un mot ; faite quand une séance est finie aujourd'hui
+  // (case « motscours », notée par ecrans/motsencours.js). Environ 30 s par question.
+  const enCours = motsEnCours(ctx);
+  if (enCours.length) {
+    const nq = nbQuestions(enCours.length), min = Math.max(1, Math.round(nq * 0.5));
+    const fm = c.motscours;
+    journee.push({
+      titre: "Mes mots en cours", fait: !!fm, href: "#/mots/cours/jour",
+      detail: fm ? `séance faite · ${fm.ok} sur ${fm.sur}` : `${mots(enCours.length)} · ${min} min`,
+      carte: { titre: "Mes mots en cours", texte: `${enCours.length > 1 ? `Les ${enCours.length} mots` : "Le mot"} qui ne ${enCours.length > 1 ? "rentrent" : "rentre"} pas : ${nq} questions, environ ${min} min.`,
+        bouton: "Commencer", href: "#/mots/cours/jour" },
+    });
+  }
+
   // 4. L'écoute : elle se fait dans une autre appli. La ligne l'ouvre, le bouton dit que c'est fait.
   const e = ECOUTES[niveauEcoute()];
   const plusDur = niveauEcoute() < ECOUTES.length - 1 ? `<button class="lien" data-trop-facile>Trop facile ?</button>` : "";
@@ -257,6 +282,14 @@ export function ecranAujourdhui(ctx) {
     });
   }
 
+  // En plus : la mission du jour (la Feria) et les jeux.
+  const mission = missionDuJour(ctx);
+  if (mission) {
+    const faite = faiteAujourdhui({ ...JEUX_VIDE(), ...etatJeux() }, jour);
+    enPlus.push({ titre: "Misión del día", fait: !!faite, href: "#/jeux/mision", detail: faite ? `faite · ${faite.ok}/${faite.sur}` : "allume l'ampoule du jour" });
+  }
+  enPlus.push({ titre: "La Feria", href: "#/jeux", detail: "les jeux" });
+
   const maintenant = journee.find(t => t.carte && !t.fait);
   const attenteSoir = !maintenant && der && !c.soir && !leSoir;
 
@@ -274,6 +307,10 @@ export function ecranAujourdhui(ctx) {
         <section aria-labelledby="t-jour">
           <h2 id="t-jour">Ta journée</h2>
           <ul class="taches journee">${journee.map(t => ligne(t, t === maintenant)).join("")}</ul>
+        </section>
+        <section class="en-plus" aria-labelledby="t-plus">
+          <h2 id="t-plus">En plus, si tu veux</h2>
+          <ul>${enPlus.map(lignePlus).join("")}</ul>
         </section>
         ${blocSauvegarde()}
       </main>${barreOnglets("jour")}`,

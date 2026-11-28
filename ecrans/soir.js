@@ -3,10 +3,10 @@
 // Les soirs sans nouvelle fiche (celle de la dernière leçon déjà faite un soir d'avant), c'est un soir de révision :
 // 4 questions de 4 anciennes leçons et un autre défi, fixes pour la journée. « /fiche » remet la fiche normale.
 
-import { esc, id, ICONES, barreOnglets } from "../ui.js?v=83";
-import { cases, cocher, dernierJourCoche } from "../progression.js?v=83";
-import { GUIDE_HTML } from "../guide.js?v=83";
-import { lireReto, tirerPregunta, tirerRepaso, motsDuSoir } from "../donnees.js?v=83";
+import { esc, id, ICONES, barreOnglets } from "../ui.js?v=84";
+import { cases, cocher, dernierJourCoche } from "../progression.js?v=84";
+import { GUIDE_HTML } from "../guide.js?v=84";
+import { lireReto, tirerPregunta, tirerRepaso, motsDuSoir } from "../donnees.js?v=84";
 
 function fiche(ctx) {
   const l = ctx.pos.derniere;
