@@ -1091,3 +1091,11 @@ mark .tx-mot.touche { box-shadow: none; }
 
 /* Mes erreurs : le sens voulu (Q107), au-dessus de la faute à corriger. */
 .sens-voulu { font-size: 15px; line-height: 1.4; color: var(--marine-soft); background: var(--card); border: 1px solid var(--hair); border-radius: 12px; padding: 8px 12px; }
+
+/* Étape 6 (onglet « Astuces ») : l'astuce du prof, la phrase perso, d'où vient le mot, les nouvelles du prof dans le Dico. */
+.astuce-mc.prof { background: #E6EEF8; }
+.astuce-mc.prof .k { color: var(--marine-soft); }
+.phrase-perso { border-left: 3px solid var(--sun); padding: 4px 0 4px 10px; display: flex; flex-direction: column; gap: 2px; font-size: 14px; line-height: 1.4; }
+.phrase-perso .k { font-size: 11px; font-weight: 600; color: var(--sun-ink); text-transform: uppercase; letter-spacing: .04em; }
+.origine { color: var(--muted); }
+.du-prof { font-size: 13px; line-height: 1.4; }

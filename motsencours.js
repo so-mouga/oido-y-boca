@@ -11,12 +11,12 @@
 // en tout sur ses cartes) ; entrer ne change plus les cartes ; une séance = 3 questions par mot (10 au plus), sans « choisir
 // le sens » ni tableau à dire. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { corriger } from "./corriger.js?v=85";
-import { trouDe, phrasesDe } from "./cartes.js?v=85";
-import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=85";
-import { trouverVerbe, phrasesDe as phrasesDuVerbe, sensDe, tempsVus } from "./verbes.js?v=85";
-import { conjuguer } from "./controles.js?v=85";
-import { verbesEnCours, derniereSerie, mettreEnCours, retirerDesCours, apprendreEnAvance, fichesCartes, difficile, marquerEntre, marquerSorti } from "./progression.js?v=85";
+import { corriger } from "./corriger.js?v=86";
+import { trouDe, phrasesDe } from "./cartes.js?v=86";
+import { verbeDe, sorteDe, motVu, motsAMoi, normaliser } from "./dico.js?v=86";
+import { trouverVerbe, phrasesDe as phrasesDuVerbe, sensDe, tempsVus } from "./verbes.js?v=86";
+import { conjuguer } from "./controles.js?v=86";
+import { verbesEnCours, derniereSerie, mettreEnCours, retirerDesCours, apprendreEnAvance, fichesCartes, difficile, marquerEntre, marquerSorti } from "./progression.js?v=86";
 
 export const MOTS_PAR_SEANCE = 5;
 export const QUESTIONS = 10; // au plus
@@ -59,9 +59,10 @@ export const motEnCours = (ctx, m) => verbesEnCours().includes(cleDe(ctx, m));
 
 // Mettre un mot en cours (la fiche, la bulle, ou tout seul) : il entre dans la liste. Ses cartes ne changent pas (Q26-14) :
 // plus de phrases 3 et 4 prises en tête de la révision. Seul un mot pas encore vu fait entrer sa carte 1 (Q19-7).
-export function mettreMotEnCours(ctx, m, aujourdhui) {
-  mettreEnCours(cleDe(ctx, m), aujourdhui);
-  marquerEntre(m.id);
+export function mettreMotEnCours(ctx, m, aujourdhui, origine = "Kevin") {
+  const cle = cleDe(ctx, m);
+  mettreEnCours(cle, aujourdhui);
+  marquerEntre(m.id, cle, origine);
   if (!m.moi && !motVu(ctx, m)) apprendreEnAvance(m.id, aujourdhui);
 }
 
@@ -76,8 +77,9 @@ export function raisonDEntrer(m, fiches) {
 // Après une note : le mot entre s'il le faut. Renvoie la raison ("2" ou "3") s'il vient d'entrer, sinon null.
 export function entrerSiBloque(ctx, m, aujourdhui) {
   if (!m || motEnCours(ctx, m)) return null;
+  if (ctx.astuces?.[m.id]?.deCote) return null; // mis de côté par le prof (Q26-30) : sa décision l'emporte
   const r = raisonDEntrer(m, fichesCartes());
-  if (r) mettreMotEnCours(ctx, m, aujourdhui);
+  if (r) mettreMotEnCours(ctx, m, aujourdhui, "appli");
   return r;
 }
 // Au lancement (« Aujourd'hui ») : les mots déjà à 2 « Non » de suite avant cette version entrent aussi.

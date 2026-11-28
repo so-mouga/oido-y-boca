@@ -7,31 +7,31 @@
 // Sert aussi à la partie écrite d'un contrôle blanc (#/controle/U1/ecrit) : sans indice,
 // avec l'explication de la règle après chaque réponse, et un bilan par thème à la fin.
 
-import { esc, md, id, ICONES } from "../ui.js?v=85";
-import { lecon as trouver } from "../position.js?v=85";
-import { EXERCICES } from "../exercices.js?v=85";
-import { corriger } from "../corriger.js?v=85";
-import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, compterNon } from "../progression.js?v=85";
-import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=85";
-import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=85";
-import { dire } from "../voix.js?v=85";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=85";
-import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=85";
+import { esc, md, id, ICONES } from "../ui.js?v=86";
+import { lecon as trouver } from "../position.js?v=86";
+import { EXERCICES } from "../exercices.js?v=86";
+import { corriger } from "../corriger.js?v=86";
+import { noterMot, cocher, cases, noterControle, monMot, apprisEnAvance, fichesErreurs, noterErreur, fichesCartes, prendreCarte, compterNon } from "../progression.js?v=86";
+import { cartesARevoir, cleCarte, nbCartes, departDe, phrasesDe, apresNote, compteSerie, ORE, INTERVALLES } from "../cartes.js?v=86";
+import { jugerMot, jugerOreille, reponsesMot } from "../oreille.js?v=86";
+import { dire } from "../voix.js?v=86";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=86";
+import { reconnaissancePossible, ecouter as ecouterMicro, ecouteEnCours, arreterEcoute, compris } from "../micro.js?v=86";
 // Le micro « On me comprend ? » répond plus tard : l'écran se redessine par cet événement (écouté dans app.js).
 const redessiner = () => window.dispatchEvent(new Event("oyb-redessiner"));
-import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=85";
-import { RESERVE } from "../erreurs-phrases.js?v=85";
-import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=85";
-import { BONUS } from "../bonus.js?v=85";
-import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=85";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=85";
-import { entrerSiBloque } from "../motsencours.js?v=85";
-import { phraseTouchable, marquesDe } from "../toucher.js?v=85";
-import { vibrer, son } from "../retours.js?v=85";
+import { carnetActuel, cartesDuJour, juger, jugerCases, decouper, nouvelleFiche, quandRevient, SUJETS, phraseATraduire, jugerTraduction } from "../carnet.js?v=86";
+import { RESERVE } from "../erreurs-phrases.js?v=86";
+import { CONTROLES, tirerEcrit, phraseJuste, explicationConjugaison, conjuguer, sixFormes, PERSONNES, formesSurlignees, regleVerbe, reglesVerbe, TEMPS } from "../controles.js?v=86";
+import { BONUS } from "../bonus.js?v=86";
+import { verbeDe, motsAMoi, origineMonMot, reglesDuMot, lignesConcernees } from "../dico.js?v=86";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=86";
+import { entrerSiBloque } from "../motsencours.js?v=86";
+import { phraseTouchable, marquesDe } from "../toucher.js?v=86";
+import { vibrer, son } from "../retours.js?v=86";
 import {
   enregistrementPossible, demarrerEnregistrement, arreterEnregistrement,
   effacerEnregistrement, aUnEnregistrement,
-} from "../enregistrement.js?v=85";
+} from "../enregistrement.js?v=86";
 
 const mouvementReduit = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 const pause = ms => new Promise(r => setTimeout(r, ms));

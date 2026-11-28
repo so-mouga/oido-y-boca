@@ -3,15 +3,16 @@
 // Les mots vus (leçons faites, appris en avance, mes mots) ; ceux des leçons à venir seulement dans la recherche,
 // sous « Plus loin dans le livre », et en bas de chaque page, dans « Pas encore vus ». Pas de révision ici : on revoit les mots mélangés, dans « Tes mots à revoir ».
 
-import { esc, md, id, titre, ICONES, barreOnglets } from "../ui.js?v=85";
-import { lecon as trouver } from "../position.js?v=85";
-import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=85";
-import { etatRevision, apprisEnAvance, difficile } from "../progression.js?v=85";
-import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=85";
-import { mesVerbes, suggestions } from "../verbes.js?v=85";
-import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE, nbQuestions, PAR_MOT } from "../motsencours.js?v=85";
-import { htmlCartes } from "./cartesmot.js?v=85";
-import { phraseTouchable } from "../toucher.js?v=85";
+import { esc, md, id, titre, ICONES, barreOnglets, dateCourte } from "../ui.js?v=86";
+import { lecon as trouver } from "../position.js?v=86";
+import { PERSONNES, formesSurlignees, conjuguer, TEMPS, ORDRE_TEMPS, reglesDetaillees } from "../controles.js?v=86";
+import { etatRevision, apprisEnAvance, difficile } from "../progression.js?v=86";
+import { SORTES, sorteDe, motsDuDico, motsAVenir, motVu, chercher, verbeDe, etiquette, REGLES, origineMonMot, rangLecon } from "../dico.js?v=86";
+import { mesVerbes, suggestions } from "../verbes.js?v=86";
+import { motsEnCours, motEnCours, cleDe, MOTS_PAR_SEANCE, nbQuestions, PAR_MOT } from "../motsencours.js?v=86";
+import { htmlCartes } from "./cartesmot.js?v=86";
+import { ligneDe, nouvellesDuProf, blocages } from "../astuces.js?v=86";
+import { phraseTouchable } from "../toucher.js?v=86";
 
 // La recherche tapée reste là quand on revient d'une fiche.
 let recherche = "";
@@ -197,6 +198,14 @@ function pageSorte(ctx, sorte) {
 // ── « Mes mots en cours » (chantier 19) : la carte du haut du Dico ──
 // Les mots qui ne rentrent pas (verbes compris) : l'appli les ajoute quand je bloque, je peux en ajouter ou en retirer (la croix).
 // La séance : 3 questions par mot, 10 au plus (étape 4, ecrans/motsencours.js).
+// Ce que le prof a changé aujourd'hui (étape 6) : un mot noté en séance arrive, un mot mis de côté sort.
+function nouvelles(ctx) {
+  const n = nouvellesDuProf(ctx);
+  const liste = l => l.map(es => `<b lang="es">${esc(es)}</b>`).join(", ");
+  const l = [n.arrives.length ? `Arrivé${n.arrives.length > 1 ? "s" : ""} ce matin, noté${n.arrives.length > 1 ? "s" : ""} par le prof en séance : ${liste(n.arrives)}.` : "",
+    n.deCote.length ? `Mis de côté par le prof : ${liste(n.deCote)}.` : ""].filter(Boolean);
+  return l.length ? `<p class="du-prof">${l.join(" ")}</p>` : "";
+}
 function carteMesMots(ctx) {
   const cours = motsEnCours(ctx);
   const puce = it => `<span class="puce-verbe">${it.m ? `<a href="${lienMot(it.m, "dico")}" lang="es">${esc(it.es)}</a>` : `<span lang="es">${esc(it.es)}</span>`}<button class="retirer-verbe" data-mc-retirer="${esc(it.cle)}" aria-label="Retirer ${esc(it.es)} de mes mots en cours">×</button></span>`;
@@ -205,8 +214,9 @@ function carteMesMots(ctx) {
         <h2 id="t-cours">Mes mots en cours${cours.length ? ` · ${cours.length}` : ""}</h2>
         ${cours.length ? `<div class="puces">${cours.map(puce).join("")}</div>
           <a class="primaire soleil" href="#/mots/cours">S'entraîner · ${nbQuestions(cours.length)} questions</a>
-          <p>Les mots qui ne rentrent pas. L'appli les ajoute quand tu bloques, et tu peux en ajouter ou en retirer.${cours.length > MOTS_PAR_SEANCE ? ` Chaque séance en prend ${MOTS_PAR_SEANCE} : ceux que tu n'as pas travaillés depuis longtemps passent d'abord.` : ""}</p>`
-          : `<p>Les mots qui ne rentrent pas. L'appli les ajoute quand tu bloques, et tu peux en ajouter ou en retirer.</p>`}
+          <p>Les mots qui ne rentrent pas. L'appli les ajoute quand tu bloques, ton prof aussi, et tu peux en ajouter ou en retirer.${cours.length > MOTS_PAR_SEANCE ? ` Chaque séance en prend ${MOTS_PAR_SEANCE} : ceux que tu n'as pas travaillés depuis longtemps passent d'abord.` : ""}</p>`
+          : `<p>Les mots qui ne rentrent pas. L'appli les ajoute quand tu bloques, ton prof aussi, et tu peux en ajouter ou en retirer.</p>`}
+        ${nouvelles(ctx)}
       </div>
     </section>`;
 }
@@ -248,7 +258,18 @@ function actionsMot(ctx, m, vb, vu, depuis) {
   const lienConj = conj ? `<a class="secondaire" href="${base}/present" data-serie="${base}">Conjuguer seulement</a>` : "";
   const cle = cleDe(ctx, m);
   const astuce = difficile(cle).astuce;
-  const monAstuce = astuce ? `<div class="astuce-mc"><span class="k">Mon astuce</span><span>${esc(astuce)}</span></div>` : "";
+  // Étape 6 (Q26-31) : la fiche montre tout : mon astuce, celle du prof, la phrase perso, et d'où vient le mot.
+  const p = ligneDe(ctx, cle) || {};
+  const d = difficile(m.id);
+  const qui = { prof: "le prof", kevin: "toi", appli: "l'appli" }[(p.origine || d.origine || "").toLowerCase()];
+  const bloque = p.cle ? blocages(p).dernierBlocage : "";
+  const ajoute = p.cle ? blocages({ ajoute: p.ajoute }).dernier : "";
+  const origine = [bloque && `Bloqué en séance le ${dateCourte(bloque)}`, qui && ajoute && `ajouté par ${qui} le ${dateCourte(ajoute)}`]
+    .filter(Boolean).join(" · ").replace(/^./, c => c.toUpperCase());
+  const monAstuce = (astuce ? `<div class="astuce-mc"><span class="k">Mon astuce</span><span>${esc(astuce)}</span></div>` : "")
+    + (p.prof ? `<div class="astuce-mc prof"><span class="k">Astuce du prof</span><span>${esc(p.prof)}</span></div>` : "")
+    + (p.phrase ? `<div class="phrase-perso"><span class="k">Ta phrase</span><span lang="es">${esc(p.phrase)}</span></div>` : "")
+    + (origine && motEnCours(ctx, m) ? `<p class="petit origine">${esc(origine)}</p>` : "");
   if (motEnCours(ctx, m)) {
     return `${monAstuce}<div class="espace"></div><p class="en-cours"><b lang="es">${esc(m.es)}</b> est dans tes mots en cours.</p>
       <a class="primaire soleil" href="#/mots/un/${encodeURIComponent(cle)}/${encodeURIComponent(m.id)}/${depuis || "dico"}">Séance sur ce mot seul · ${PAR_MOT} questions</a>

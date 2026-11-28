@@ -230,7 +230,8 @@ export function garderJeux(jeux) {
 //   non : les « Non » en tout sur les cartes du mot (clé = l'id du mot), à 3 il entre dans « Mes mots en cours » ;
 //   sorti : le mot est sorti de la liste (retiré ou « Je le sais ») : seuls 3 nouveaux « Non » le font revenir ;
 //   astuce, astuceLe : mon astuce (« Écrire la mienne »), clé = la clé de la liste (l'infinitif d'un verbe, sinon l'id) ;
-//   retenu : la date de « Je le sais » (pour « retenu le », onglet « Astuces » à l'étape 6).
+//   retenu : la date de « Je le sais » (« retenu le » de l'onglet « Astuces ») ;
+//   origine, prof, deCote, arriveLe, deCoteLe : l'onglet « Astuces » (étape 6, astuces.js), clé = l'id du mot.
 const difficiles = () => etat.difficiles || (etat.difficiles = {});
 export const difficile = cle => difficiles()[cle] || {};
 function changerDifficile(cle, champs) {
@@ -238,7 +239,15 @@ function changerDifficile(cle, champs) {
   sauver();
 }
 export function compterNon(idMot) { changerDifficile(idMot, { non: (difficile(idMot).non || 0) + 1 }); }
-export function marquerEntre(idMot) { changerDifficile(idMot, { sorti: false }); }
+// Étape 6 (onglet « Astuces ») : l'origine (« appli », « Kevin », « prof ») est notée à la première entrée (Q26-32) ;
+// un mot qui revient perd sa date « retenu le » (Q26-33).
+export function marquerEntre(idMot, cle = idMot, origine = "Kevin") {
+  changerDifficile(idMot, { sorti: false, ...(!difficile(idMot).origine && { origine }) });
+  if (difficile(cle).retenu) changerDifficile(cle, { retenu: "" });
+}
+export const noterDifficile = (cle, champs) => changerDifficile(cle, champs);
+export const tousDifficiles = () => difficiles();
+export const dateEnCours = v => verbes().cours[v] || "";
 // La sortie (Q26-16, Q26-17) : le compteur repart de 0 ; « Je le sais » note la date (retenu), la croix non.
 export function marquerSorti(idMot, cle, retenu) {
   changerDifficile(idMot, { non: 0, sorti: true });

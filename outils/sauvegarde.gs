@@ -25,6 +25,16 @@
 // Le prof la lit chaque matin. Après avoir collé cette version : lancer une fois « testerSoirs » (Google demande l'accès au tableau),
 // puis Déployer → Gérer les déploiements → crayon → Version : « Nouvelle version » → Déployer.
 
+//
+// L'onglet « Astuces » (chantier 26, étape 6) : la liste commune des mots difficiles. Le prof écrit dans ses colonnes
+// (astuce du prof, phrase perso, blocages en séance, mis de côté) ; l'appli envoie { cle, quoi: "astuces", lignes: [{ cle, mot, origine,
+// ajoute, astuce, retenu }] }. Chaque colonne a un seul auteur : le script n'écrit que case par case, dans les colonnes de l'appli
+// (clé, mot, origine, ajouté le pour une ligne nouvelle ; mon astuce, retenu le toujours), jamais la ligne entière.
+// La ligne est retrouvée par sa clé (« U1-L5|el cuñado / la cuñada »), sinon ajoutée à la fin. Les colonnes sont retrouvées par leur titre.
+// Tout est en texte (« @ ») : une date tapée par le prof reste du texte, et la lecture de l'appli ne perd pas de case.
+// Après avoir collé cette version : lancer une fois « testerAstuces » AVANT que le prof n'écrive dans l'onglet (il le crée avec ses titres),
+// puis Déployer → Gérer les déploiements → crayon → Version : « Nouvelle version » → Déployer.
+
 const DOSSIER = "Oído y Boca – sauvegardes";
 const TABLEAU = "1xG8SU6emfDAjz8Xxh_GTXEgxm5i_G2ixCXKIkcobKxQ"; // « Espagnol – Vocabulaire »
 // Les mêmes titres que COLONNES_SOIRS dans donnees.js.
@@ -98,6 +108,70 @@ function ecrireSoir_(ligne) {
   f.getRange(rang, 1, 1, valeurs.length).setNumberFormat("@").setValues([valeurs]);
 }
 
+// Les mêmes titres que COLONNES_ASTUCES dans donnees.js.
+const COLONNES_ASTUCES = ["clé", "mot", "origine", "ajouté le", "astuce du prof", "phrase perso", "blocages en séance", "mis de côté",
+  "mon astuce", "retenu le"];
+const cleAstuce_ = t => String(t || "").trim().replace(/\s*\|\s*/, "|");
+
+// L'onglet « Astuces », créé avec ses titres, toutes ses colonnes en texte.
+function ongletAstuces_() {
+  const classeur = SpreadsheetApp.openById(TABLEAU);
+  let f = classeur.getSheetByName("Astuces");
+  if (!f) {
+    f = classeur.insertSheet("Astuces");
+    f.getRange(1, 1, f.getMaxRows(), COLONNES_ASTUCES.length).setNumberFormat("@");
+    f.getRange(1, 1, 1, COLONNES_ASTUCES.length).setValues([COLONNES_ASTUCES]).setFontWeight("bold");
+    f.setFrozenRows(1);
+  }
+  return f;
+}
+
+// { titre: numéro de colonne } ; un titre de l'appli qui manque (colonne supprimée) est remis au bout.
+function colonnesAstuces_(f) {
+  const n = Math.max(f.getLastColumn(), 1);
+  const titres = f.getRange(1, 1, 1, n).getDisplayValues()[0].map(t => t.trim().toLowerCase());
+  const c = {};
+  COLONNES_ASTUCES.forEach(t => {
+    let i = titres.indexOf(t);
+    if (i < 0) { titres.push(t); i = titres.length - 1; f.getRange(1, i + 1).setNumberFormat("@").setValue(t).setFontWeight("bold"); }
+    c[t] = i + 1;
+  });
+  return c;
+}
+
+function ecrireAstuces_(lignes) {
+  const f = ongletAstuces_();
+  const c = colonnesAstuces_(f);
+  const dernier = f.getLastRow();
+  const cles = dernier > 1 ? f.getRange(2, c["clé"], dernier - 1, 1).getDisplayValues().map(r => cleAstuce_(r[0])) : [];
+  const ecrire = (rang, titre, v) => f.getRange(rang, c[titre]).setNumberFormat("@").setValue(String(v == null ? "" : v).slice(0, 2000));
+  let n = 0;
+  lignes.forEach(x => {
+    const cle = cleAstuce_(x && x.cle);
+    if (!cle) return;
+    let i = cles.indexOf(cle);
+    if (i < 0) {
+      cles.push(cle);
+      i = cles.length - 1;
+      ecrire(i + 2, "clé", cle);
+      ecrire(i + 2, "mot", x.mot);
+      ecrire(i + 2, "origine", x.origine);
+      ecrire(i + 2, "ajouté le", x.ajoute);
+    }
+    ecrire(i + 2, "mon astuce", x.astuce);
+    ecrire(i + 2, "retenu le", x.retenu);
+    n++;
+  });
+  return n;
+}
+
+// À lancer une fois à la main après avoir collé cette version : Google demande l'accès au tableau, l'onglet est créé s'il manque.
+function testerAstuces() {
+  const f = ongletAstuces_();
+  colonnesAstuces_(f);
+  Logger.log("Onglet « Astuces » prêt : " + Math.max(f.getLastRow() - 1, 0) + " ligne(s).");
+}
+
 // À lancer une fois à la main après avoir collé cette version : Google demande l'accès au tableau, puis le journal dit où en est l'onglet.
 function testerSoirs() {
   const f = ongletSoirs_();
@@ -105,7 +179,8 @@ function testerSoirs() {
 }
 
 // L'appli envoie sa progression : { cle, le: "2026-11-23", progression: {…} },
-// ou la ligne d'un soir : { cle, quoi: "soir", ligne: ["2026-11-27", "U1-L4", …] }.
+// ou la ligne d'un soir : { cle, quoi: "soir", ligne: ["2026-11-27", "U1-L4", …] },
+// ou les lignes « Astuces » : { cle, quoi: "astuces", lignes: [{ cle, mot, origine, ajoute, astuce, retenu }] }.
 function doPost(e) {
   let d;
   try { d = JSON.parse(e.postData.contents); } catch (err) { return json_({ ok: false, erreur: "envoi illisible" }); }
@@ -118,6 +193,14 @@ function doPost(e) {
     catch (err) { return json_({ ok: false, erreur: "onglet Soirs : " + err.message }); }
     finally { verrou.releaseLock(); }
     return json_({ ok: true, le: d.ligne[0] });
+  }
+  if (d.quoi === "astuces") {
+    if (!Array.isArray(d.lignes)) return json_({ ok: false, erreur: "astuces incomplètes" });
+    const verrou = LockService.getScriptLock();
+    verrou.waitLock(20000);
+    try { return json_({ ok: true, lignes: ecrireAstuces_(d.lignes) }); }
+    catch (err) { return json_({ ok: false, erreur: "onglet Astuces : " + err.message }); }
+    finally { verrou.releaseLock(); }
   }
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d.le || "") || !d.progression || typeof d.progression !== "object") {
     return json_({ ok: false, erreur: "sauvegarde incomplète" });

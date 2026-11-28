@@ -2,14 +2,16 @@
 // L'appli envoie la progression quand elle s'ouvre et quand on la quitte, seulement si elle a changé.
 // Le lien du script (adresse + « #clé ») est collé une fois et gardé sur le téléphone : jamais dans le code.
 
-import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu, fichesErreurs, remplacerErreurs, cases } from "./progression.js?v=85";
-import { ligneSoir } from "./donnees.js?v=85";
-import { dateCourte } from "./ui.js?v=85";
-import { lireCarnet, garderCarnet, carnetActuel, synchroniser } from "./carnet.js?v=85";
+import { donneesSauvegarde, noterSauvegarde, lireSauvegarde, restaurer, enApercu, fichesErreurs, remplacerErreurs, cases } from "./progression.js?v=86";
+import { ligneSoir } from "./donnees.js?v=86";
+import { dateCourte } from "./ui.js?v=86";
+import { lireCarnet, garderCarnet, carnetActuel, synchroniser } from "./carnet.js?v=86";
+import { lignesAstuces } from "./astuces.js?v=86";
 
 const CLE_LIEN = "oyb.google";           // { url, cle }
 const CLE_ENVOI = "oyb.google.envoi";    // { empreinte, echec } : le dernier envoi réussi, et s'il a raté depuis
 const CLE_SOIRS = "oyb.google.soirs";    // { "2026-11-27": empreinte } : les lignes « Soirs » déjà écrites dans le tableau
+const CLE_ASTUCES = "oyb.google.astuces"; // { clé: empreinte } : les lignes « Astuces » déjà écrites (étape 6)
 
 const lireJson = (cle, defaut) => { try { return JSON.parse(localStorage.getItem(cle)) ?? defaut; } catch { return defaut; } };
 const ecrireJson = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v)); } catch { /* stockage indisponible */ } };
@@ -102,12 +104,42 @@ export async function envoyerSoirs(jour, { enPartant = false } = {}) {
   return ok;
 }
 
+// L'onglet « Astuces » (étape 6, Q26-32) : les lignes des mots difficiles qui ont changé depuis leur dernier envoi, en un seul appel.
+// Le script ne touche qu'aux colonnes de l'appli (il ne crée clé, mot, origine, ajouté le que pour une ligne nouvelle).
+// app.js donne le contexte (les mots du Sheet) par brancherAstuces. Un script pas encore mis à jour répond « sauvegarde incomplète » :
+// rien n'est noté, les lignes repartiront après le nouveau déploiement.
+let contexteAstuces = null;
+export const brancherAstuces = f => { contexteAstuces = f; };
+export async function envoyerAstuces({ enPartant = false } = {}) {
+  const l = lien();
+  const ctx = contexteAstuces?.();
+  if (!l || enApercu() || !ctx) return false;
+  const faits = lireJson(CLE_ASTUCES, {});
+  const lignes = lignesAstuces(ctx).filter(x => faits[x.cle] !== empreinte(JSON.stringify(x)));
+  if (!lignes.length) return false;
+  try {
+    await appeler(fetch(l.url, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ cle: l.cle, quoi: "astuces", lignes }),
+      keepalive: enPartant,
+    }));
+    for (const x of lignes) faits[x.cle] = empreinte(JSON.stringify(x));
+    ecrireJson(CLE_ASTUCES, faits);
+    return true;
+  } catch (err) {
+    console.warn("Onglet Astuces :", err.message);
+    return false;
+  }
+}
+
 // Envoie la progression si elle a changé. « enPartant » : l'appli passe en arrière-plan, la requête doit survivre.
 // Renvoie true si un envoi a réussi (l'écran peut alors afficher la nouvelle date).
 export async function envoyerGoogle(jour, { force = false, enPartant = false } = {}) {
   const l = lien();
   if (!l || enApercu() || !jour) return false;
   envoyerSoirs(jour, { enPartant });
+  envoyerAstuces({ enPartant });
   const texte = donneesSauvegarde(jour);
   const e = empreinte(texte);
   const avant = lireJson(CLE_ENVOI, {});

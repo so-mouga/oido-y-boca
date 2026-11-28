@@ -1,29 +1,29 @@
 // Oído y Boca : le livre dans ta poche.
 // Charge le tableau, calcule la position dans le livre, puis affiche l'écran demandé par l'adresse (#/…).
 
-import { chargerTableau } from "./donnees.js?v=85";
-import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=85";
-import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=85";
-import { ECOUTES } from "./ecoute.js?v=85";
-import { preparerVoix } from "./voix.js?v=85";
-import { basculerLecture, arreterLecture } from "./lecture.js?v=85";
-import { vibrer } from "./retours.js?v=85";
-import { esc, dateCourte, barreOnglets } from "./ui.js?v=85";
-import { suivreClavier, marquerDebords } from "./clavier.js?v=85";
-import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=85";
-import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=85";
-import { ecranLivre } from "./ecrans/livre.js?v=85";
-import { ecranLecon } from "./ecrans/lecon.js?v=85";
-import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=85";
-import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=85";
-import { ecranControle, actionControle } from "./ecrans/controle.js?v=85";
-import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=85";
-import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=85";
-import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=85";
-import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=85";
-import { ecranLectures } from "./ecrans/lectures.js?v=85";
-import { ecranJeux } from "./ecrans/jeux.js?v=85";
-import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet } from "./sauvegarde-google.js?v=85";
+import { chargerTableau } from "./donnees.js?v=86";
+import { calculerPosition, LECONS, isoDuJour } from "./position.js?v=86";
+import { cocher, cases, monterEcoute, modeApercu, exporter, lireSauvegarde, restaurer, prendreCarte } from "./progression.js?v=86";
+import { ECOUTES } from "./ecoute.js?v=86";
+import { preparerVoix } from "./voix.js?v=86";
+import { basculerLecture, arreterLecture } from "./lecture.js?v=86";
+import { vibrer } from "./retours.js?v=86";
+import { esc, dateCourte, barreOnglets } from "./ui.js?v=86";
+import { suivreClavier, marquerDebords } from "./clavier.js?v=86";
+import { actionToucher, envoiToucher, suivreBulle, fermerBulle } from "./ecrans/bulle.js?v=86";
+import { ecranAujourdhui } from "./ecrans/aujourdhui.js?v=86";
+import { ecranLivre } from "./ecrans/livre.js?v=86";
+import { ecranLecon } from "./ecrans/lecon.js?v=86";
+import { ecranSoir, ecranBlanca, ecranGuia, actionOtra, actionBlanca, envoiApunte, brouillonNota, guardarNota, leconDuSoir } from "./ecrans/soir.js?v=86";
+import { ecranPratique, ecranBonus, ecranErreurs, actionPratique, microAppui, microRelache } from "./ecrans/pratique.js?v=86";
+import { ecranControle, actionControle } from "./ecrans/controle.js?v=86";
+import { ecranDico, majRecherche, majRecherchePage } from "./ecrans/dico.js?v=86";
+import { ecranVerbes, actionVerbes, verifierVerbe } from "./ecrans/verbes.js?v=86";
+import { ecranMots, actionMots, verifierMot } from "./ecrans/motsencours.js?v=86";
+import { ecranMesMots, ecranSemaine, envoiMesMots, actionMesMots } from "./ecrans/mesmots.js?v=86";
+import { ecranLectures } from "./ecrans/lectures.js?v=86";
+import { ecranJeux } from "./ecrans/jeux.js?v=86";
+import { envoyerGoogle, envoyerSoirs, surveillerGoogle, actionGoogle, rafraichirCarnet, brancherAstuces } from "./sauvegarde-google.js?v=86";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -323,6 +323,7 @@ async function demarrer() {
     afficher();
     // La sauvegarde Google : à l'ouverture, puis chaque fois qu'on quitte l'appli (si quelque chose a changé).
     surveillerGoogle(() => ctx?.jour);
+    brancherAstuces(() => ctx);
     envoyerGoogle(ctx.jour).then(ok => { if (ok && app.dataset.ecran === "jour") afficher(); });
     // « Mes erreurs » : le carnet du prof arrive en arrière-plan (la copie du téléphone sert en attendant).
     rafraichirCarnet().then(ok => { if (ok && app.dataset.ecran === "jour") afficher(); });

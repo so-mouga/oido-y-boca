@@ -3,15 +3,16 @@
 // Le but : retrouver le mot soi-même (du français à l'espagnol, à l'oreille, dans ses phrases), plus un peu de conjugaison
 // pour un verbe. Sans chrono. La séance ne touche pas « Tes mots à revoir » (Q77).
 
-import { esc, md, ICONES } from "../ui.js?v=85";
-import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=85";
-import { tempsVu } from "../verbes.js?v=85";
-import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=85";
-import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce, cocher } from "../progression.js?v=85";
-import { motsAMoi } from "../dico.js?v=85";
-import { lancerLecture, arreterLecture } from "../lecture.js?v=85";
-import { vibrer, son } from "../retours.js?v=85";
-import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=85";
+import { esc, md, ICONES } from "../ui.js?v=86";
+import { PERSONNES, formesSurlignees, TEMPS } from "../controles.js?v=86";
+import { tempsVu } from "../verbes.js?v=86";
+import { motsEnCours, motsDeLaSeance, resoudre, tirerSeance, corrigerMot, bilanParMot, sensJuste, mettreMotEnCours, sortirDesCours } from "../motsencours.js?v=86";
+import { verbesEnCours, seriesJustes, noterSerieVerbes, difficile, garderAstuce, cocher } from "../progression.js?v=86";
+import { motsAMoi } from "../dico.js?v=86";
+import { ligneDe } from "../astuces.js?v=86";
+import { lancerLecture, arreterLecture } from "../lecture.js?v=86";
+import { vibrer, son } from "../retours.js?v=86";
+import { boutonSaisPas, armerSaisPas, apresErreur, arreterCompte, blocDeuxFois, zoneCompte } from "../apres-erreur.js?v=86";
 
 let s = null; // la séance en cours
 
@@ -84,22 +85,30 @@ function rappels(r) {
 // Jusqu'à l'étape 6, seulement mon astuce (« Écrire mon astuce »), gardée sur le téléphone. Jamais avant ma réponse :
 // « Un indice » montre d'abord mon astuce, puis les premières lettres ; après la réponse, elle s'affiche avec « Changer la mienne ».
 const astuceDe = cle => difficile(cle).astuce || "";
+// Étape 6 (Q26-31) : mon astuce si j'en ai une, sinon celle du prof (onglet « Astuces »). La phrase perso du prof : après la réponse
+// seulement (elle contient le mot : dans « Un indice », elle donnerait la réponse).
+let ctxVue = null;
+const ligneProf = cle => (ctxVue && ligneDe(ctxVue, cle)) || {};
+const astuceVue = cle => astuceDe(cle) ? { k: "Ton astuce", t: astuceDe(cle) } : ligneProf(cle).prof ? { k: "L'astuce du prof", t: ligneProf(cle).prof } : null;
 const lettres = es => es.split(/\s+/).map(w => w.length <= 3 ? w : `${w.slice(0, 2)}…`).join(" ");
 function indicesDe(q) {
   const l = [];
-  if (astuceDe(q.cle)) l.push({ k: "Ton astuce", t: astuceDe(q.cle) });
+  const a = astuceVue(q.cle);
+  if (a) l.push(a);
   l.push({ k: "Les premières lettres", t: lettres(q.es[0]), es: true });
   return l;
 }
 const zoneIndice = q => {
   const vus = indicesDe(q).slice(0, s.indice);
-  return `<div class="zone-indice">${vus.map(x => `<div class="astuce-mc"><span class="k">Un indice · ${x.k.toLowerCase()}</span><span${x.es ? ' lang="es"' : ""}>${esc(x.t)}</span></div>`).join("")}</div>`;
+  return `<div class="zone-indice">${vus.map(x => `<div class="astuce-mc${x.k === "L'astuce du prof" ? " prof" : ""}"><span class="k">Un indice · ${x.k.toLowerCase()}</span><span${x.es ? ' lang="es"' : ""}>${esc(x.t)}</span></div>`).join("")}</div>`;
 };
 const boutonIndice = q => s.indice < indicesDe(q).length ? `<button class="secondaire" type="button" data-mc="indice">${s.indice ? "Un autre indice" : "Un indice"}</button>` : "";
 function blocAstuce(q) {
-  const a = astuceDe(q.cle);
-  return a ? `<div class="astuce-mc"><span class="k">Ton astuce</span><span>${esc(a)}</span><button class="lien" data-mc="astuce">Changer la mienne</button></div>`
-    : `<button class="lien" data-mc="astuce">Écrire mon astuce</button>`;
+  const a = astuceDe(q.cle), p = ligneProf(q.cle);
+  const astuce = a ? `<div class="astuce-mc"><span class="k">Ton astuce</span><span>${esc(a)}</span></div>`
+    : p.prof ? `<div class="astuce-mc prof"><span class="k">Astuce du prof</span><span>${esc(p.prof)}</span></div>` : "";
+  const phrase = p.phrase ? `<div class="phrase-perso"><span class="k">Ta phrase</span><span lang="es">${esc(p.phrase)}</span></div>` : "";
+  return `${astuce}${phrase}<button class="lien" data-mc="astuce">${a ? "Changer la mienne" : "Écrire mon astuce"}</button>`;
 }
 function vueAstuce(q) {
   const it = s.items.find(i => i.cle === q.cle);
@@ -229,6 +238,7 @@ function vueFin() {
 
 // #/mots/cours, #/mots/cours/jour (depuis « Aujourd'hui », étape 5 : on y revient), #/mots/un/CLE/ID/DEPUIS
 export function ecranMots(ctx, mode, a, b, c) {
+  ctxVue = ctx;
   const un = mode === "un" ? decodeURIComponent(a || "") : null;
   const retour = mode === "un" && b ? `#/dico/mot/${b}/${c || "dico"}` : mode === "cours" && a === "jour" ? "#/" : "#/dico";
   const cle = `${mode}:${un || ""}`;
@@ -311,6 +321,7 @@ export function verifierMot() {
 
 // Les boutons d'ici. Renvoie "suivant" (nouvel écran, qui glisse), true (redessiner), false (rien), ou null si ce n'est pas un bouton d'ici.
 export function actionMots(ctx, e) {
+  ctxVue = ctx;
   // « M'entraîner sur ce mot » (fiche du Dico) : le mot passe en cours (ses cartes ne changent pas, Q26-14).
   const ajouter = e.target.closest("[data-mc-ajouter]");
   if (ajouter) {

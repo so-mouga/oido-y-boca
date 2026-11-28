@@ -2,23 +2,24 @@
 // dessous, « Ta journée », un simple suivi sans case à cocher : ✓ fait, point jaune = maintenant, rond vide = à venir.
 // Chaque ligne se touche pour faire cette chose-là plutôt que celle de la carte.
 
-import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=85";
-import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs, etatJeux } from "../progression.js?v=85";
-import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=85";
-import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=85";
-import { EXERCICES } from "../exercices.js?v=85";
-import { controlePret, dernierResultat } from "./controle.js?v=85";
-import { motsDus, PAQUET } from "./pratique.js?v=85";
-import { BONUS } from "../bonus.js?v=85";
-import { motsPourLOral, copieFaite } from "./mesmots.js?v=85";
-import { estOrale } from "../position.js?v=85";
-import { soirRepaso } from "./soir.js?v=85";
-import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=85";
-import { rattraperEntrees, motsEnCours, nbQuestions } from "../motsencours.js?v=85";
-import { missionDuJour } from "./missions.js?v=85";
-import { faiteAujourdhui } from "../missions.js?v=85";
-import { JEUX_VIDE } from "../jeux.js?v=85";
-import { motsAMoi } from "../dico.js?v=85";
+import { esc, id, dateCourte, ICONES, barreOnglets } from "../ui.js?v=86";
+import { cases, cocher, valeurAvant, niveauEcoute, derniereSauvegarde, fichesErreurs, etatJeux } from "../progression.js?v=86";
+import { carnetActuel, cartesDuJour, faitesAujourdhui } from "../carnet.js?v=86";
+import { ECOUTES, MINUTES_ECOUTE, SANS_TARRETER } from "../ecoute.js?v=86";
+import { EXERCICES } from "../exercices.js?v=86";
+import { controlePret, dernierResultat } from "./controle.js?v=86";
+import { motsDus, PAQUET } from "./pratique.js?v=86";
+import { BONUS } from "../bonus.js?v=86";
+import { motsPourLOral, copieFaite } from "./mesmots.js?v=86";
+import { estOrale } from "../position.js?v=86";
+import { soirRepaso } from "./soir.js?v=86";
+import { googleBranche, envoiRate } from "../sauvegarde-google.js?v=86";
+import { rattraperEntrees, motsEnCours, nbQuestions } from "../motsencours.js?v=86";
+import { importerAstuces } from "../astuces.js?v=86";
+import { missionDuJour } from "./missions.js?v=86";
+import { faiteAujourdhui } from "../missions.js?v=86";
+import { JEUX_VIDE } from "../jeux.js?v=86";
+import { motsAMoi } from "../dico.js?v=86";
 
 const HEURE_SOIR = 18; // « Ce soir avec Blanca » ne monte dans la carte qu'à partir de 18 h
 const mots = n => `${n} mot${n > 1 ? "s" : ""}`;
@@ -108,6 +109,8 @@ function rappelSauvegarde(jour) {
 export function ecranAujourdhui(ctx) {
   const { pos, soir, motsParLecon, jour, apercu } = ctx;
   // Étape 4 (Q26-16) : un mot déjà à 2 « Non » de suite (ou 3 en tout) entre dans « Mes mots en cours », même noté avant cette version.
+  // Étape 6 (Q26-29, Q26-30) : les mots notés par le prof dans l'onglet « Astuces » entrent le lendemain ; « mis de côté » les sort.
+  if (!apercu) importerAstuces(ctx, jour);
   if (!apercu) rattraperEntrees(ctx, [...ctx.mots, ...motsAMoi()]);
   const c = cases(jour);
   const der = pos.derniere;

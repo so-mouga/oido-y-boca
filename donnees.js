@@ -1,6 +1,6 @@
 // Lecture du tableau « Espagnol – Vocabulaire » (lecture seule, partagé par lien).
 // Trois onglets : « Vocabulaire » (les mots), « Suivi » (une ligne par séance, écrite par le prof)
-// et « Soir » (la fiche du soir de chaque leçon). Garde une copie sur le téléphone pour marcher sans réseau.
+// et « Soir » (la fiche du soir de chaque leçon) ; et, facultatif, « Astuces » (les mots difficiles, étape 6). Garde une copie sur le téléphone pour marcher sans réseau.
 
 const ID_TABLEAU = "1xG8SU6emfDAjz8Xxh_GTXEgxm5i_G2ixCXKIkcobKxQ";
 const urlOnglet = nom => `https://docs.google.com/spreadsheets/d/${ID_TABLEAU}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(nom)}`;
@@ -127,6 +127,25 @@ export function tirerPregunta(soir, faites, ceSoir, avant = null, hasard = Math.
   return choix.length ? choix[Math.floor(hasard() * choix.length)] : null;
 }
 
+// Étape 6 (décisions du 28 nov., 4 bis) : l'onglet « Astuces », la liste commune des mots difficiles (prof, appli, Kevin).
+// Lu par les titres ; facultatif. Un onglet absent renvoie le 1er onglet (« Vocabulaire ») : sans « clé » et « astuce du prof », null.
+// Renvoie { clé: { cle, mot, origine, ajoute, prof (astuce du prof), phrase, blocages, deCote } }. La clé tolère des espaces autour de « | ».
+export const COLONNES_ASTUCES = ["clé", "mot", "origine", "ajouté le", "astuce du prof", "phrase perso", "blocages en séance", "mis de côté",
+  "mon astuce", "retenu le"];
+export const cleAstuce = t => (t || "").trim().replace(/\s*\|\s*/, "|");
+export function versAstuces(lignes) {
+  const titres = (lignes[0] || []).map(t => t.trim().toLowerCase());
+  if (!titres.includes("clé") || !titres.includes("astuce du prof")) return null;
+  const astuces = {};
+  const colonnes = { cle: "clé", mot: "mot", origine: "origine", ajoute: "ajouté le", prof: "astuce du prof", phrase: "phrase perso",
+    blocages: "blocages en séance", deCote: "mis de côté" };
+  for (const a of versObjets(lignes, colonnes)) {
+    const cle = cleAstuce(a.cle);
+    if (cle) astuces[cle] = { ...a, cle, origine: a.origine.toLowerCase(), deCote: /^(oui|sí|si|x)$/i.test(a.deCote) };
+  }
+  return astuces;
+}
+
 async function lireOnglet(nom, signal) {
   const rep = await fetch(urlOnglet(nom), { signal, cache: "no-store" });
   if (!rep.ok) throw new Error(`${nom} : http ${rep.status}`);
@@ -148,15 +167,18 @@ export async function chargerTableau() {
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), 8000);
   try {
+    // « Astuces » est facultatif : hors du Promise.all, son échec ne bloque rien (on garde alors celui de la copie).
+    const astucesLues = lireOnglet("Astuces", ctrl.signal).then(versAstuces).catch(() => null);
     const [vocab, suivi, soir] = await Promise.all(["Vocabulaire", "Suivi", "Soir"].map(n => lireOnglet(n, ctrl.signal)));
     const mots = versMots(vocab);
     if (!mots.length) throw new Error("vocabulaire vide ou colonnes introuvables");
-    const copie = { mots, suivi: versSuivi(suivi), soir: versSoir(soir), lu: new Date().toISOString() };
+    const astuces = (await astucesLues) || lireCopie()?.astuces || {};
+    const copie = { mots, suivi: versSuivi(suivi), soir: versSoir(soir), astuces, lu: new Date().toISOString() };
     garderCopie(copie);
     return { ...copie, horsLigne: false };
   } catch (err) {
     const copie = lireCopie();
-    if (copie) return { ...copie, horsLigne: true };
+    if (copie) return { astuces: {}, ...copie, horsLigne: true };
     throw err;
   } finally {
     clearTimeout(minuteur);
